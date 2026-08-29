@@ -11,6 +11,7 @@
             --bg: #fce4ec;
             --surface: #ffffff;
             --text: #333333;
+            --danger: #e53935;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
@@ -30,22 +31,24 @@
         label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 0.9em; }
         input, select { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 1rem; }
         
-        button.btn-action { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        button.btn-action { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: 0.2s; margin-top: 5px; }
         button.btn-action:hover { opacity: 0.9; }
+        button.btn-logout { background: #757575; margin-top: 15px; }
 
         .appointment-card { background: #fff5f8; border-left: 4px solid var(--primary); padding: 12px; margin-bottom: 10px; border-radius: 4px; }
         .appointment-card strong { color: var(--primary); }
         .time-tag { display: inline-block; background: var(--primary-light); padding: 2px 8px; border-radius: 12px; font-size: 0.8em; margin-top: 5px; }
         
         .empty-msg { text-align: center; color: #777; margin-top: 20px; }
+        .error-msg { color: var(--danger); font-size: 0.85em; margin-top: 5px; display: none; text-align: center; }
     </style>
 </head>
 <body>
 
 <div class="app-container">
     <nav class="nav-tabs">
-        <button class="tab-btn active" onclick="switchView('cliente')">App Cliente</button>
-        <button class="tab-btn" onclick="switchView('profissional')">App Profissional</button>
+        <button id="btn-tab-cliente" class="tab-btn active" onclick="switchView('cliente')">Área do Cliente</button>
+        <button id="btn-tab-profissional" class="tab-btn" onclick="switchView('profissional')">Painel da Designer</button>
     </nav>
 
     <!-- VISÃO DO CLIENTE -->
@@ -73,33 +76,78 @@
         </form>
     </div>
 
-    <!-- VISÃO DO PROFISSIONAL -->
+    <!-- VISÃO DE LOGIN DO PROFISSIONAL -->
+    <div id="view-login" class="view">
+        <h2>Acesso Restrito</h2>
+        <form id="login-form">
+            <div class="form-group">
+                <label for="pro-password">Senha de Acesso:</label>
+                <input type="password" id="pro-password" required placeholder="Digite sua senha">
+                <div id="login-error" class="error-msg">Senha incorreta! Tente novamente.</div>
+            </div>
+            <button type="submit" class="btn-action">Entrar no Painel</button>
+        </form>
+    </div>
+
+    <!-- VISÃO DO PROFISSIONAL (PROTEGIDA) -->
     <div id="view-profissional" class="view">
         <h2>Painel da Designer</h2>
         <div id="appointments-list">
             <!-- Os agendamentos serão inseridos via JS -->
         </div>
+        <button class="btn-action btn-logout" onclick="logoutPro()">Sair do Painel</button>
     </div>
 </div>
 
 <script>
-    // Solicitar permissão para notificações do sistema
+    // Configuração de segurança
+    const PRO_PASSWORD_HASH = "1234"; // Defina a senha do profissional aqui (padrão: 1234)
+    let isProAuthenticated = false;
+
+    // Permissão para notificações
     if ("Notification" in window && Notification.permission !== "granted") {
         Notification.requestPermission();
     }
 
-    function switchView(view) {
+    function switchView(target) {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        
-        if (view === 'cliente') {
+
+        if (target === 'cliente') {
             document.getElementById('view-cliente').classList.add('active');
-            event.target.classList.add('active');
-        } else {
-            document.getElementById('view-profissional').classList.add('active');
-            event.target.classList.add('active');
-            renderAppointments();
+            document.getElementById('btn-tab-cliente').classList.add('active');
+        } else if (target === 'profissional') {
+            document.getElementById('btn-tab-profissional').classList.add('active');
+            
+            // Verifica se a profissional já está autenticada
+            if (isProAuthenticated) {
+                document.getElementById('view-profissional').classList.add('active');
+                renderAppointments();
+            } else {
+                document.getElementById('view-login').classList.add('active');
+            }
         }
+    }
+
+    // Processa o login da profissional
+    document.getElementById('login-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const inputPass = document.getElementById('pro-password').value;
+        const errorMsg = document.getElementById('login-error');
+
+        if (inputPass === PRO_PASSWORD_HASH) {
+            isProAuthenticated = true;
+            errorMsg.style.display = 'none';
+            document.getElementById('pro-password').value = '';
+            switchView('profissional');
+        } else {
+            errorMsg.style.display = 'block';
+        }
+    });
+
+    function logoutPro() {
+        isProAuthenticated = false;
+        switchView('cliente');
     }
 
     // Salvar Agendamento
@@ -123,12 +171,13 @@
         this.reset();
     });
 
-    // Renderizar Agendamentos para a Profissional
+    // Renderizar Agendamentos
     function renderAppointments() {
+        if (!isProAuthenticated) return; // Bloqueio adicional no rendering JS
+
         const list = document.getElementById('appointments-list');
         const appointments = JSON.parse(localStorage.getItem('nail_appointments') || '[]');
         
-        // Ordenar por data
         appointments.sort((a,b) => new Date(a.datetime) - new Date(b.datetime));
 
         if (appointments.length === 0) {
@@ -149,7 +198,7 @@
         }).join('');
     }
 
-    // Sistema de Alertas de Tempo Real (Verifica a cada 10 segundos)
+    // Sistema de Alertas em Tempo Real
     setInterval(() => {
         const appointments = JSON.parse(localStorage.getItem('nail_appointments') || '[]');
         const now = new Date().getTime();
@@ -158,13 +207,11 @@
             const appTime = new Date(app.datetime).getTime();
             const diffMinutes = (appTime - now) / (1000 * 60);
 
-            // Alerta Cliente (30 min antes)
             if (diffMinutes > 0 && diffMinutes <= 30 && !app.alert30Sent) {
                 sendNotification("Lembrete de Agendamento (Cliente)", `Faltam 30 minutos para o seu horário de ${app.service}!`);
                 app.alert30Sent = true;
             }
 
-            // Alerta Profissional (10 min antes)
             if (diffMinutes > 0 && diffMinutes <= 10 && !app.alert10Sent) {
                 sendNotification("Atendimento Próximo (Designer)", `Sua cliente ${app.client} chega em 10 minutos para ${app.service}.`);
                 app.alert10Sent = true;
@@ -182,10 +229,9 @@
         }
     }
 
-    // Bloqueios básicos para esconder/dificultar a visualização do código-fonte no navegador
+    // Bloqueios de inspeção de tela
     document.addEventListener('contextmenu', e => e.preventDefault());
     document.onkeydown = function(e) {
-        // Bloqueia F12, Ctrl+U, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C
         if (e.keyCode == 123 || 
             (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74 || e.keyCode == 67)) || 
             (e.ctrlKey && e.keyCode == 85)) {
