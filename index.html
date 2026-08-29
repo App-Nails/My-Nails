@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nail Studio App</title>
+    <style>
+        :root {
+            --primary: #d81b60;
+            --primary-light: #f48fb1;
+            --bg: #fce4ec;
+            --surface: #ffffff;
+            --text: #333333;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg); color: var(--text); padding: 20px; display: flex; justify-content: center; }
+        .app-container { width: 100%; max-width: 500px; background: var(--surface); border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); overflow: hidden; }
+        
+        .nav-tabs { display: flex; background: var(--primary-light); }
+        .tab-btn { flex: 1; padding: 15px; border: none; background: transparent; font-weight: bold; color: var(--text); cursor: pointer; transition: 0.3s; }
+        .tab-btn.active { background: var(--primary); color: white; }
+
+        .view { display: none; padding: 20px; }
+        .view.active { display: block; }
+
+        h2 { color: var(--primary); margin-bottom: 20px; text-align: center; }
+        
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 0.9em; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 1rem; }
+        
+        button.btn-action { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        button.btn-action:hover { opacity: 0.9; }
+
+        .appointment-card { background: #fff5f8; border-left: 4px solid var(--primary); padding: 12px; margin-bottom: 10px; border-radius: 4px; }
+        .appointment-card strong { color: var(--primary); }
+        .time-tag { display: inline-block; background: var(--primary-light); padding: 2px 8px; border-radius: 12px; font-size: 0.8em; margin-top: 5px; }
+        
+        .empty-msg { text-align: center; color: #777; margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <nav class="nav-tabs">
+        <button class="tab-btn active" onclick="switchView('cliente')">App Cliente</button>
+        <button class="tab-btn" onclick="switchView('profissional')">App Profissional</button>
+    </nav>
+
+    <!-- VISÃO DO CLIENTE -->
+    <div id="view-cliente" class="view active">
+        <h2>Agende seu Horário</h2>
+        <form id="booking-form">
+            <div class="form-group">
+                <label for="client-name">Seu Nome:</label>
+                <input type="text" id="client-name" required placeholder="Digite seu nome completo">
+            </div>
+            <div class="form-group">
+                <label for="service-type">Serviço:</label>
+                <select id="service-type" required>
+                    <option value="Alongamento em Gel">Alongamento em Gel</option>
+                    <option value="Manutenção">Manutenção</option>
+                    <option value="Esmaltação em Gel">Esmaltação em Gel</option>
+                    <option value="Pé e Mão">Pé e Mão</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="app-date">Data e Horário:</label>
+                <input type="datetime-local" id="app-date" required>
+            </div>
+            <button type="submit" class="btn-action">Confirmar Agendamento</button>
+        </form>
+    </div>
+
+    <!-- VISÃO DO PROFISSIONAL -->
+    <div id="view-profissional" class="view">
+        <h2>Painel da Designer</h2>
+        <div id="appointments-list">
+            <!-- Os agendamentos serão inseridos via JS -->
+        </div>
+    </div>
+</div>
+
+<script>
+    // Solicitar permissão para notificações do sistema
+    if ("Notification" in window && Notification.permission !== "granted") {
+        Notification.requestPermission();
+    }
+
+    function switchView(view) {
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        
+        if (view === 'cliente') {
+            document.getElementById('view-cliente').classList.add('active');
+            event.target.classList.add('active');
+        } else {
+            document.getElementById('view-profissional').classList.add('active');
+            event.target.classList.add('active');
+            renderAppointments();
+        }
+    }
+
+    // Salvar Agendamento
+    document.getElementById('booking-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const appointment = {
+            id: Date.now(),
+            client: document.getElementById('client-name').value,
+            service: document.getElementById('service-type').value,
+            datetime: document.getElementById('app-date').value,
+            alert30Sent: false,
+            alert10Sent: false
+        };
+
+        const appointments = JSON.parse(localStorage.getItem('nail_appointments') || '[]');
+        appointments.push(appointment);
+        localStorage.setItem('nail_appointments', JSON.stringify(appointments));
+
+        alert('Agendamento realizado com sucesso!');
+        this.reset();
+    });
+
+    // Renderizar Agendamentos para a Profissional
+    function renderAppointments() {
+        const list = document.getElementById('appointments-list');
+        const appointments = JSON.parse(localStorage.getItem('nail_appointments') || '[]');
+        
+        // Ordenar por data
+        appointments.sort((a,b) => new Date(a.datetime) - new Date(b.datetime));
+
+        if (appointments.length === 0) {
+            list.innerHTML = '<p class="empty-msg">Nenhum horário agendado no momento.</p>';
+            return;
+        }
+
+        list.innerHTML = appointments.map(app => {
+            const dateObj = new Date(app.datetime);
+            const formattedDate = dateObj.toLocaleDateString('pt-BR') + ' às ' + dateObj.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+            return `
+                <div class="appointment-card">
+                    <strong>${app.client}</strong> - ${app.service}
+                    <br>
+                    <span class="time-tag">📅 ${formattedDate}</span>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // Sistema de Alertas de Tempo Real (Verifica a cada 10 segundos)
+    setInterval(() => {
+        const appointments = JSON.parse(localStorage.getItem('nail_appointments') || '[]');
+        const now = new Date().getTime();
+
+        appointments.forEach(app => {
+            const appTime = new Date(app.datetime).getTime();
+            const diffMinutes = (appTime - now) / (1000 * 60);
+
+            // Alerta Cliente (30 min antes)
+            if (diffMinutes > 0 && diffMinutes <= 30 && !app.alert30Sent) {
+                sendNotification("Lembrete de Agendamento (Cliente)", `Faltam 30 minutos para o seu horário de ${app.service}!`);
+                app.alert30Sent = true;
+            }
+
+            // Alerta Profissional (10 min antes)
+            if (diffMinutes > 0 && diffMinutes <= 10 && !app.alert10Sent) {
+                sendNotification("Atendimento Próximo (Designer)", `Sua cliente ${app.client} chega em 10 minutos para ${app.service}.`);
+                app.alert10Sent = true;
+            }
+        });
+
+        localStorage.setItem('nail_appointments', JSON.stringify(appointments));
+    }, 10000);
+
+    function sendNotification(title, body) {
+        if ("Notification" in window && Notification.permission === "granted") {
+            new Notification(title, { body: body });
+        } else {
+            alert(`${title}\n${body}`);
+        }
+    }
+
+    // Bloqueios básicos para esconder/dificultar a visualização do código-fonte no navegador
+    document.addEventListener('contextmenu', e => e.preventDefault());
+    document.onkeydown = function(e) {
+        // Bloqueia F12, Ctrl+U, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C
+        if (e.keyCode == 123 || 
+            (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74 || e.keyCode == 67)) || 
+            (e.ctrlKey && e.keyCode == 85)) {
+            return false;
+        }
+    };
+</script>
+</body>
+</html>
