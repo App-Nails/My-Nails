@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nail Studio App</title>
+    <title>Nail Studio - Agendamento</title>
     <style>
         :root {
             --primary: #d81b60;
@@ -11,19 +11,11 @@
             --bg: #fce4ec;
             --surface: #ffffff;
             --text: #333333;
-            --danger: #e53935;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background-color: var(--bg); color: var(--text); padding: 20px; display: flex; justify-content: center; }
-        .app-container { width: 100%; max-width: 500px; background: var(--surface); border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); overflow: hidden; }
-        
-        .nav-tabs { display: flex; background: var(--primary-light); }
-        .tab-btn { flex: 1; padding: 15px; border: none; background: transparent; font-weight: bold; color: var(--text); cursor: pointer; transition: 0.3s; }
-        .tab-btn.active { background: var(--primary); color: white; }
-
-        .view { display: none; padding: 20px; }
-        .view.active { display: block; }
+        .app-container { width: 100%; max-width: 450px; background: var(--surface); border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); padding: 25px; }
 
         h2 { color: var(--primary); margin-bottom: 20px; text-align: center; }
         
@@ -31,123 +23,40 @@
         label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 0.9em; }
         input, select { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 1rem; }
         
-        button.btn-action { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: 0.2s; margin-top: 5px; }
+        button.btn-action { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: 0.2s; margin-top: 10px; }
         button.btn-action:hover { opacity: 0.9; }
-        button.btn-logout { background: #757575; margin-top: 15px; }
-
-        .appointment-card { background: #fff5f8; border-left: 4px solid var(--primary); padding: 12px; margin-bottom: 10px; border-radius: 4px; }
-        .appointment-card strong { color: var(--primary); }
-        .time-tag { display: inline-block; background: var(--primary-light); padding: 2px 8px; border-radius: 12px; font-size: 0.8em; margin-top: 5px; }
-        
-        .empty-msg { text-align: center; color: #777; margin-top: 20px; }
-        .error-msg { color: var(--danger); font-size: 0.85em; margin-top: 5px; display: none; text-align: center; }
     </style>
 </head>
 <body>
 
 <div class="app-container">
-    <nav class="nav-tabs">
-        <button id="btn-tab-cliente" class="tab-btn active" onclick="switchView('cliente')">Área do Cliente</button>
-        <button id="btn-tab-profissional" class="tab-btn" onclick="switchView('profissional')">Painel da Designer</button>
-    </nav>
-
-    <!-- VISÃO DO CLIENTE -->
-    <div id="view-cliente" class="view active">
-        <h2>Agende seu Horário</h2>
-        <form id="booking-form">
-            <div class="form-group">
-                <label for="client-name">Seu Nome:</label>
-                <input type="text" id="client-name" required placeholder="Digite seu nome completo">
-            </div>
-            <div class="form-group">
-                <label for="service-type">Serviço:</label>
-                <select id="service-type" required>
-                    <option value="Alongamento em Gel">Alongamento em Gel</option>
-                    <option value="Manutenção">Manutenção</option>
-                    <option value="Esmaltação em Gel">Esmaltação em Gel</option>
-                    <option value="Pé e Mão">Pé e Mão</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="app-date">Data e Horário:</label>
-                <input type="datetime-local" id="app-date" required>
-            </div>
-            <button type="submit" class="btn-action">Confirmar Agendamento</button>
-        </form>
-    </div>
-
-    <!-- VISÃO DE LOGIN DO PROFISSIONAL -->
-    <div id="view-login" class="view">
-        <h2>Acesso Restrito</h2>
-        <form id="login-form">
-            <div class="form-group">
-                <label for="pro-password">Senha de Acesso:</label>
-                <input type="password" id="pro-password" required placeholder="Digite sua senha">
-                <div id="login-error" class="error-msg">Senha incorreta! Tente novamente.</div>
-            </div>
-            <button type="submit" class="btn-action">Entrar no Painel</button>
-        </form>
-    </div>
-
-    <!-- VISÃO DO PROFISSIONAL (PROTEGIDA) -->
-    <div id="view-profissional" class="view">
-        <h2>Painel da Designer</h2>
-        <div id="appointments-list">
-            <!-- Os agendamentos serão inseridos via JS -->
+    <h2>Agende seu Horário</h2>
+    <form id="booking-form">
+        <div class="form-group">
+            <label for="client-name">Seu Nome:</label>
+            <input type="text" id="client-name" required placeholder="Digite seu nome completo">
         </div>
-        <button class="btn-action btn-logout" onclick="logoutPro()">Sair do Painel</button>
-    </div>
+        <div class="form-group">
+            <label for="service-type">Serviço:</label>
+            <select id="service-type" required>
+                <option value="Alongamento em Gel">Alongamento em Gel</option>
+                <option value="Manutenção">Manutenção</option>
+                <option value="Esmaltação em Gel">Esmaltação em Gel</option>
+                <option value="Pé e Mão">Pé e Mão</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="app-date">Data e Horário:</label>
+            <input type="datetime-local" id="app-date" required>
+        </div>
+        <button type="submit" class="btn-action">Confirmar Agendamento</button>
+    </form>
 </div>
 
 <script>
-    // Configuração de segurança
-    const PRO_PASSWORD_HASH = "1234"; // Defina a senha do profissional aqui (padrão: 1234)
-    let isProAuthenticated = false;
-
-    // Permissão para notificações
+    // Solicitar permissão de notificação (alerta de 30 minutos)
     if ("Notification" in window && Notification.permission !== "granted") {
         Notification.requestPermission();
-    }
-
-    function switchView(target) {
-        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-
-        if (target === 'cliente') {
-            document.getElementById('view-cliente').classList.add('active');
-            document.getElementById('btn-tab-cliente').classList.add('active');
-        } else if (target === 'profissional') {
-            document.getElementById('btn-tab-profissional').classList.add('active');
-            
-            // Verifica se a profissional já está autenticada
-            if (isProAuthenticated) {
-                document.getElementById('view-profissional').classList.add('active');
-                renderAppointments();
-            } else {
-                document.getElementById('view-login').classList.add('active');
-            }
-        }
-    }
-
-    // Processa o login da profissional
-    document.getElementById('login-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const inputPass = document.getElementById('pro-password').value;
-        const errorMsg = document.getElementById('login-error');
-
-        if (inputPass === PRO_PASSWORD_HASH) {
-            isProAuthenticated = true;
-            errorMsg.style.display = 'none';
-            document.getElementById('pro-password').value = '';
-            switchView('profissional');
-        } else {
-            errorMsg.style.display = 'block';
-        }
-    });
-
-    function logoutPro() {
-        isProAuthenticated = false;
-        switchView('cliente');
     }
 
     // Salvar Agendamento
@@ -171,34 +80,7 @@
         this.reset();
     });
 
-    // Renderizar Agendamentos
-    function renderAppointments() {
-        if (!isProAuthenticated) return; // Bloqueio adicional no rendering JS
-
-        const list = document.getElementById('appointments-list');
-        const appointments = JSON.parse(localStorage.getItem('nail_appointments') || '[]');
-        
-        appointments.sort((a,b) => new Date(a.datetime) - new Date(b.datetime));
-
-        if (appointments.length === 0) {
-            list.innerHTML = '<p class="empty-msg">Nenhum horário agendado no momento.</p>';
-            return;
-        }
-
-        list.innerHTML = appointments.map(app => {
-            const dateObj = new Date(app.datetime);
-            const formattedDate = dateObj.toLocaleDateString('pt-BR') + ' às ' + dateObj.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
-            return `
-                <div class="appointment-card">
-                    <strong>${app.client}</strong> - ${app.service}
-                    <br>
-                    <span class="time-tag">📅 ${formattedDate}</span>
-                </div>
-            `;
-        }).join('');
-    }
-
-    // Sistema de Alertas em Tempo Real
+    // Verificação de alerta do Cliente (30 min antes)
     setInterval(() => {
         const appointments = JSON.parse(localStorage.getItem('nail_appointments') || '[]');
         const now = new Date().getTime();
@@ -208,13 +90,8 @@
             const diffMinutes = (appTime - now) / (1000 * 60);
 
             if (diffMinutes > 0 && diffMinutes <= 30 && !app.alert30Sent) {
-                sendNotification("Lembrete de Agendamento (Cliente)", `Faltam 30 minutos para o seu horário de ${app.service}!`);
+                sendNotification("Lembrete de Agendamento", `Faltam 30 minutos para o seu horário de ${app.service}!`);
                 app.alert30Sent = true;
-            }
-
-            if (diffMinutes > 0 && diffMinutes <= 10 && !app.alert10Sent) {
-                sendNotification("Atendimento Próximo (Designer)", `Sua cliente ${app.client} chega em 10 minutos para ${app.service}.`);
-                app.alert10Sent = true;
             }
         });
 
@@ -229,7 +106,7 @@
         }
     }
 
-    // Bloqueios de inspeção de tela
+    // Bloqueios de inspeção de código
     document.addEventListener('contextmenu', e => e.preventDefault());
     document.onkeydown = function(e) {
         if (e.keyCode == 123 || 
