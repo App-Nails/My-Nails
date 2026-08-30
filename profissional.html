@@ -459,18 +459,78 @@
     });
 
     // RESET DE SENHA
-    document.getElementById('forgot-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        clearMsgs();
+    let generatedCode = null;
+let targetProfPhone = null;
 
-        const cleanPhone = cleanPhoneNumber(document.getElementById('reset-phone').value);
-        const newPass = document.getElementById('new-pass').value;
-        const confirmPass = document.getElementById('confirm-new-pass').value;
+// ETAPA 1: Gerar o código e redirecionar para o WhatsApp
+function sendResetCode() {
+    clearMsgs();
+    const rawPhone = document.getElementById('reset-phone').value;
+    const cleanPhone = cleanPhoneNumber(rawPhone);
 
-        if (newPass !== confirmPass) {
-            showMsg('As senhas digitadas não coincidem!', true);
-            return;
-        }
+    const professionals = JSON.parse(localStorage.getItem('nail_professionals') || '[]');
+    const prof = professionals.find(p => cleanPhoneNumber(p.phone) === cleanPhone);
+
+    if (!prof) {
+        showMsg('Número de WhatsApp não encontrado no cadastro!', true);
+        return;
+    }
+
+    // Gerar código aleatório de 6 dígitos
+    generatedCode = Math.floor(100000 + Math.random() * 900000).toString();
+    targetProfPhone = cleanPhone;
+
+    // Abrir o WhatsApp do profissional com a mensagem pré-formatada contendo o código
+    const message = encodeURIComponent(`Seu código de verificação para redefinir a senha do Nail Studio é: *${generatedCode}*`);
+    window.open(`https://wa.me/55${cleanPhone}?text=${message}`, '_blank');
+
+    // Alternar formulário para a etapa 2
+    document.getElementById('forgot-step-1').classList.add('hidden');
+    document.getElementById('forgot-form').classList.remove('hidden');
+    showMsg('Código enviado! Verifique seu WhatsApp e insira o código abaixo.');
+}
+
+// ETAPA 2: Validar o código digitado e atualizar a senha
+document.getElementById('forgot-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    clearMsgs();
+
+    const inputCode = document.getElementById('reset-code').value.trim();
+    const newPass = document.getElementById('new-pass').value;
+    const confirmPass = document.getElementById('confirm-new-pass').value;
+
+    if (inputCode !== generatedCode) {
+        showMsg('Código de segurança incorreto!', true);
+        return;
+    }
+
+    if (newPass !== confirmPass) {
+        showMsg('As senhas digitadas não coincidem!', true);
+        return;
+    }
+
+    const professionals = JSON.parse(localStorage.getItem('nail_professionals') || '[]');
+    const index = professionals.findIndex(p => cleanPhoneNumber(p.phone) === targetProfPhone);
+
+    if (index !== -1) {
+        professionals[index].pass = newPass;
+        localStorage.setItem('nail_professionals', JSON.stringify(professionals));
+
+        // Limpa os dados temporários
+        generatedCode = null;
+        targetProfPhone = null;
+
+        showMsg('Senha alterada com sucesso!');
+        setTimeout(() => {
+            // Reset de tela para o estado padrão do forgot
+            document.getElementById('forgot-step-1').classList.remove('hidden');
+            document.getElementById('forgot-form').classList.add('hidden');
+            document.getElementById('forgot-form').reset();
+            
+            showScreen('login');
+        }, 1500);
+    }
+});
 
         const professionals = JSON.parse(localStorage.getItem('nail_professionals') || '[]');
         const index = professionals.findIndex(p => cleanPhoneNumber(p.phone) === cleanPhone);
