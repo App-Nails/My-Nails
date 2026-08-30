@@ -176,6 +176,61 @@
 
         .card strong { color: var(--primary); }
 
+        /* PAINEL DE MÉTRICAS E FINANCEIRO */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .metric-card {
+            background: #fafafa;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .metric-card h4 {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .metric-card .value {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .metric-card .count {
+            font-size: 0.75rem;
+            color: #777;
+            margin-top: 2px;
+        }
+
+        .btn-status {
+            margin-top: 8px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            border: none;
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-status.pending {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .btn-status.completed {
+            background: #d1fae5;
+            color: #047857;
+        }
+
         .link-box {
             background: #eef2ff;
             border: 1px dashed #6366f1;
@@ -275,9 +330,8 @@
         <button type="button" class="btn-link" onclick="showScreen('login')">Já tem conta? Voltar ao Login</button>
     </div>
 
-    <!-- TELA 3: ESQUECEU A SENHA (VALIDAÇÃO DE SEGURANÇA) -->
+    <!-- TELA 3: ESQUECEU A SENHA -->
     <div id="screen-forgot" class="hidden">
-        <!-- ETAPA A: Informar Telefone -->
         <div id="forgot-step-1">
             <p style="font-size:0.85rem; color:#555; margin-bottom:12px;">
                 Informe seu WhatsApp para carregar sua pergunta de segurança.
@@ -289,7 +343,6 @@
             <button type="button" class="btn-action" onclick="fetchSecurityQuestion()">Verificar Conta</button>
         </div>
 
-        <!-- ETAPA B: Responder Pergunta e Criar Nova Senha -->
         <form id="forgot-form" class="hidden">
             <div class="form-group">
                 <label id="lbl-security-question">🛡️ Pergunta de Segurança</label>
@@ -311,6 +364,20 @@
 
     <!-- TELA 4: DASHBOARD DO PROFISSIONAL -->
     <div id="screen-dashboard" class="hidden">
+        <!-- PAINEL DE RESUMO FINANCEIRO E SERVIÇOS -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <h4>Hoje</h4>
+                <div class="value" id="val-today">R$ 0,00</div>
+                <div class="count" id="count-today">0 serviço(s)</div>
+            </div>
+            <div class="metric-card">
+                <h4>Este Mês</h4>
+                <div class="value" id="val-month">R$ 0,00</div>
+                <div class="count" id="count-month">0 serviço(s)</div>
+            </div>
+        </div>
+
         <div class="tab-buttons">
             <button id="tab-agenda-btn" class="tab-btn active" onclick="switchDashTab('agenda')">Minha Agenda</button>
             <button id="tab-link-btn" class="tab-btn" onclick="switchDashTab('link')">Meu Link</button>
@@ -359,7 +426,6 @@
     let loggedProf = null;
     let targetProf = null;
 
-    // Renderiza lista de serviços no cadastro
     const servicesGrid = document.getElementById('register-services');
     servicesGrid.innerHTML = availableServices.map(s => `
         <label class="service-checkbox">
@@ -412,7 +478,7 @@
         return phone.replace(/\D/g, '');
     }
 
-    // CADASTRO DE PROFISSIONAL
+    // CADASTRO
     document.getElementById('register-form').addEventListener('submit', function(e) {
         e.preventDefault();
         clearMsgs();
@@ -487,7 +553,7 @@
         loadDashboard();
     });
 
-    // RECUPERAÇÃO - ETAPA 1: Buscar Pergunta de Segurança
+    // RECUPERAÇÃO DE SENHA
     function fetchSecurityQuestion() {
         clearMsgs();
         const rawPhone = document.getElementById('reset-phone').value;
@@ -509,7 +575,6 @@
         document.getElementById('forgot-form').classList.remove('hidden');
     }
 
-    // RECUPERAÇÃO - ETAPA 2: Validar Resposta Secreta e Salvar Senha
     document.getElementById('forgot-form').addEventListener('submit', function(e) {
         e.preventDefault();
         clearMsgs();
@@ -544,12 +609,67 @@
         }
     });
 
-    // DASHBOARD
+    // DASHBOARD & CÁLCULOS FINANCEIROS
     function switchDashTab(tab) {
         document.getElementById('dash-agenda').classList.toggle('hidden', tab !== 'agenda');
         document.getElementById('dash-link').classList.toggle('hidden', tab !== 'link');
         document.getElementById('tab-agenda-btn').classList.toggle('active', tab === 'agenda');
         document.getElementById('tab-link-btn').classList.toggle('active', tab === 'link');
+    }
+
+    function toggleStatus(appId) {
+        const appointments = JSON.parse(localStorage.getItem('nail_appointments') || '[]');
+        const app = appointments.find(a => a.id === appId);
+        if (app) {
+            app.status = app.status === 'completed' ? 'pending' : 'completed';
+            localStorage.setItem('nail_appointments', JSON.stringify(appointments));
+            loadDashboard();
+        }
+    }
+
+    function updatePrice(appId, newPrice) {
+        const appointments = JSON.parse(localStorage.getItem('nail_appointments') || '[]');
+        const app = appointments.find(a => a.id === appId);
+        if (app) {
+            app.price = parseFloat(newPrice) || 0;
+            localStorage.setItem('nail_appointments', JSON.stringify(appointments));
+            calculateMetrics(appointments.filter(a => a.profId === loggedProf.id));
+        }
+    }
+
+    function calculateMetrics(profAppointments) {
+        const now = new Date();
+        const todayStr = now.toISOString().split('T')[0]; // YYYY-MM-DD
+        const currentMonthStr = todayStr.substring(0, 7); // YYYY-MM
+
+        let todaySum = 0;
+        let todayCount = 0;
+        let monthSum = 0;
+        let monthCount = 0;
+
+        profAppointments.forEach(app => {
+            const appDate = app.datetime.split('T')[0];
+            const appMonth = appDate.substring(0, 7);
+            const price = parseFloat(app.price) || 0;
+
+            // Contabiliza serviços finalizados no dia e mês
+            if (app.status === 'completed') {
+                if (appDate === todayStr) {
+                    todaySum += price;
+                    todayCount++;
+                }
+                if (appMonth === currentMonthStr) {
+                    monthSum += price;
+                    monthCount++;
+                }
+            }
+        });
+
+        document.getElementById('val-today').innerText = `R$ ${todaySum.toFixed(2).replace('.', ',')}`;
+        document.getElementById('count-today').innerText = `${todayCount} serviço(s) concluído(s)`;
+
+        document.getElementById('val-month').innerText = `R$ ${monthSum.toFixed(2).replace('.', ',')}`;
+        document.getElementById('count-month').innerText = `${monthCount} serviço(s) concluído(s)`;
     }
 
     function loadDashboard() {
@@ -562,6 +682,8 @@
         const appointments = JSON.parse(localStorage.getItem('nail_appointments') || '[]');
         const profAppointments = appointments.filter(a => a.profId === loggedProf.id);
 
+        calculateMetrics(profAppointments);
+
         const listEl = document.getElementById('appointments-list');
 
         if (profAppointments.length === 0) {
@@ -572,6 +694,10 @@
         profAppointments.sort((a, b) => a.datetime.localeCompare(b.datetime));
 
         listEl.innerHTML = profAppointments.map(app => {
+            if (!app.id) app.id = 'app_' + Math.random().toString(36).substr(2, 9);
+            const isCompleted = app.status === 'completed';
+            const price = app.price !== undefined ? app.price : 0;
+
             const [date, time] = app.datetime.split('T');
             const [year, month, day] = date.split('-');
 
@@ -580,11 +706,24 @@
                     <strong>Cliente:</strong> ${app.client}<br>
                     <strong>WhatsApp:</strong> ${app.phone}<br>
                     <strong>Serviço:</strong> ${app.service}<br>
-                    <strong>Data:</strong> ${day}/${month}/${year}<br>
-                    <strong>Horário:</strong> ${time} hs
+                    <strong>Data:</strong> ${day}/${month}/${year} às ${time} hs<br>
+                    
+                    <div style="margin-top: 10px; display: flex; gap: 8px; align-items: center;">
+                        <label style="font-weight: bold; font-size: 0.8rem; margin: 0;">Valor R$:</label>
+                        <input type="number" step="0.01" value="${price}" 
+                            onchange="updatePrice('${app.id}', this.value)" 
+                            style="width: 100px; padding: 4px 8px; font-size: 0.85rem;">
+                    </div>
+
+                    <button type="button" class="btn-status ${isCompleted ? 'completed' : 'pending'}" onclick="toggleStatus('${app.id}')">
+                        ${isCompleted ? '✓ Concluído' : '⏳ Marcar como Concluído'}
+                    </button>
                 </div>
             `;
         }).join('');
+
+        // Atualiza armazenamento caso tenha gerado IDs faltantes
+        localStorage.setItem('nail_appointments', JSON.stringify(appointments));
     }
 
     function copyBookingLink() {
