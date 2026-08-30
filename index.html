@@ -1,248 +1,4 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agendamento - Studio de Unhas</title>
-    <style>
-        :root {
-            --primary: #d81b60;
-            --primary-dark: #c2185b;
-            --surface: #ffffff;
-            --background: #f8bbd0;
-            --text-main: #2c3e50;
-            --text-muted: #64748b;
-            --border: #e2e8f0;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            -webkit-user-select: none; /* Desativa seleção de texto */
-            -ms-user-select: none;
-            user-select: none;
-        }
-
-        body {
-            background: linear-gradient(135deg, #fce4ec 0%, var(--background) 100%);
-            color: var(--text-main);
-            min-height: 100vh;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 480px;
-            background: var(--surface);
-            border-radius: 20px;
-            box-shadow: 0 12px 28px rgba(216, 27, 96, 0.15);
-            padding: 28px 24px;
-        }
-
-        .prof-title {
-            color: var(--primary);
-            font-size: 1.8rem;
-            font-weight: 800;
-            text-align: center;
-            margin-bottom: 12px;
-            text-transform: capitalize;
-        }
-
-        .address-box {
-            background: #fff0f6;
-            border: 1px solid #f8bbd0;
-            border-radius: 12px;
-            padding: 12px;
-            margin-bottom: 20px;
-            text-align: center;
-            font-size: 0.88rem;
-        }
-
-        .address-box strong {
-            color: var(--primary-dark);
-            display: block;
-            margin-bottom: 4px;
-        }
-
-        .form-group {
-            margin-bottom: 16px;
-        }
-
-        label {
-            display: block;
-            font-weight: 600;
-            font-size: 0.88rem;
-            margin-bottom: 6px;
-        }
-
-        input, select {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid var(--border);
-            border-radius: 10px;
-            font-size: 0.95rem;
-            outline: none;
-            background: #fafafa;
-            -webkit-user-select: auto; /* Permite digitar nos campos */
-            -ms-user-select: auto;
-            user-select: auto;
-        }
-
-        input:focus, select:focus {
-            border-color: var(--primary);
-            background: #fff;
-        }
-
-        .slots-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            margin-top: 8px;
-        }
-
-        .slot-btn {
-            padding: 10px;
-            border: 2px solid var(--border);
-            border-radius: 10px;
-            background: #fff;
-            text-align: center;
-            font-weight: 600;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .slot-btn.selected {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-        }
-
-        .btn-submit {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 1rem;
-            font-weight: 700;
-            cursor: pointer;
-            margin-top: 20px;
-        }
-
-        .alert-box {
-            padding: 12px;
-            border-radius: 10px;
-            font-size: 0.88rem;
-            margin-bottom: 15px;
-            display: none;
-        }
-
-        .alert-error { background: #fee2e2; color: #991b1b; }
-        .alert-success { background: #d1fae5; color: #065f46; }
-    </style>
-</head>
-<body>
-
-<div class="container">
-    <div id="prof-header" class="prof-title">Atendimento</div>
-    
-    <div id="address-container" class="address-box">
-        <strong>📍 Endereço do Local:</strong>
-        <span id="prof-address-display">Carregando endereço...</span>
-    </div>
-
-    <div id="alert-msg" class="alert-box"></div>
-
-    <form id="booking-form">
-        <div class="form-group">
-            <label for="client-name">👤 Seu Nome Completo</label>
-            <input type="text" id="client-name" required placeholder="Digite seu nome">
-        </div>
-
-        <div class="form-group">
-            <label for="client-phone">📱 Seu WhatsApp</label>
-            <input type="tel" id="client-phone" required placeholder="(83) 9XXXX-XXXX">
-        </div>
-
-        <div class="form-group">
-            <label for="service-select">💅 Selecione o Serviço</label>
-            <select id="service-select" required>
-                <option value="">Selecione um serviço...</option>
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label for="booking-date">📅 Data do Agendamento</label>
-            <input type="date" id="booking-date" required>
-        </div>
-
-        <div class="form-group">
-            <label>⏰ Horários para a Data Selecionada</label>
-            <div id="slots-container" class="slots-grid">
-                <p style="grid-column: span 2; font-size: 0.85rem; color: #666;">Selecione uma data para ver os horários.</p>
-            </div>
-        </div>
-
-        <button type="submit" class="btn-submit">Confirmar Agendamento</button>
-    </form>
-</div>
-
-<script>
-    // ==========================================
-    // PROTEÇÃO CONTRA CTRL+U E BOTÃO DIREITO
-    // ==========================================
-    
-    // 1. Bloqueia o clique com o botão direito (menu de contexto)
-    document.addEventListener('contextmenu', function(e) {
-        e.preventDefault();
-    });
-
-    // 2. Bloqueia os atalhos de teclado de inspeção e código-fonte
-    document.addEventListener('keydown', function(e) {
-        // Bloqueia Ctrl+U
-        if (e.ctrlKey && (e.key === 'u' || e.key === 'U')) {
-            e.preventDefault();
-            return false;
-        }
-
-        // Bloqueia F12
-        if (e.key === 'F12') {
-            e.preventDefault();
-            return false;
-        }
-
-        // Bloqueia Ctrl+Shift+I e Ctrl+Shift+J
-        if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j')) {
-            e.preventDefault();
-            return false;
-        }
-
-        // Bloqueia Ctrl+S
-        if (e.ctrlKey && (e.key === 's' || e.key === 'S')) {
-            e.preventDefault();
-            return false;
-        }
-    });
-
-    // ==========================================
-    // LÓGICA DE AGENDAMENTO
-    // ==========================================
-    let activeProf = null;
-    let selectedSlot = null;
-
-    function getQueryParam(param) {
-        const urlParams = new URLSearchParams(window.location.search);
-        return urlParams.get(param);
-    }
-
-    function loadProfessionalData() {
+function loadProfessionalData() {
         const profId = getQueryParam('prof');
         const professionals = JSON.parse(localStorage.getItem('nail_professionals') || '[]');
         
@@ -272,9 +28,14 @@
             });
         }
 
-        // Define a data mínima como hoje
+        // Define a data do campo como HOJE por padrão
+        const dateInput = document.getElementById('booking-date');
         const today = new Date().toISOString().split('T')[0];
-        document.getElementById('booking-date').setAttribute('min', today);
+        dateInput.value = today;
+        dateInput.setAttribute('min', today);
+
+        // Renderiza os horários imediatamente ao carregar a página
+        renderTimeSlots();
     }
 
     function renderTimeSlots() {
@@ -282,7 +43,33 @@
         slotsGrid.innerHTML = '';
         selectedSlot = null;
 
-        const availableSlots = activeProf && activeProf.availableSlots ? activeProf.availableSlots : ["08:00", "09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00", "17:00"];
+        const selectedDate = document.getElementById('booking-date').value;
+        if (!selectedDate) {
+            slotsGrid.innerHTML = '<p style="grid-column: span 2; font-size: 0.85rem; color: #666;">Selecione uma data para ver os horários.</p>';
+            return;
+        }
+
+        // Lista padrão de horários do profissional
+        const defaultSlots = ["08:00", "09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00", "17:00"];
+        const baseSlots = activeProf && activeProf.availableSlots && activeProf.availableSlots.length > 0 
+            ? activeProf.availableSlots 
+            : defaultSlots;
+
+        // Busca agendamentos existentes no localStorage
+        const appointments = JSON.parse(localStorage.getItem('nail_appointments') || '[]');
+        
+        // Filtra os horários já ocupados para a data e profissional selecionados
+        const bookedSlots = appointments
+            .filter(app => app.profId === activeProf.id && app.datetime.startsWith(selectedDate))
+            .map(app => app.datetime.split('T')[1]);
+
+        // Exibe apenas os horários livres
+        const availableSlots = baseSlots.filter(time => !bookedSlots.includes(time));
+
+        if (availableSlots.length === 0) {
+            slotsGrid.innerHTML = '<p style="grid-column: span 2; font-size: 0.85rem; color: #c2185b;">Nenhum horário disponível para esta data.</p>';
+            return;
+        }
 
         availableSlots.forEach(time => {
             const btn = document.createElement('div');
@@ -296,60 +83,3 @@
             slotsGrid.appendChild(btn);
         });
     }
-
-    document.getElementById('booking-date').addEventListener('change', renderTimeSlots);
-
-    document.getElementById('booking-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const alertBox = document.getElementById('alert-msg');
-        alertBox.style.display = 'none';
-
-        if (!activeProf) {
-            alertBox.className = 'alert-box alert-error';
-            alertBox.innerText = 'Profissional não identificado.';
-            alertBox.style.display = 'block';
-            return;
-        }
-
-        if (!selectedSlot) {
-            alertBox.className = 'alert-box alert-error';
-            alertBox.innerText = 'Por favor, selecione um horário.';
-            alertBox.style.display = 'block';
-            return;
-        }
-
-        const name = document.getElementById('client-name').value.trim();
-        const phone = document.getElementById('client-phone').value.trim();
-        const serviceObj = JSON.parse(document.getElementById('service-select').value);
-        const date = document.getElementById('booking-date').value;
-
-        const appointments = JSON.parse(localStorage.getItem('nail_appointments') || '[]');
-        
-        const newAppointment = {
-            id: 'app_' + Date.now(),
-            profId: activeProf.id,
-            client: name,
-            phone: phone,
-            service: serviceObj.name,
-            price: serviceObj.price,
-            datetime: `${date}T${selectedSlot}`,
-            status: 'pending'
-        };
-
-        appointments.push(newAppointment);
-        localStorage.setItem('nail_appointments', JSON.stringify(appointments));
-
-        alertBox.className = 'alert-box alert-success';
-        alertBox.innerText = 'Agendamento realizado com sucesso!';
-        alertBox.style.display = 'block';
-
-        document.getElementById('booking-form').reset();
-        document.getElementById('slots-container').innerHTML = '<p style="grid-column: span 2; font-size: 0.85rem; color: #666;">Selecione uma data para ver os horários.</p>';
-    });
-
-    loadProfessionalData();
-</script>
-
-</body>
-</html>
