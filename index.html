@@ -4,12 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nail Studio - Agendamento</title>
+    <!-- Bibliotecas de Datepicker Personalizado -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_pink.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
     <style>
         :root {
             --primary: #d81b60;
             --primary-hover: #c2185b;
             --primary-light: #fce4ec;
-            --accent: #f48fb1;
             --surface: #ffffff;
             --text-main: #2c3e50;
             --text-muted: #7f8c8d;
@@ -52,7 +56,6 @@
             color: var(--primary); 
             font-size: 1.6rem;
             font-weight: 700;
-            letter-spacing: -0.5px;
         }
 
         .header-title p {
@@ -75,10 +78,6 @@
             color: var(--text-main);
         }
 
-        label .icon {
-            font-size: 1rem;
-        }
-
         input, select { 
             width: 100%; 
             padding: 12px 16px; 
@@ -89,35 +88,15 @@
             background-color: #fafafa;
             transition: all 0.25s ease;
             outline: none;
-            appearance: none;
-            -webkit-appearance: none;
         }
 
         select {
+            appearance: none;
+            -webkit-appearance: none;
             background-image: url("data:image/svg+xml;utf8,<svg fill='%23d81b60' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
             background-repeat: no-repeat;
             background-position: right 12px center;
             padding-right: 40px;
-        }
-
-        /* Estilização dos campos de Data e Hora */
-        input[type="date"], input[type="time"] {
-            position: relative;
-            cursor: pointer;
-        }
-
-        input[type="date"]::-webkit-calendar-picker-indicator,
-        input[type="time"]::-webkit-calendar-picker-indicator {
-            cursor: pointer;
-            filter: invert(20%) sepia(85%) saturate(3000%) hue-rotate(320deg) brightness(90%) contrast(90%);
-            opacity: 0.8;
-            transition: transform 0.2s ease;
-        }
-
-        input[type="date"]::-webkit-calendar-picker-indicator:hover,
-        input[type="time"]::-webkit-calendar-picker-indicator:hover {
-            transform: scale(1.15);
-            opacity: 1;
         }
 
         input:focus, select:focus {
@@ -126,10 +105,17 @@
             box-shadow: 0 0 0 4px rgba(216, 27, 96, 0.1);
         }
 
-        .picker-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
+        /* Estilização do Calendário Customizado */
+        .flatpickr-calendar {
+            border-radius: 16px !important;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important;
+            border: none !important;
+            background: #ffffff !important;
+        }
+
+        .flatpickr-day.selected {
+            background: var(--primary) !important;
+            border-color: var(--primary) !important;
         }
 
         button.btn-action { 
@@ -151,10 +137,6 @@
             transform: translateY(-2px);
             box-shadow: 0 8px 20px rgba(216, 27, 96, 0.35);
         }
-
-        button.btn-action:active {
-            transform: translateY(0);
-        }
     </style>
 </head>
 <body>
@@ -167,12 +149,12 @@
 
     <form id="booking-form">
         <div class="form-group">
-            <label for="client-name"><span class="icon">👤</span> Seu Nome</label>
+            <label for="client-name">👤 Seu Nome</label>
             <input type="text" id="client-name" required placeholder="Digite seu nome completo">
         </div>
 
         <div class="form-group">
-            <label for="service-type"><span class="icon">💅</span> Serviço</label>
+            <label for="service-type">💅 Serviço</label>
             <select id="service-type" required>
                 <option value="Alongamento em Gel">Alongamento em Gel</option>
                 <option value="Manutenção">Manutenção</option>
@@ -181,16 +163,14 @@
             </select>
         </div>
 
-        <div class="picker-grid">
-            <div class="form-group" style="margin-bottom: 0;">
-                <label for="app-date-only"><span class="icon">📅</span> Selecione a Data</label>
-                <input type="date" id="app-date-only" required>
-            </div>
+        <div class="form-group">
+            <label for="app-date-only">📅 Selecione a Data</label>
+            <input type="text" id="app-date-only" required placeholder="Clique para escolher a data">
+        </div>
 
-            <div class="form-group" style="margin-bottom: 0;">
-                <label for="app-time-only"><span class="icon">⏰</span> Selecione o Horário</label>
-                <input type="time" id="app-time-only" required>
-            </div>
+        <div class="form-group">
+            <label for="app-time-only">⏰ Selecione o Horário</label>
+            <input type="text" id="app-time-only" required placeholder="Clique para escolher o horário">
         </div>
 
         <button type="submit" class="btn-action">Confirmar Agendamento</button>
@@ -198,6 +178,27 @@
 </div>
 
 <script>
+    // Inicializa o Calendário Bonito em Português
+    flatpickr("#app-date-only", {
+        locale: "pt",
+        dateFormat: "Y-m-d",
+        altInput: true,
+        altFormat: "d/m/Y",
+        minDate: "today",
+        disableMobile: "true"
+    });
+
+    // Inicializa o Seletor de Horário Bonito
+    flatpickr("#app-time-only", {
+        enableTime: true,
+        noCalendar: true,
+        dateFormat: "H:i",
+        time_24hr: true,
+        minTime: "08:00",
+        maxTime: "19:00",
+        disableMobile: "true"
+    });
+
     if ("Notification" in window && Notification.permission !== "granted") {
         Notification.requestPermission();
     }
@@ -227,7 +228,7 @@
         this.reset();
     });
 
-    // Verificação de alerta do Cliente (30 min antes)
+    // Lembrete de 30 minutos
     setInterval(() => {
         const appointments = JSON.parse(localStorage.getItem('nail_appointments') || '[]');
         const now = new Date().getTime();
@@ -253,7 +254,7 @@
         }
     }
 
-    // Bloqueios de inspeção de código
+    // Bloqueios de segurança
     document.addEventListener('contextmenu', e => e.preventDefault());
     document.onkeydown = function(e) {
         if (e.keyCode == 123 || 
