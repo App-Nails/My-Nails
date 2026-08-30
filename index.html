@@ -3,23 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agendamento - Nail Studio</title>
+    <title>Agendamento - Studio de Unhas</title>
     <style>
         :root {
             --primary: #d81b60;
             --primary-dark: #c2185b;
             --surface: #ffffff;
+            --background: #f8fafc;
+            --text-main: #2c3e50;
+            --text-muted: #64748b;
             --border: #e2e8f0;
+            --success: #10b981;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
 
         body {
             background: linear-gradient(135deg, #fce4ec 0%, #f8bbd0 100%);
+            color: var(--text-main);
             min-height: 100vh;
             padding: 20px;
             display: flex;
             justify-content: center;
+            align-items: flex-start;
         }
 
         .container {
@@ -27,28 +38,89 @@
             max-width: 480px;
             background: var(--surface);
             border-radius: 20px;
+            box-shadow: 0 12px 28px rgba(216, 27, 96, 0.12);
             padding: 28px 24px;
-            margin-top: 20px;
+            margin-top: 10px;
+            margin-bottom: 20px;
         }
 
-        h2 { color: var(--primary); text-align: center; margin-bottom: 4px; }
-        .prof-name { text-align: center; color: var(--primary-dark); font-weight: 600; margin-bottom: 12px; }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
 
-        .location-info-box {
+        .header h1 {
+            color: var(--primary);
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .header p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 4px;
+        }
+
+        /* CARD DO ESTABELECIMENTO / ENDEREÇO */
+        .location-card {
             background: #fff0f6;
             border: 1px solid #fbcfe8;
-            border-radius: 10px;
-            padding: 12px;
+            border-radius: 12px;
+            padding: 14px;
             margin-bottom: 20px;
-            font-size: 0.88rem;
-            color: #831843;
             display: flex;
-            align-items: flex-start;
+            flex-direction: column;
             gap: 8px;
         }
 
-        .form-group { margin-bottom: 16px; }
-        label { display: block; font-weight: 600; font-size: 0.88rem; margin-bottom: 6px; }
+        .location-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+            font-size: 0.88rem;
+            color: var(--primary-dark);
+        }
+
+        .location-address {
+            font-size: 0.88rem;
+            color: #334155;
+            line-height: 1.3;
+        }
+
+        .btn-map {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            background: #ffffff;
+            color: var(--primary);
+            border: 1.5px solid var(--primary);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            text-decoration: none;
+            margin-top: 4px;
+            transition: all 0.2s;
+            width: fit-content;
+        }
+
+        .btn-map:hover {
+            background: var(--primary);
+            color: #ffffff;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-bottom: 6px;
+        }
 
         input, select {
             width: 100%;
@@ -56,7 +128,50 @@
             border: 2px solid var(--border);
             border-radius: 10px;
             font-size: 0.95rem;
+            background-color: #fafafa;
             outline: none;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--primary);
+            background: #fff;
+        }
+
+        .slots-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 6px;
+        }
+
+        .slot-btn {
+            padding: 10px 4px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            background: #fafafa;
+            color: var(--text-main);
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .slot-btn:hover {
+            border-color: var(--primary);
+        }
+
+        .slot-btn.selected {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .slot-btn.disabled {
+            background: #f1f5f9;
+            color: #94a3b8;
+            border-color: #e2e8f0;
+            cursor: not-allowed;
+            text-decoration: line-through;
         }
 
         button.btn-submit {
@@ -65,59 +180,90 @@
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             color: white;
             border: none;
-            border-radius: 12px;
+            border-radius: 10px;
             font-size: 1rem;
             font-weight: 700;
             cursor: pointer;
             margin-top: 10px;
+            box-shadow: 0 4px 12px rgba(216, 27, 96, 0.25);
         }
 
-        .alert-success { background: #d1fae5; color: #047857; padding: 12px; border-radius: 8px; font-size: 0.88rem; display: none; text-align: center; }
+        .hidden { display: none !important; }
+
+        .alert-error {
+            background: #fee2e2;
+            color: #b91c1c;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            margin-bottom: 12px;
+            display: none;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #047857;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            margin-bottom: 12px;
+            text-align: center;
+            display: none;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>Agende seu Horário</h2>
-    <div class="prof-name" id="prof-title">Nail Studio</div>
-
-    <!-- CAIXA DE ENDEREÇO / MENSAGEM DO LOCAL -->
-    <div class="location-info-box" id="location-box">
-        <span style="font-size: 1.2rem;">📍</span>
-        <div>
-            <strong id="location-type-label">Local de Atendimento:</strong><br>
-            <span id="location-text">Carregando informações...</span>
-        </div>
+    <div class="header">
+        <h1 id="prof-name-title">Agendamento de Horário</h1>
+        <p>Escolha o serviço, data e horário desejados</p>
     </div>
 
+    <div id="error-msg" class="alert-error"></div>
     <div id="success-msg" class="alert-success"></div>
+
+    <!-- CARTÃO DO LOCAL / ENDEREÇO COM MAPA -->
+    <div class="location-card" id="location-card">
+        <div class="location-header">
+            <span>📍 Local de Atendimento</span>
+        </div>
+        <div class="location-address" id="location-text">
+            Carregando informações do local...
+        </div>
+        <a id="btn-open-map" href="#" target="_blank" class="btn-map hidden">
+            🗺️ Abrir no Google Maps
+        </a>
+    </div>
 
     <form id="booking-form">
         <div class="form-group">
-            <label>👤 Seu Nome Completo</label>
+            <label for="client-name">👤 Seu Nome Completo</label>
             <input type="text" id="client-name" required placeholder="Digite seu nome">
         </div>
 
         <div class="form-group">
-            <label>📱 Seu WhatsApp</label>
+            <label for="client-phone">📱 Seu WhatsApp</label>
             <input type="tel" id="client-phone" required placeholder="(83) 9XXXX-XXXX">
         </div>
 
         <div class="form-group">
-            <label>✨ Selecione o Serviço</label>
-            <select id="client-service" required></select>
-        </div>
-
-        <div class="form-group">
-            <label>📅 Data do Agendamento</label>
-            <input type="date" id="client-date" required onchange="updateAvailableTimes()">
-        </div>
-
-        <div class="form-group">
-            <label>⏰ Horários Disponíveis</label>
-            <select id="client-time" required>
-                <option value="">Selecione primeiro a data...</option>
+            <label for="service-select">💅 Escolha o Serviço</label>
+            <select id="service-select" required onchange="updatePriceDisplay()">
+                <!-- Preenchido via JavaScript -->
             </select>
+        </div>
+
+        <div class="form-group">
+            <label for="booking-date">📅 Escolha a Data</label>
+            <input type="date" id="booking-date" required onchange="loadAvailableSlots()">
+        </div>
+
+        <div class="form-group">
+            <label>⏰ Selecione o Horário</label>
+            <div id="slots-container" class="slots-grid">
+                <!-- Horários preenchidos dinamicamente -->
+            </div>
         </div>
 
         <button type="submit" class="btn-submit">Confirmar Agendamento</button>
@@ -126,97 +272,167 @@
 
 <script>
     let currentProf = null;
+    let selectedTimeSlot = null;
 
     function getQueryParam(param) {
-        return new URLSearchParams(window.location.search).get(param);
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(param);
     }
 
-    function init() {
+    function showError(msg) {
+        const err = document.getElementById('error-msg');
+        err.innerText = msg;
+        err.style.display = 'block';
+    }
+
+    function hideError() {
+        document.getElementById('error-msg').style.display = 'none';
+    }
+
+    function loadProfessional() {
         const profId = getQueryParam('prof');
         const professionals = JSON.parse(localStorage.getItem('nail_professionals') || '[]');
 
-        currentProf = professionals.find(p => p.id === profId) || professionals[0];
+        if (profId) {
+            currentProf = professionals.find(p => p.id === profId);
+        } else if (professionals.length > 0) {
+            currentProf = professionals[0];
+        }
 
-        if (currentProf) {
-            document.getElementById('prof-title').innerText = `Profissional: ${currentProf.name}`;
+        if (!currentProf) {
+            showError("Profissional não encontrado! Verifique o link digitado.");
+            document.getElementById('booking-form').style.display = 'none';
+            document.getElementById('location-card').style.display = 'none';
+            return;
+        }
+
+        // Atualizar título
+        document.getElementById('prof-name-title').innerText = currentProf.name;
+
+        // Configurar Endereço e Link do Google Maps
+        setupLocationInfo();
+
+        // Carregar lista de serviços
+        const serviceSelect = document.getElementById('service-select');
+        const services = currentProf.services || [
+            { name: "Manicure Tradicional", price: 35 },
+            { name: "Esmaltação em Gel", price: 60 },
+            { name: "Alongamento", price: 120 }
+        ];
+
+        serviceSelect.innerHTML = services.map(s => `
+            <option value="${s.name}" data-price="${s.price}">
+                ${s.name} - R$ ${parseFloat(s.price).toFixed(2).replace('.', ',')}
+            </option>
+        `).join('');
+
+        // Definir data mínima como HOJE
+        const today = new Date().toISOString().split('T')[0];
+        const dateInput = document.getElementById('booking-date');
+        dateInput.min = today;
+        dateInput.value = today;
+
+        loadAvailableSlots();
+    }
+
+    // MONTA O LOCAL E O BOTÃO DO GOOGLE MAPS
+    function setupLocationInfo() {
+        const locText = document.getElementById('location-text');
+        const mapBtn = document.getElementById('btn-open-map');
+
+        if (currentProf.locationType === 'home' || !currentProf.address || currentProf.address === 'Atendimento a Domicílio') {
+            locText.innerText = "🚗 Atendimento a Domicílio (A profissional irá até você)";
+            mapBtn.classList.add('hidden');
+        } else {
+            locText.innerText = currentProf.address;
             
-            // ATUALIZA ENDEREÇO / INFORMAÇÕES DE ATENDIMENTO
-            const locationTextEl = document.getElementById('location-text');
-            const locationLabelEl = document.getElementById('location-type-label');
-
-            if (currentProf.locationType === 'home') {
-                locationLabelEl.innerText = "Atendimento A Domicílio:";
-                locationTextEl.innerText = "A profissional vai até a sua residência no horário agendado.";
-            } else {
-                locationLabelEl.innerText = "Endereço do Local:";
-                locationTextEl.innerText = currentProf.address || "Endereço não informado.";
-            }
-
-            // CARREGA LISTA DE SERVIÇOS
-            const selectService = document.getElementById('client-service');
-            selectService.innerHTML = '<option value="">Selecione um serviço...</option>' + 
-                currentProf.services.map(s => {
-                    const name = typeof s === 'object' ? s.name : s;
-                    const price = typeof s === 'object' ? s.price : 0;
-                    return `<option value="${name}" data-price="${price}">${name} - R$ ${parseFloat(price).toFixed(2).replace('.', ',')}</option>`;
-                }).join('');
+            // Cria URL de busca direta no Google Maps com o endereço
+            const encodedAddress = encodeURIComponent(currentProf.address);
+            mapBtn.href = `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
+            mapBtn.classList.remove('hidden');
         }
     }
 
-    function updateAvailableTimes() {
-        const dateVal = document.getElementById('client-date').value;
-        const selectTime = document.getElementById('client-time');
+    function loadAvailableSlots() {
+        const date = document.getElementById('booking-date').value;
+        const slotsContainer = document.getElementById('slots-container');
+        selectedTimeSlot = null;
 
-        if (!dateVal || !currentProf) return;
+        if (!date) {
+            slotsContainer.innerHTML = '<p style="grid-column: span 3; font-size: 0.85rem; color:#777;">Selecione uma data primeiro.</p>';
+            return;
+        }
 
         const appointments = JSON.parse(localStorage.getItem('nail_appointments') || '[]');
-        const occupiedTimes = appointments
-            .filter(a => a.profId === currentProf.id && a.datetime.startsWith(dateVal))
+        
+        // Filtrar horários já ocupados nesta data para esta profissional
+        const occupiedSlots = appointments
+            .filter(a => a.profId === currentProf.id && a.datetime.startsWith(date))
             .map(a => a.datetime.split('T')[1]);
 
-        const masterSlots = currentProf.availableSlots || ["08:00", "09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"];
-        const freeSlots = masterSlots.filter(slot => !occupiedTimes.includes(slot));
+        const allSlots = currentProf.availableSlots || ["08:00", "09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"];
 
-        if (freeSlots.length === 0) {
-            selectTime.innerHTML = '<option value="">Nenhum horário livre nesta data</option>';
-        } else {
-            selectTime.innerHTML = '<option value="">Selecione o horário...</option>' + 
-                freeSlots.map(t => `<option value="${t}">${t} hs</option>`).join('');
-        }
+        slotsContainer.innerHTML = allSlots.map(time => {
+            const isTaken = occupiedSlots.includes(time);
+            if (isTaken) {
+                return `<button type="button" class="slot-btn disabled" disabled>${time}</button>`;
+            }
+            return `<button type="button" class="slot-btn" onclick="selectSlot(this, '${time}')">${time}</button>`;
+        }).join('');
+    }
+
+    function selectSlot(btn, time) {
+        document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        selectedTimeSlot = time;
+        hideError();
     }
 
     document.getElementById('booking-form').addEventListener('submit', function(e) {
         e.preventDefault();
 
-        const name = document.getElementById('client-name').value.trim();
-        const phone = document.getElementById('client-phone').value.trim();
-        const serviceSelect = document.getElementById('client-service');
-        const serviceName = serviceSelect.value;
-        const price = parseFloat(serviceSelect.options[serviceSelect.selectedIndex].getAttribute('data-price') || 0);
-        const date = document.getElementById('client-date').value;
-        const time = document.getElementById('client-time').value;
+        if (!selectedTimeSlot) {
+            showError("Por favor, selecione um horário disponível.");
+            return;
+        }
 
-        const appointments = JSON.parse(localStorage.getItem('nail_appointments') || '[]');
-        
-        appointments.push({
+        const clientName = document.getElementById('client-name').value.trim();
+        const clientPhone = document.getElementById('client-phone').value.trim();
+        const serviceSelect = document.getElementById('service-select');
+        const serviceName = serviceSelect.value;
+        const selectedOption = serviceSelect.options[serviceSelect.selectedIndex];
+        const price = parseFloat(selectedOption.getAttribute('data-price')) || 0;
+        const date = document.getElementById('booking-date').value;
+
+        const newAppointment = {
             id: 'app_' + Date.now(),
             profId: currentProf.id,
-            client: name,
-            phone: phone,
+            client: clientName,
+            phone: clientPhone,
             service: serviceName,
             price: price,
-            datetime: `${date}T${time}`,
+            datetime: `${date}T${selectedTimeSlot}`,
             status: 'pending'
-        });
+        };
 
+        const appointments = JSON.parse(localStorage.getItem('nail_appointments') || '[]');
+        appointments.push(newAppointment);
         localStorage.setItem('nail_appointments', JSON.stringify(appointments));
 
-        document.getElementById('success-msg').innerText = '✨ Agendamento confirmado com sucesso!';
-        document.getElementById('success-msg').style.display = 'block';
+        // Exibir mensagem de sucesso
+        const successMsg = document.getElementById('success-msg');
+        successMsg.innerText = "✨ Agendamento realizado com sucesso!";
+        successMsg.style.display = 'block';
+
         document.getElementById('booking-form').reset();
+        loadAvailableSlots();
+
+        setTimeout(() => {
+            successMsg.style.display = 'none';
+        }, 4000);
     });
 
-    init();
+    loadProfessional();
 </script>
 </body>
 </html>
