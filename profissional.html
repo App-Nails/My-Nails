@@ -112,28 +112,44 @@
             background: #fff;
         }
 
-        .services-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            max-height: 180px;
+        .services-list-pricing {
+            max-height: 220px;
             overflow-y: auto;
             border: 2px solid var(--border);
             padding: 10px;
             border-radius: 10px;
             background: #fafafa;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
 
-        .service-checkbox {
+        .service-price-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            background: #fff;
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .service-price-item label {
+            margin-bottom: 0;
+            font-size: 0.82rem;
+            cursor: pointer;
             display: flex;
             align-items: center;
             gap: 6px;
-            font-size: 0.82rem;
-            cursor: pointer;
+            flex: 1;
         }
 
-        .service-checkbox input {
-            width: auto;
+        .service-price-item input[type="number"] {
+            width: 90px;
+            padding: 6px;
+            font-size: 0.82rem;
+            text-align: right;
         }
 
         button.btn-action {
@@ -176,7 +192,6 @@
 
         .card strong { color: var(--primary); }
 
-        /* PAINEL DE MÉTRICAS E FINANCEIRO */
         .metrics-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -289,7 +304,7 @@
         <button type="button" class="btn-link" onclick="showScreen('register')">Não tem conta? Cadastre-se</button>
     </div>
 
-    <!-- TELA 2: CADASTRO COM PERGUNTA DE SEGURANÇA -->
+    <!-- TELA 2: CADASTRO COM DEFINIÇÃO DE PREÇOS -->
     <div id="screen-register" class="hidden">
         <form id="register-form">
             <div class="form-group">
@@ -320,9 +335,10 @@
                 <input type="text" id="reg-answer" required placeholder="Sua resposta pessoal">
             </div>
 
+            <!-- SERVIÇOS E PREÇOS -->
             <div class="form-group">
-                <label>✨ Selecione os Serviços Prestados</label>
-                <div class="services-grid" id="register-services"></div>
+                <label>✨ Selecione os Serviços e Defina os Valores (R$)</label>
+                <div class="services-list-pricing" id="register-services"></div>
             </div>
 
             <button type="submit" class="btn-action">Criar Meu Perfil</button>
@@ -364,7 +380,6 @@
 
     <!-- TELA 4: DASHBOARD DO PROFISSIONAL -->
     <div id="screen-dashboard" class="hidden">
-        <!-- PAINEL DE RESUMO FINANCEIRO E SERVIÇOS -->
         <div class="metrics-grid">
             <div class="metric-card">
                 <h4>Hoje</h4>
@@ -402,18 +417,18 @@
 
 <script>
     const availableServices = [
-        "Aplicação de Alongamento",
-        "Manutenção de Alongamento",
-        "Remoção de Alongamento",
-        "Esmaltação em Gel",
-        "Manicure Tradicional",
-        "Esmaltação Francesa",
-        "Nail Art",
-        "Decoração Encapsulada",
-        "Pedicure Tradicional",
-        "Esmaltação em Gel nos Pés",
-        "Spa dos Pés",
-        "Plástica dos Pés"
+        { name: "Aplicação de Alongamento", defaultPrice: 120 },
+        { name: "Manutenção de Alongamento", defaultPrice: 80 },
+        { name: "Remoção de Alongamento", defaultPrice: 40 },
+        { name: "Esmaltação em Gel", defaultPrice: 60 },
+        { name: "Manicure Tradicional", defaultPrice: 35 },
+        { name: "Esmaltação Francesa", defaultPrice: 45 },
+        { name: "Nail Art", defaultPrice: 25 },
+        { name: "Decoração Encapsulada", defaultPrice: 30 },
+        { name: "Pedicure Tradicional", defaultPrice: 35 },
+        { name: "Esmaltação em Gel nos Pés", defaultPrice: 60 },
+        { name: "Spa dos Pés", defaultPrice: 70 },
+        { name: "Plástica dos Pés", defaultPrice: 90 }
     ];
 
     const questionsMap = {
@@ -426,12 +441,16 @@
     let loggedProf = null;
     let targetProf = null;
 
+    // Renderiza lista de serviços com inputs de valores no cadastro
     const servicesGrid = document.getElementById('register-services');
-    servicesGrid.innerHTML = availableServices.map(s => `
-        <label class="service-checkbox">
-            <input type="checkbox" name="services" value="${s}" checked>
-            <span>${s}</span>
-        </label>
+    servicesGrid.innerHTML = availableServices.map((s, index) => `
+        <div class="service-price-item">
+            <label>
+                <input type="checkbox" name="services" value="${s.name}" id="srv_check_${index}" checked>
+                <span>${s.name}</span>
+            </label>
+            <input type="number" step="0.01" min="0" id="srv_price_${index}" value="${s.defaultPrice.toFixed(2)}" placeholder="R$">
+        </div>
     `).join('');
 
     function showMsg(text, isError = false) {
@@ -478,7 +497,7 @@
         return phone.replace(/\D/g, '');
     }
 
-    // CADASTRO
+    // CADASTRO COM CAPTURA DE VALORES DOS SERVIÇOS
     document.getElementById('register-form').addEventListener('submit', function(e) {
         e.preventDefault();
         clearMsgs();
@@ -495,10 +514,21 @@
             return;
         }
 
-        const selectedServices = Array.from(document.querySelectorAll('input[name="services"]:checked'))
-            .map(cb => cb.value);
+        // Mapeia serviços selecionados e seus respectivos preços cadastrados
+        const configuredServices = [];
+        availableServices.forEach((s, index) => {
+            const checkEl = document.getElementById(`srv_check_${index}`);
+            const priceEl = document.getElementById(`srv_price_${index}`);
 
-        if (selectedServices.length === 0) {
+            if (checkEl && checkEl.checked) {
+                configuredServices.push({
+                    name: s.name,
+                    price: parseFloat(priceEl.value) || 0
+                });
+            }
+        });
+
+        if (configuredServices.length === 0) {
             showMsg('Selecione pelo menos 1 serviço oferecido.', true);
             return;
         }
@@ -518,7 +548,7 @@
             pass: pass,
             questionKey: questionKey,
             answer: answer,
-            services: selectedServices
+            services: configuredServices // Salva os serviços + valores
         };
 
         professionals.push(newProf);
@@ -609,7 +639,7 @@
         }
     });
 
-    // DASHBOARD & CÁLCULOS FINANCEIROS
+    // DASHBOARD & CÁLCULOS
     function switchDashTab(tab) {
         document.getElementById('dash-agenda').classList.toggle('hidden', tab !== 'agenda');
         document.getElementById('dash-link').classList.toggle('hidden', tab !== 'link');
@@ -639,8 +669,8 @@
 
     function calculateMetrics(profAppointments) {
         const now = new Date();
-        const todayStr = now.toISOString().split('T')[0]; // YYYY-MM-DD
-        const currentMonthStr = todayStr.substring(0, 7); // YYYY-MM
+        const todayStr = now.toISOString().split('T')[0];
+        const currentMonthStr = todayStr.substring(0, 7);
 
         let todaySum = 0;
         let todayCount = 0;
@@ -652,7 +682,6 @@
             const appMonth = appDate.substring(0, 7);
             const price = parseFloat(app.price) || 0;
 
-            // Contabiliza serviços finalizados no dia e mês
             if (app.status === 'completed') {
                 if (appDate === todayStr) {
                     todaySum += price;
@@ -681,6 +710,14 @@
 
         const appointments = JSON.parse(localStorage.getItem('nail_appointments') || '[]');
         const profAppointments = appointments.filter(a => a.profId === loggedProf.id);
+
+        // Preenche automaticamente o preço do serviço com base na tabela da profissional caso o agendamento não tenha valor
+        profAppointments.forEach(app => {
+            if (app.price === undefined || app.price === null) {
+                const srv = loggedProf.services.find(s => s.name === app.service);
+                app.price = srv ? srv.price : 0;
+            }
+        });
 
         calculateMetrics(profAppointments);
 
@@ -722,7 +759,6 @@
             `;
         }).join('');
 
-        // Atualiza armazenamento caso tenha gerado IDs faltantes
         localStorage.setItem('nail_appointments', JSON.stringify(appointments));
     }
 
