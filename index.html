@@ -177,12 +177,11 @@
             <input type="text" id="app-time-only" required placeholder="Clique para escolher o horário">
         </div>
 
-        <button type="submit" class="btn-action">Confirmar e Agendar</button>
+        <button type="submit" class="btn-action">Confirmar Agendamento</button>
     </form>
 </div>
 
 <script>
-    // CONFIGURAÇÃO: Insira aqui o número do WhatsApp da Profissional (Com DDD e código do país - ex: 5583999999999)
     const NUMERO_PROFISSIONAL = "5583999999999"; 
 
     flatpickr("#app-date-only", {
@@ -225,7 +224,7 @@
             phone: clientPhone,
             service: serviceType,
             datetime: combinedDatetime,
-            alert60Sent: false
+            alert30Sent: false // Flag para controle do alerta de 30 min
         };
 
         const appointments = JSON.parse(localStorage.getItem('nail_appointments') || '[]');
@@ -234,7 +233,7 @@
 
         alert('Agendamento realizado com sucesso!\n\nSe precisar cancelar, cancele com 30 minutos de antecedência.');
 
-        // Monta a mensagem para enviar via WhatsApp para a profissional
+        // Notificação de confirmação instantânea via WhatsApp para a profissional
         const msgWhatsApp = encodeURIComponent(
             `*Novo Agendamento Realizado!* 💅\n\n` +
             `*Cliente:* ${clientName}\n` +
@@ -245,13 +244,11 @@
             `_Aviso de cancelamento com 30 min de antecedência em vigor._`
         );
 
-        // Abre o WhatsApp para enviar o comprovante
         window.open(`https://wa.me/${NUMERO_PROFISSIONAL}?text=${msgWhatsApp}`, '_blank');
-
         this.reset();
     });
 
-    // Verificação contínua do Alerta de 1 Hora (60 min antes)
+    // Monitoramento contínuo: Alerta automático de 30 minutos (para Cliente e Profissional)
     setInterval(() => {
         const appointments = JSON.parse(localStorage.getItem('nail_appointments') || '[]');
         const now = new Date().getTime();
@@ -260,12 +257,12 @@
             const appTime = new Date(app.datetime).getTime();
             const diffMinutes = (appTime - now) / (1000 * 60);
 
-            // Dispara o alerta entre 50 e 60 minutos antes do horário
-            if (diffMinutes > 0 && diffMinutes <= 60 && !app.alert60Sent) {
-                const alertaTexto = `🚨 *Lembrete de Agendamento!*\nFalta 1 hora para o agendamento de *${app.client}* (${app.service}).`;
+            // Se faltarem entre 0 e 30 minutos e o alerta ainda não foi emitido
+            if (diffMinutes > 0 && diffMinutes <= 30 && !app.alert30Sent) {
+                const mensagem = `Faltam 30 minutos para o agendamento de ${app.client} (${app.service})!`;
                 
-                sendNotification("Alerta de 1 Hora - Nail Studio", alertaTexto);
-                app.alert60Sent = true;
+                sendNotification("⏰ Lembrete de Agendamento (30 min)", mensagem);
+                app.alert30Sent = true;
             }
         });
 
@@ -280,7 +277,7 @@
         }
     }
 
-    // Bloqueios de segurança
+    // Bloqueios de inspeção de código
     document.addEventListener('contextmenu', e => e.preventDefault());
     document.onkeydown = function(e) {
         if (e.keyCode == 123 || 
