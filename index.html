@@ -7,38 +7,172 @@
     <style>
         :root {
             --primary: #d81b60;
-            --primary-light: #f48fb1;
-            --bg: #fce4ec;
+            --primary-hover: #c2185b;
+            --primary-light: #fce4ec;
+            --accent: #f48fb1;
             --surface: #ffffff;
-            --text: #333333;
+            --text-main: #2c3e50;
+            --text-muted: #7f8c8d;
+            --border: #e2e8f0;
+            --shadow: 0 12px 28px rgba(216, 27, 96, 0.12);
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: var(--bg); color: var(--text); padding: 20px; display: flex; justify-content: center; }
-        .app-container { width: 100%; max-width: 450px; background: var(--surface); border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); padding: 25px; }
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; 
+        }
 
-        h2 { color: var(--primary); margin-bottom: 20px; text-align: center; }
-        
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 0.9em; }
-        input, select { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 1rem; }
-        
-        button.btn-action { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: 0.2s; margin-top: 10px; }
-        button.btn-action:hover { opacity: 0.9; }
+        body { 
+            background: linear-gradient(135deg, #fce4ec 0%, #f8bbd0 100%); 
+            color: var(--text-main); 
+            min-height: 100vh;
+            padding: 20px; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center;
+        }
+
+        .app-container { 
+            width: 100%; 
+            max-width: 440px; 
+            background: var(--surface); 
+            border-radius: 20px; 
+            box-shadow: var(--shadow); 
+            padding: 32px 28px; 
+        }
+
+        .header-title {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .header-title h2 { 
+            color: var(--primary); 
+            font-size: 1.6rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .header-title p {
+            color: var(--text-muted);
+            font-size: 0.88rem;
+            margin-top: 4px;
+        }
+
+        .form-group { 
+            margin-bottom: 18px; 
+        }
+
+        label { 
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 8px; 
+            font-weight: 600; 
+            font-size: 0.88rem; 
+            color: var(--text-main);
+        }
+
+        label .icon {
+            font-size: 1rem;
+        }
+
+        input, select { 
+            width: 100%; 
+            padding: 12px 16px; 
+            border: 2px solid var(--border); 
+            border-radius: 12px; 
+            font-size: 0.95rem; 
+            color: var(--text-main);
+            background-color: #fafafa;
+            transition: all 0.25s ease;
+            outline: none;
+            appearance: none;
+            -webkit-appearance: none;
+        }
+
+        select {
+            background-image: url("data:image/svg+xml;utf8,<svg fill='%23d81b60' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 40px;
+        }
+
+        /* Estilização dos campos de Data e Hora */
+        input[type="date"], input[type="time"] {
+            position: relative;
+            cursor: pointer;
+        }
+
+        input[type="date"]::-webkit-calendar-picker-indicator,
+        input[type="time"]::-webkit-calendar-picker-indicator {
+            cursor: pointer;
+            filter: invert(20%) sepia(85%) saturate(3000%) hue-rotate(320deg) brightness(90%) contrast(90%);
+            opacity: 0.8;
+            transition: transform 0.2s ease;
+        }
+
+        input[type="date"]::-webkit-calendar-picker-indicator:hover,
+        input[type="time"]::-webkit-calendar-picker-indicator:hover {
+            transform: scale(1.15);
+            opacity: 1;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--primary);
+            background-color: #ffffff;
+            box-shadow: 0 0 0 4px rgba(216, 27, 96, 0.1);
+        }
+
+        .picker-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        button.btn-action { 
+            width: 100%; 
+            padding: 14px; 
+            background: linear-gradient(135deg, var(--primary) 0%, #c2185b 100%); 
+            color: white; 
+            border: none; 
+            border-radius: 12px; 
+            font-size: 1rem; 
+            font-weight: 700; 
+            cursor: pointer; 
+            transition: all 0.25s ease; 
+            margin-top: 12px; 
+            box-shadow: 0 6px 16px rgba(216, 27, 96, 0.25);
+        }
+
+        button.btn-action:hover { 
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(216, 27, 96, 0.35);
+        }
+
+        button.btn-action:active {
+            transform: translateY(0);
+        }
     </style>
 </head>
 <body>
 
 <div class="app-container">
-    <h2>Agende seu Horário</h2>
+    <div class="header-title">
+        <h2>Agende seu Horário</h2>
+        <p>Escolha o serviço, a data e o melhor horário para você</p>
+    </div>
+
     <form id="booking-form">
         <div class="form-group">
-            <label for="client-name">Seu Nome:</label>
+            <label for="client-name"><span class="icon">👤</span> Seu Nome</label>
             <input type="text" id="client-name" required placeholder="Digite seu nome completo">
         </div>
 
         <div class="form-group">
-            <label for="service-type">Serviço:</label>
+            <label for="service-type"><span class="icon">💅</span> Serviço</label>
             <select id="service-type" required>
                 <option value="Alongamento em Gel">Alongamento em Gel</option>
                 <option value="Manutenção">Manutenção</option>
@@ -47,16 +181,16 @@
             </select>
         </div>
 
-        <!-- Data/Calendário -->
-        <div class="form-group">
-            <label for="app-date-only">Selecione a Data:</label>
-            <input type="date" id="app-date-only" required>
-        </div>
+        <div class="picker-grid">
+            <div class="form-group" style="margin-bottom: 0;">
+                <label for="app-date-only"><span class="icon">📅</span> Selecione a Data</label>
+                <input type="date" id="app-date-only" required>
+            </div>
 
-        <!-- Horário posicionado abaixo -->
-        <div class="form-group">
-            <label for="app-time-only">Selecione o Horário:</label>
-            <input type="time" id="app-time-only" required>
+            <div class="form-group" style="margin-bottom: 0;">
+                <label for="app-time-only"><span class="icon">⏰</span> Selecione o Horário</label>
+                <input type="time" id="app-time-only" required>
+            </div>
         </div>
 
         <button type="submit" class="btn-action">Confirmar Agendamento</button>
@@ -74,8 +208,6 @@
         
         const dateValue = document.getElementById('app-date-only').value;
         const timeValue = document.getElementById('app-time-only').value;
-        
-        // Combina a data e a hora selecionadas
         const combinedDatetime = `${dateValue}T${timeValue}`;
 
         const appointment = {
