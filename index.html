@@ -1,65 +1,4 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nail Studio - Agendamento</title>
-    <style>
-        :root {
-            --primary: #d81b60;
-            --primary-light: #f48fb1;
-            --bg: #fce4ec;
-            --surface: #ffffff;
-            --text: #333333;
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: var(--bg); color: var(--text); padding: 20px; display: flex; justify-content: center; }
-        .app-container { width: 100%; max-width: 450px; background: var(--surface); border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); padding: 25px; }
-
-        h2 { color: var(--primary); margin-bottom: 20px; text-align: center; }
-        
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 0.9em; }
-        input, select { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 1rem; }
-        
-        button.btn-action { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: 0.2s; margin-top: 10px; }
-        button.btn-action:hover { opacity: 0.9; }
-    </style>
-</head>
-<body>
-
-<div class="app-container">
-    <h2>Agende seu Horário</h2>
-    <form id="booking-form">
-        <div class="form-group">
-            <label for="client-name">Seu Nome:</label>
-            <input type="text" id="client-name" required placeholder="Digite seu nome completo">
-        </div>
-        <div class="form-group">
-            <label for="service-type">Serviço:</label>
-            <select id="service-type" required>
-                <option value="Alongamento em Gel">Alongamento em Gel</option>
-                <option value="Manutenção">Manutenção</option>
-                <option value="Esmaltação em Gel">Esmaltação em Gel</option>
-                <option value="Pé e Mão">Pé e Mão</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label for="app-date">Data e Horário:</label>
-            <input type="datetime-local" id="app-date" required>
-        </div>
-        <button type="submit" class="btn-action">Confirmar Agendamento</button>
-    </form>
-</div>
-
-<script>
-    // Solicitar permissão de notificação (alerta de 30 minutos)
-    if ("Notification" in window && Notification.permission !== "granted") {
-        Notification.requestPermission();
-    }
-
-    // Salvar Agendamento
+// Salvar Agendamento
     document.getElementById('booking-form').addEventListener('submit', function(e) {
         e.preventDefault();
         
@@ -76,45 +15,7 @@
         appointments.push(appointment);
         localStorage.setItem('nail_appointments', JSON.stringify(appointments));
 
-        alert('Agendamento realizado com sucesso!');
+        // Mensagem com o aviso de cancelamento
+        alert('Agendamento realizado com sucesso!\n\nSe precisar cancelar, cancele com 30 minutos de antecedência.');
         this.reset();
     });
-
-    // Verificação de alerta do Cliente (30 min antes)
-    setInterval(() => {
-        const appointments = JSON.parse(localStorage.getItem('nail_appointments') || '[]');
-        const now = new Date().getTime();
-
-        appointments.forEach(app => {
-            const appTime = new Date(app.datetime).getTime();
-            const diffMinutes = (appTime - now) / (1000 * 60);
-
-            if (diffMinutes > 0 && diffMinutes <= 30 && !app.alert30Sent) {
-                sendNotification("Lembrete de Agendamento", `Faltam 30 minutos para o seu horário de ${app.service}!`);
-                app.alert30Sent = true;
-            }
-        });
-
-        localStorage.setItem('nail_appointments', JSON.stringify(appointments));
-    }, 10000);
-
-    function sendNotification(title, body) {
-        if ("Notification" in window && Notification.permission === "granted") {
-            new Notification(title, { body: body });
-        } else {
-            alert(`${title}\n${body}`);
-        }
-    }
-
-    // Bloqueios de inspeção de código
-    document.addEventListener('contextmenu', e => e.preventDefault());
-    document.onkeydown = function(e) {
-        if (e.keyCode == 123 || 
-            (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74 || e.keyCode == 67)) || 
-            (e.ctrlKey && e.keyCode == 85)) {
-            return false;
-        }
-    };
-</script>
-</body>
-</html>
