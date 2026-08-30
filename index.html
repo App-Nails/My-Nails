@@ -42,7 +42,7 @@
             padding: 24px 20px;
             margin-top: 10px;
             margin-bottom: 20px;
-            overflow: hidden; /* Evita estouro de elementos */
+            overflow: hidden;
         }
 
         .header {
@@ -119,7 +119,6 @@
             margin-bottom: 8px;
         }
 
-        /* CORREÇÃO DO TAMANHO DA DATA E DEMAIS INPUTS */
         input[type="text"],
         input[type="tel"],
         input[type="date"],
@@ -153,7 +152,6 @@
             background-color: #ffffff;
         }
 
-        /* AJUSTE ESPECÍFICO PARA O INPUT DE DATA NO IOS */
         input[type="date"] {
             display: block;
             position: relative;
@@ -192,12 +190,14 @@
             border-color: var(--primary);
         }
 
+        /* Estilo para horários Ocupados / Preenchidos */
         .slot-btn.disabled {
-            background: #f1f5f9;
-            color: #cbd5e1;
-            border-color: #e2e8f0;
+            background: #fee2e2;
+            color: #ef4444;
+            border-color: #fca5a5;
             cursor: not-allowed;
             text-decoration: line-through;
+            opacity: 0.7;
         }
 
         button.btn-submit {
@@ -252,7 +252,6 @@
     <div id="error-msg" class="alert-error"></div>
     <div id="success-msg" class="alert-success"></div>
 
-    <!-- LOCAL DO ESTABELECIMENTO -->
     <div class="location-card" id="location-card">
         <div class="location-header">
             <span>📍 Endereço do Local:</span>
@@ -278,9 +277,8 @@
 
         <div class="form-group">
             <label for="service-select">✨ Selecione o Serviço</label>
-            <select id="service-select" required onchange="updatePriceDisplay()">
-                <!-- Opções inseridas dinamicamente -->
-            </select>
+            <select id="service-select" required>
+                </select>
         </div>
 
         <div class="form-group">
@@ -289,10 +287,9 @@
         </div>
 
         <div class="form-group">
-            <label>⏰ Horários Disponíveis</label>
+            <label>⏰ Horários para a Data Selecionada</label>
             <div id="slots-container" class="slots-grid">
-                <!-- Horários preenchidos dinamicamente -->
-            </div>
+                </div>
         </div>
 
         <button type="submit" class="btn-submit">Confirmar Agendamento</button>
@@ -351,10 +348,13 @@
                 </option>
             `).join('');
 
+        // Define a data atual por padrão
         const today = new Date().toISOString().split('T')[0];
         const dateInput = document.getElementById('booking-date');
         dateInput.min = today;
+        dateInput.value = today;
 
+        // Carrega imediatamente os horários de HOJE
         loadAvailableSlots();
     }
 
@@ -374,27 +374,31 @@
     }
 
     function loadAvailableSlots() {
-        const date = document.getElementById('booking-date').value;
+        const dateInput = document.getElementById('booking-date');
         const slotsContainer = document.getElementById('slots-container');
         selectedTimeSlot = null;
 
-        if (!date) {
-            slotsContainer.innerHTML = '<p style="grid-column: span 3; font-size: 0.85rem; color:#94a3b8; text-align:center; padding: 10px 0;">Selecione primeiro a data...</p>';
-            return;
+        // Se por algum motivo não houver data, utiliza HOJE como fallback
+        if (!dateInput.value) {
+            const today = new Date().toISOString().split('T')[0];
+            dateInput.value = today;
         }
 
+        const date = dateInput.value;
         const appointments = JSON.parse(localStorage.getItem('nail_appointments') || '[]');
         
+        // Identifica horários ocupados nessa data específica
         const occupiedSlots = appointments
             .filter(a => a.profId === currentProf.id && a.datetime.startsWith(date))
             .map(a => a.datetime.split('T')[1]);
 
         const allSlots = currentProf.availableSlots || ["08:00", "09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"];
 
+        // Renderiza os botões mostrando quais estão livres e quais estão ocupados (riscados/vermelhos)
         slotsContainer.innerHTML = allSlots.map(time => {
             const isTaken = occupiedSlots.includes(time);
             if (isTaken) {
-                return `<button type="button" class="slot-btn disabled" disabled>${time}</button>`;
+                return `<button type="button" class="slot-btn disabled" disabled title="Horário Ocupado">${time}</button>`;
             }
             return `<button type="button" class="slot-btn" onclick="selectSlot(this, '${time}')">${time}</button>`;
         }).join('');
@@ -448,7 +452,7 @@
         successMsg.style.display = 'block';
 
         document.getElementById('booking-form').reset();
-        loadAvailableSlots();
+        loadProfessional(); // Recarrega os dados para atualizar o painel de horários para HOJE
 
         setTimeout(() => {
             successMsg.style.display = 'none';
