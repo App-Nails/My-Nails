@@ -211,7 +211,6 @@
 
         const profId = currentProf ? currentProf.id : 'default';
         const profName = currentProf ? currentProf.name : 'Studio';
-        const profPhone = currentProf ? currentProf.phone : '5583999999999';
 
         const appointment = {
             id: Date.now(),
@@ -230,18 +229,7 @@
 
         alert('Agendamento realizado com sucesso!\n\nSe precisar cancelar, cancele com 30 minutos de antecedência.');
 
-        const msgWhatsApp = encodeURIComponent(
-            `*Novo Agendamento Realizado!* 💅\n\n` +
-            `*Profissional:* ${profName}\n` +
-            `*Cliente:* ${clientName}\n` +
-            `*WhatsApp:* ${rawPhone}\n` +
-            `*Serviço:* ${serviceType}\n` +
-            `*Data:* ${dateValue}\n` +
-            `*Horário:* ${timeValue}\n\n` +
-            `_Aviso de cancelamento com 30 min de antecedência em vigor._`
-        );
-
-        window.open(`https://wa.me/${profPhone}?text=${msgWhatsApp}`, '_blank');
+        // Formulário é limpo e o agendamento fica salvo internamente no painel e na consulta do cliente
         this.reset();
     });
 
