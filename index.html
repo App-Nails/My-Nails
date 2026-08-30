@@ -14,7 +14,7 @@
             --text-muted: #64748b;
             --border: #e2e8f0;
         }
-        
+
         * {
             box-sizing: border-box;
             margin: 0;
@@ -91,6 +91,12 @@
             -webkit-user-select: auto;
             -ms-user-select: auto;
             user-select: auto;
+            color: var(--text-main);
+        }
+
+        /* CORREÇÃO DO CALENDÁRIO: Força esquema claro padrão sem interferir nas cores do navegador */
+        input[type="date"] {
+            color-scheme: light;
         }
 
         input:focus, select:focus {
@@ -98,7 +104,6 @@
             background: #fff;
         }
 
-        /* AJUSTE: Grid em 3 colunas conforme a imagem */
         .slots-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -119,14 +124,12 @@
             transition: all 0.2s;
         }
 
-        /* Estilo para horário selecionado */
         .slot-btn.selected {
             background: var(--primary);
             color: white;
             border-color: var(--primary);
         }
 
-        /* Estilo para horário indisponível (igual à imagem: fundo claro com risco) */
         .slot-btn.disabled {
             background: #ffebee;
             border-color: #ffcdd2;
@@ -265,7 +268,6 @@
                     { name: 'Apenas Mão', price: '30.00' },
                     { name: 'Apenas Pé', price: '30.00' }
                 ],
-                // Lista de horários conforme exibida na imagem
                 availableSlots: ["08:00", "09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"]
             };
         }
@@ -273,16 +275,32 @@
         document.getElementById('prof-header').innerText = activeProf.name;
         document.getElementById('prof-address-display').innerText = activeProf.address || "Atendimento a Domicílio";
 
+        // CORREÇÃO DOS SERVIÇOS: Mapeia todas as possíveis variações de nome de chave salvas no localStorage
         const serviceSelect = document.getElementById('service-select');
         serviceSelect.innerHTML = '<option value="">Selecione um serviço...</option>';
-        if (activeProf.services && activeProf.services.length > 0) {
-            activeProf.services.forEach(s => {
-                const opt = document.createElement('option');
-                opt.value = JSON.stringify(s);
-                opt.innerText = `${s.name} - R$ ${parseFloat(s.price).toFixed(2).replace('.', ',')}`;
-                serviceSelect.appendChild(opt);
-            });
-        }
+        
+        const rawServices = (activeProf.services && activeProf.services.length > 0) 
+            ? activeProf.services 
+            : [
+                { name: 'Pé e Mão', price: '50.00' },
+                { name: 'Apenas Mão', price: '30.00' },
+                { name: 'Apenas Pé', price: '30.00' }
+            ];
+
+        rawServices.forEach(s => {
+            // Extrai o nome independente do campo salvo (name, title, nome ou serviço)
+            const serviceName = s.name || s.title || s.nome || s.service || 'Serviço';
+            
+            // Extrai o valor numérico independente da chave salva (price, valor, preco ou cost)
+            const rawPrice = s.price !== undefined ? s.price : (s.valor !== undefined ? s.valor : (s.preco !== undefined ? s.preco : s.cost));
+            const numPrice = parseFloat(rawPrice);
+            const formattedPrice = !isNaN(numPrice) ? numPrice.toFixed(2).replace('.', ',') : '0,00';
+
+            const opt = document.createElement('option');
+            opt.value = JSON.stringify({ name: serviceName, price: rawPrice || 0 });
+            opt.innerText = `${serviceName} - R$ ${formattedPrice}`;
+            serviceSelect.appendChild(opt);
+        });
 
         const dateInput = document.getElementById('booking-date');
         const today = new Date().toISOString().split('T')[0];
@@ -303,13 +321,11 @@
             return;
         }
 
-        // Horários completos para preenchimento da grade
         const fullGridSlots = ["08:00", "09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"];
         const baseSlots = (activeProf && activeProf.availableSlots && activeProf.availableSlots.length > 0) 
             ? activeProf.availableSlots 
             : fullGridSlots;
 
-        // Recupera agendamentos salvos para identificar horários ocupados
         const appointments = JSON.parse(localStorage.getItem('nail_appointments') || '[]');
         const bookedSlots = appointments
             .filter(app => activeProf && app.profId === activeProf.id && app.datetime.startsWith(selectedDate))
@@ -320,7 +336,6 @@
             btn.className = 'slot-btn';
             btn.innerText = time;
 
-            // Se o horário estiver ocupado, aplica a classe "disabled" (estilo riscado/rosa claro igual da foto)
             if (bookedSlots.includes(time)) {
                 btn.classList.add('disabled');
             } else {
