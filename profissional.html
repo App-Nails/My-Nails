@@ -123,43 +123,51 @@
             flex-direction: column;
             gap: 10px;
         }
-/* Troque a classe .service-price-item no CSS por esta: */
-.service-price-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    background: #fff;
-    padding: 10px 12px;
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    width: 100%;
-}
 
-.service-price-item label {
-    margin-bottom: 0;
-    font-size: 0.82rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex: 1; /* Ocupa todo o espaço restante à esquerda */
-    min-width: 0; /* Impede estouro de texto */
-}
+        /* LISTA DE SERVIÇOS E PREÇOS (AJUSTADO PARA MOBILE) */
+        .service-price-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            background: #fff;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            width: 100%;
+        }
 
-.service-price-item label span {
-    white-space: normal; /* Permite quebrar a linha do nome do serviço se necessário */
-    word-break: break-word;
-}
+        .service-price-item label {
+            margin-bottom: 0;
+            font-size: 0.82rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            min-width: 0;
+        }
 
-.service-price-item input[type="number"] {
-    width: 80px; /* Largura fixa ideal para mobile */
-    min-width: 80px; /* Impede o campo de encolher */
-    padding: 6px 8px;
-    font-size: 0.85rem;
-    text-align: right;
-    flex-shrink: 0; /* Garante que o input fique travado no tamanho certo */
-}
+        .service-price-item label input[type="checkbox"] {
+            width: auto !important;
+            cursor: pointer;
+        }
+
+        .service-price-item label span {
+            white-space: normal;
+            word-break: break-word;
+        }
+
+        .service-price-item input[type="number"] {
+            width: 85px !important;
+            min-width: 85px !important;
+            max-width: 85px !important;
+            padding: 6px 8px;
+            font-size: 0.85rem;
+            text-align: right;
+            flex-shrink: 0;
+        }
+
         button.btn-action {
             width: 100%;
             padding: 12px;
@@ -757,7 +765,7 @@
                         <label style="font-weight: bold; font-size: 0.8rem; margin: 0;">Valor R$:</label>
                         <input type="number" step="0.01" value="${price}" 
                             onchange="updatePrice('${app.id}', this.value)" 
-                            style="width: 100px; padding: 4px 8px; font-size: 0.85rem;">
+                            style="width: 100px !important; padding: 4px 8px; font-size: 0.85rem;">
                     </div>
 
                     <button type="button" class="btn-status ${isCompleted ? 'completed' : 'pending'}" onclick="toggleStatus('${app.id}')">
