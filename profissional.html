@@ -123,35 +123,43 @@
             flex-direction: column;
             gap: 10px;
         }
+/* Troque a classe .service-price-item no CSS por esta: */
+.service-price-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    background: #fff;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    width: 100%;
+}
 
-        .service-price-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-            background: #fff;
-            padding: 8px 12px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-        }
+.service-price-item label {
+    margin-bottom: 0;
+    font-size: 0.82rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1; /* Ocupa todo o espaço restante à esquerda */
+    min-width: 0; /* Impede estouro de texto */
+}
 
-        .service-price-item label {
-            margin-bottom: 0;
-            font-size: 0.82rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            flex: 1;
-        }
+.service-price-item label span {
+    white-space: normal; /* Permite quebrar a linha do nome do serviço se necessário */
+    word-break: break-word;
+}
 
-        .service-price-item input[type="number"] {
-            width: 90px;
-            padding: 6px;
-            font-size: 0.82rem;
-            text-align: right;
-        }
-
+.service-price-item input[type="number"] {
+    width: 80px; /* Largura fixa ideal para mobile */
+    min-width: 80px; /* Impede o campo de encolher */
+    padding: 6px 8px;
+    font-size: 0.85rem;
+    text-align: right;
+    flex-shrink: 0; /* Garante que o input fique travado no tamanho certo */
+}
         button.btn-action {
             width: 100%;
             padding: 12px;
