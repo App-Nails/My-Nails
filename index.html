@@ -3,267 +3,265 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nail Studio - Agendamento</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_pink.css">
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
+    <title>Agendamento - Nail Studio</title>
     <style>
         :root {
             --primary: #d81b60;
+            --primary-dark: #c2185b;
             --surface: #ffffff;
+            --background: #f8fafc;
             --text-main: #2c3e50;
+            --text-muted: #64748b;
             --border: #e2e8f0;
         }
 
-        * { 
-            box-sizing: border-box; 
-            margin: 0; 
-            padding: 0; 
-            font-family: 'Segoe UI', system-ui, sans-serif; 
-        }
-        
-        body { 
-            background: linear-gradient(135deg, #fce4ec 0%, #f8bbd0 100%); 
-            color: var(--text-main); 
-            min-height: 100vh; 
-            padding: 20px; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-        }
-        
-        .app-container { 
-            width: 100%; 
-            max-width: 420px; 
-            background: var(--surface); 
-            border-radius: 20px; 
-            box-shadow: 0 12px 28px rgba(216, 27, 96, 0.12); 
-            padding: 28px 24px; 
-            overflow: hidden;
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, sans-serif;
         }
 
-        h2 { color: var(--primary); font-size: 1.5rem; font-weight: 700; text-align: center; margin-bottom: 4px; }
-        .subtitle { text-align: center; color: #7f8c8d; font-size: 0.88rem; margin-bottom: 18px; font-weight: 600; }
-        
-        .tab-buttons { display: flex; gap: 8px; margin-bottom: 18px; }
-        .tab-btn { flex: 1; padding: 10px; border: 2px solid var(--primary); background: transparent; color: var(--primary); font-weight: bold; border-radius: 10px; cursor: pointer; transition: 0.2s; font-size: 0.88rem; }
-        .tab-btn.active { background: var(--primary); color: white; }
-
-        .form-group { margin-bottom: 14px; width: 100%; }
-        label { display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 6px; }
-        
-        input, select, .flatpickr-input { 
-            width: 100% !important; 
-            max-width: 100% !important;
-            box-sizing: border-box !important; 
-            padding: 10px 12px; 
-            border: 2px solid var(--border); 
-            border-radius: 10px; 
-            font-size: 0.9rem; 
-            background-color: #fafafa; 
-            outline: none; 
-            display: block;
-        }
-        
-        input:focus, select:focus, .flatpickr-input:focus { 
-            border-color: var(--primary); 
-            background: #fff; 
-        }
-
-        .datetime-row {
+        body {
+            background: linear-gradient(135deg, #fce4ec 0%, #f8bbd0 100%);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 20px;
             display: flex;
-            gap: 10px;
+            justify-content: center;
+            align-items: flex-start;
         }
 
-        .datetime-row .form-group {
-            flex: 1;
+        .container {
+            width: 100%;
+            max-width: 480px;
+            background: var(--surface);
+            border-radius: 20px;
+            box-shadow: 0 12px 28px rgba(216, 27, 96, 0.12);
+            padding: 28px 24px;
+            margin-top: 20px;
+            margin-bottom: 20px;
         }
-        
-        button.btn-action { width: 100%; padding: 12px; background: linear-gradient(135deg, var(--primary) 0%, #c2185b 100%); color: white; border: none; border-radius: 10px; font-size: 0.95rem; font-weight: 700; cursor: pointer; margin-top: 6px; }
-        
-        .hidden { display: none; }
-        
-        .appointment-card { background: #fff3f8; border-left: 4px solid var(--primary); padding: 12px; margin-bottom: 10px; border-radius: 8px; font-size: 0.88rem; }
-        .appointment-card strong { color: var(--primary); }
+
+        h2 {
+            color: var(--primary);
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 4px;
+        }
+
+        .prof-name {
+            text-align: center;
+            color: var(--primary-dark);
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+            width: 100%;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.88rem;
+            margin-bottom: 6px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            font-size: 0.95rem;
+            background-color: #fafafa;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--primary);
+            background: #fff;
+        }
+
+        button.btn-submit {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 10px;
+            box-shadow: 0 4px 12px rgba(216, 27, 96, 0.25);
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            color: #b91c1c;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.88rem;
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #047857;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.88rem;
+            margin-bottom: 16px;
+            display: none;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
 
-<div class="app-container">
-    <h2>Nail Studio</h2>
-    <div id="prof-subtitle" class="subtitle">Carregando informações...</div>
+<div class="container">
+    <h2>Agende seu Horário</h2>
+    <div class="prof-name" id="prof-title">Nail Studio</div>
 
-    <!-- Navegação em Abas -->
-    <div class="tab-buttons">
-        <button id="tab-book-btn" class="tab-btn active" onclick="switchTab('book')">Novo Agendamento</button>
-        <button id="tab-list-btn" class="tab-btn" onclick="switchTab('list')">Meus Horários</button>
-    </div>
+    <div id="error-msg" class="alert-error"></div>
+    <div id="success-msg" class="alert-success"></div>
 
-    <!-- Aba 1: Formulário de Agendamento -->
-    <div id="tab-book">
-        <form id="booking-form">
-            <div class="form-group">
-                <label for="client-name">👤 Seu Nome</label>
-                <input type="text" id="client-name" required placeholder="Digite seu nome completo">
-            </div>
-
-            <div class="form-group">
-                <label for="client-phone">📱 Seu WhatsApp</label>
-                <input type="tel" id="client-phone" required placeholder="(83) 9XXXX-XXXX">
-            </div>
-
-            <div class="form-group">
-                <label for="service-type">✨ Serviço</label>
-                <select id="service-type" required></select>
-            </div>
-
-            <div class="datetime-row">
-                <div class="form-group">
-                    <label for="app-date-only">📅 Data</label>
-                    <input type="text" id="app-date-only" required placeholder="Data">
-                </div>
-
-                <div class="form-group">
-                    <label for="app-time-only">⏰ Horário</label>
-                    <input type="text" id="app-time-only" required placeholder="Horário">
-                </div>
-            </div>
-
-            <button type="submit" class="btn-action">Confirmar Agendamento</button>
-        </form>
-    </div>
-
-    <!-- Aba 2: Meus Agendamentos -->
-    <div id="tab-list" class="hidden">
+    <form id="booking-form">
         <div class="form-group">
-            <label for="search-phone">📱 Digite seu WhatsApp para consultar:</label>
-            <input type="tel" id="search-phone" placeholder="Ex: (83) 9XXXX-XXXX">
-            <button type="button" class="btn-action" onclick="searchAppointments()" style="margin-top: 8px;">Buscar Horários</button>
+            <label for="client-name">👤 Seu Nome Completo</label>
+            <input type="text" id="client-name" required placeholder="Digite seu nome">
         </div>
 
-        <div id="client-appointments-results">
-            <p style="text-align: center; color: #777; font-size: 0.85rem; margin-top: 15px;">Digite seu número acima para ver seus agendamentos.</p>
+        <div class="form-group">
+            <label for="client-phone">📱 Seu WhatsApp</label>
+            <input type="tel" id="client-phone" required placeholder="(83) 9XXXX-XXXX">
         </div>
-    </div>
+
+        <div class="form-group">
+            <label for="client-service">✨ Selecione o Serviço</label>
+            <select id="client-service" required>
+                <option value="">Carregando serviços...</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="client-datetime">📅 Data e Horário</label>
+            <input type="datetime-local" id="client-datetime" required>
+        </div>
+
+        <button type="submit" class="btn-submit">Confirmar Agendamento</button>
+    </form>
 </div>
 
 <script>
-    flatpickr("#app-date-only", { locale: "pt", dateFormat: "Y-m-d", altInput: true, altFormat: "d/m/Y", minDate: "today" });
-    flatpickr("#app-time-only", { enableTime: true, noCalendar: true, dateFormat: "H:i", time_24hr: true, minTime: "08:00", maxTime: "19:00" });
+    let currentProf = null;
 
-    // Lista completa padrão de serviços (Fallback)
-    const defaultServices = [
-        "Aplicação de Alongamento",
-        "Manutenção de Alongamento",
-        "Remoção de Alongamento",
-        "Esmaltação em Gel",
-        "Manicure Tradicional",
-        "Esmaltação Francesa",
-        "Nail Art",
-        "Decoração Encapsulada",
-        "Pedicure Tradicional",
-        "Esmaltação em Gel nos Pés",
-        "Spa dos Pés",
-        "Plástica dos Pés"
-    ];
-
-    const urlParams = new URLSearchParams(window.location.search);
-    const targetProfId = urlParams.get('prof');
-    const professionals = JSON.parse(localStorage.getItem('nail_professionals') || '[]');
-
-    let currentProf = professionals.find(p => p.id === targetProfId);
-
-    if (!currentProf && professionals.length > 0) {
-        currentProf = professionals[0];
+    function getQueryParam(param) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(param);
     }
 
-    const subtitleEl = document.getElementById('prof-subtitle');
-    const serviceSelect = document.getElementById('service-type');
+    function showMsg(text, isError = false) {
+        const errorEl = document.getElementById('error-msg');
+        const successEl = document.getElementById('success-msg');
+        errorEl.style.display = 'none';
+        successEl.style.display = 'none';
 
-    if (currentProf) {
-        subtitleEl.innerText = `Atendimento com ${currentProf.name}`;
-        const servicesToDisplay = (currentProf.services && currentProf.services.length > 0) 
-            ? currentProf.services 
-            : defaultServices;
-        serviceSelect.innerHTML = servicesToDisplay.map(s => `<option value="${s}">${s}</option>`).join('');
-    } else {
-        subtitleEl.innerText = "Agendamento de Serviços";
-        serviceSelect.innerHTML = defaultServices.map(s => `<option value="${s}">${s}</option>`).join('');
+        if (isError) {
+            errorEl.innerText = text;
+            errorEl.style.display = 'block';
+        } else {
+            successEl.innerText = text;
+            successEl.style.display = 'block';
+        }
     }
 
-    function switchTab(tab) {
-        document.getElementById('tab-book').classList.toggle('hidden', tab !== 'book');
-        document.getElementById('tab-list').classList.toggle('hidden', tab !== 'list');
-        document.getElementById('tab-book-btn').classList.toggle('active', tab === 'book');
-        document.getElementById('tab-list-btn').classList.toggle('active', tab === 'list');
+    // CARREGA DADOS DO PROFISSIONAL E MONTA O SELECT
+    function init() {
+        const profId = getQueryParam('prof');
+        const professionals = JSON.parse(localStorage.getItem('nail_professionals') || '[]');
+        const selectService = document.getElementById('client-service');
+
+        if (profId) {
+            currentProf = professionals.find(p => p.id === profId);
+        }
+
+        // Se não encontrou por ID ou acessou sem link, pega o primeiro cadastrado
+        if (!currentProf && professionals.length > 0) {
+            currentProf = professionals[0];
+        }
+
+        if (currentProf) {
+            document.getElementById('prof-title').innerText = `Profissional: ${currentProf.name}`;
+            
+            if (currentProf.services && currentProf.services.length > 0) {
+                // CORREÇÃO DO [object Object]: extrai o .name e .price corretamente
+                selectService.innerHTML = '<option value="">Selecione um serviço...</option>' + 
+                    currentProf.services.map(s => {
+                        const name = typeof s === 'object' ? s.name : s;
+                        const priceNum = typeof s === 'object' ? parseFloat(s.price || 0) : 0;
+                        const priceFormatted = priceNum > 0 ? ` - R$ ${priceNum.toFixed(2).replace('.', ',')}` : '';
+                        
+                        return `<option value="${name}" data-price="${priceNum}">${name}${priceFormatted}</option>`;
+                    }).join('');
+            } else {
+                selectService.innerHTML = '<option value="">Nenhum serviço disponível</option>';
+            }
+        } else {
+            document.getElementById('prof-title').innerText = "Nenhum profissional encontrado";
+            selectService.innerHTML = '<option value="">Cadastre um profissional no painel primeiro</option>';
+        }
     }
 
+    // REGISTRA O AGENDAMENTO
     document.getElementById('booking-form').addEventListener('submit', function(e) {
         e.preventDefault();
 
-        const clientName = document.getElementById('client-name').value;
-        const rawPhone = document.getElementById('client-phone').value;
-        const cleanPhone = rawPhone.replace(/\D/g, '');
-        const serviceType = document.getElementById('service-type').value;
-        const dateValue = document.getElementById('app-date-only').value;
-        const timeValue = document.getElementById('app-time-only').value;
+        if (!currentProf) {
+            showMsg('Erro ao identificar o profissional.', true);
+            return;
+        }
 
-        const profId = currentProf ? currentProf.id : 'default';
-        const profName = currentProf ? currentProf.name : 'Studio';
+        const name = document.getElementById('client-name').value.trim();
+        const phone = document.getElementById('client-phone').value.trim();
+        const serviceSelect = document.getElementById('client-service');
+        const serviceName = serviceSelect.value;
+        const selectedOption = serviceSelect.options[serviceSelect.selectedIndex];
+        const price = parseFloat(selectedOption.getAttribute('data-price') || 0);
+        const datetime = document.getElementById('client-datetime').value;
 
-        const appointment = {
-            id: Date.now(),
-            profId: profId,
-            profName: profName,
-            client: clientName,
-            phone: cleanPhone,
-            service: serviceType,
-            datetime: `${dateValue}T${timeValue}`,
-            alert30Sent: false
+        if (!serviceName) {
+            showMsg('Por favor, selecione um serviço.', true);
+            return;
+        }
+
+        const appointments = JSON.parse(localStorage.getItem('nail_appointments') || '[]');
+
+        const newAppointment = {
+            id: 'app_' + Date.now(),
+            profId: currentProf.id,
+            client: name,
+            phone: phone,
+            service: serviceName,
+            price: price,
+            datetime: datetime,
+            status: 'pending'
         };
 
-        const appointments = JSON.parse(localStorage.getItem('nail_appointments') || '[]');
-        appointments.push(appointment);
+        appointments.push(newAppointment);
         localStorage.setItem('nail_appointments', JSON.stringify(appointments));
 
-        alert('Agendamento realizado com sucesso!\n\nSe precisar cancelar, cancele com 30 minutos de antecedência.');
-
-        // Formulário é limpo e o agendamento fica salvo internamente no painel e na consulta do cliente
-        this.reset();
+        showMsg('✨ Agendamento realizado com sucesso! Aguardamos você.');
+        document.getElementById('booking-form').reset();
     });
 
-    function searchAppointments() {
-        const inputPhone = document.getElementById('search-phone').value.replace(/\D/g, '');
-        const resultsContainer = document.getElementById('client-appointments-results');
-
-        if (!inputPhone) {
-            alert('Por favor, informe seu número de WhatsApp.');
-            return;
-        }
-
-        const appointments = JSON.parse(localStorage.getItem('nail_appointments') || '[]');
-        const userAppointments = appointments.filter(a => a.phone && a.phone.includes(inputPhone));
-
-        if (userAppointments.length === 0) {
-            resultsContainer.innerHTML = '<p style="text-align: center; color: #e74c3c; margin-top: 15px;">Nenhum agendamento encontrado para este número.</p>';
-            return;
-        }
-
-        resultsContainer.innerHTML = userAppointments.map(app => {
-            const [date, time] = app.datetime.split('T');
-            const [year, month, day] = date.split('-');
-            
-            return `
-                <div class="appointment-card">
-                    <strong>Profissional:</strong> ${app.profName || 'Studio'}<br>
-                    <strong>Serviço:</strong> ${app.service}<br>
-                    <strong>Data:</strong> ${day}/${month}/${year}<br>
-                    <strong>Horário:</strong> ${time} hs
-                </div>
-            `;
-        }).join('');
-    }
+    init();
 </script>
 </body>
 </html>
