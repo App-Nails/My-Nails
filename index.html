@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nail Studio - Agendamento</title>
-    <!-- Bibliotecas de Datepicker Personalizado -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_pink.css">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
@@ -12,141 +11,34 @@
     <style>
         :root {
             --primary: #d81b60;
-            --primary-hover: #c2185b;
-            --primary-light: #fce4ec;
             --surface: #ffffff;
             --text-main: #2c3e50;
-            --text-muted: #7f8c8d;
             --border: #e2e8f0;
-            --shadow: 0 12px 28px rgba(216, 27, 96, 0.12);
         }
 
-        * { 
-            box-sizing: border-box; 
-            margin: 0; 
-            padding: 0; 
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; 
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body { background: linear-gradient(135deg, #fce4ec 0%, #f8bbd0 100%); color: var(--text-main); min-height: 100vh; padding: 20px; display: flex; justify-content: center; align-items: center; }
+        .app-container { width: 100%; max-width: 440px; background: var(--surface); border-radius: 20px; box-shadow: 0 12px 28px rgba(216, 27, 96, 0.12); padding: 32px 28px; }
 
-        body { 
-            background: linear-gradient(135deg, #fce4ec 0%, #f8bbd0 100%); 
-            color: var(--text-main); 
-            min-height: 100vh;
-            padding: 20px; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center;
-        }
-
-        .app-container { 
-            width: 100%; 
-            max-width: 440px; 
-            background: var(--surface); 
-            border-radius: 20px; 
-            box-shadow: var(--shadow); 
-            padding: 32px 28px; 
-        }
-
-        .header-title {
-            text-align: center;
-            margin-bottom: 24px;
-        }
-
-        .header-title h2 { 
-            color: var(--primary); 
-            font-size: 1.6rem;
-            font-weight: 700;
-        }
-
-        .header-title p {
-            color: var(--text-muted);
-            font-size: 0.88rem;
-            margin-top: 4px;
-        }
-
-        .form-group { 
-            margin-bottom: 18px; 
-        }
-
-        label { 
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            margin-bottom: 8px; 
-            font-weight: 600; 
-            font-size: 0.88rem; 
-            color: var(--text-main);
-        }
-
-        input, select { 
-            width: 100%; 
-            padding: 12px 16px; 
-            border: 2px solid var(--border); 
-            border-radius: 12px; 
-            font-size: 0.95rem; 
-            color: var(--text-main);
-            background-color: #fafafa;
-            transition: all 0.25s ease;
-            outline: none;
-        }
-
-        select {
-            appearance: none;
-            -webkit-appearance: none;
-            background-image: url("data:image/svg+xml;utf8,<svg fill='%23d81b60' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
-            background-repeat: no-repeat;
-            background-position: right 12px center;
-            padding-right: 40px;
-        }
-
-        input:focus, select:focus {
-            border-color: var(--primary);
-            background-color: #ffffff;
-            box-shadow: 0 0 0 4px rgba(216, 27, 96, 0.1);
-        }
-
-        .flatpickr-calendar {
-            border-radius: 16px !important;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important;
-            border: none !important;
-            background: #ffffff !important;
-        }
-
-        .flatpickr-day.selected {
-            background: var(--primary) !important;
-            border-color: var(--primary) !important;
-        }
-
-        button.btn-action { 
-            width: 100%; 
-            padding: 14px; 
-            background: linear-gradient(135deg, var(--primary) 0%, #c2185b 100%); 
-            color: white; 
-            border: none; 
-            border-radius: 12px; 
-            font-size: 1rem; 
-            font-weight: 700; 
-            cursor: pointer; 
-            transition: all 0.25s ease; 
-            margin-top: 12px; 
-            box-shadow: 0 6px 16px rgba(216, 27, 96, 0.25);
-        }
-
-        button.btn-action:hover { 
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(216, 27, 96, 0.35);
-        }
+        h2 { color: var(--primary); font-size: 1.6rem; font-weight: 700; text-align: center; margin-bottom: 20px; }
+        .form-group { margin-bottom: 18px; }
+        label { display: block; font-weight: 600; font-size: 0.88rem; margin-bottom: 8px; }
+        input, select { width: 100%; padding: 12px 16px; border: 2px solid var(--border); border-radius: 12px; font-size: 0.95rem; background-color: #fafafa; outline: none; }
+        
+        button.btn-action { width: 100%; padding: 14px; background: linear-gradient(135deg, var(--primary) 0%, #c2185b 100%); color: white; border: none; border-radius: 12px; font-size: 1rem; font-weight: 700; cursor: pointer; margin-top: 12px; }
     </style>
 </head>
 <body>
 
 <div class="app-container">
-    <div class="header-title">
-        <h2>Agende seu Horário</h2>
-        <p>Escolha o serviço, a data e o melhor horário para você</p>
-    </div>
+    <h2>Agende seu Horário</h2>
 
     <form id="booking-form">
+        <div class="form-group">
+            <label for="prof-select">💅 Escolha a Profissional</label>
+            <select id="prof-select" required></select>
+        </div>
+
         <div class="form-group">
             <label for="client-name">👤 Seu Nome</label>
             <input type="text" id="client-name" required placeholder="Digite seu nome completo">
@@ -158,7 +50,7 @@
         </div>
 
         <div class="form-group">
-            <label for="service-type">💅 Serviço</label>
+            <label for="service-type">✨ Serviço</label>
             <select id="service-type" required>
                 <option value="Alongamento em Gel">Alongamento em Gel</option>
                 <option value="Manutenção">Manutenção</option>
@@ -168,13 +60,13 @@
         </div>
 
         <div class="form-group">
-            <label for="app-date-only">📅 Selecione a Data</label>
-            <input type="text" id="app-date-only" required placeholder="Clique para escolher a data">
+            <label for="app-date-only">📅 Data</label>
+            <input type="text" id="app-date-only" required placeholder="Escolha a data">
         </div>
 
         <div class="form-group">
-            <label for="app-time-only">⏰ Selecione o Horário</label>
-            <input type="text" id="app-time-only" required placeholder="Clique para escolher o horário">
+            <label for="app-time-only">⏰ Horário</label>
+            <input type="text" id="app-time-only" required placeholder="Escolha o horário">
         </div>
 
         <button type="submit" class="btn-action">Confirmar Agendamento</button>
@@ -182,49 +74,59 @@
 </div>
 
 <script>
-    const NUMERO_PROFISSIONAL = "5583999999999"; 
+    // DIGITE SEU NÚMERO REAL ABAIXO (Com DDD e código 55 - Exemplo: 5583988887777)
+    const SEU_NUMERO_REAL = "5583988887777"; 
 
-    flatpickr("#app-date-only", {
-        locale: "pt",
-        dateFormat: "Y-m-d",
-        altInput: true,
-        altFormat: "d/m/Y",
-        minDate: "today",
-        disableMobile: "true"
-    });
+    flatpickr("#app-date-only", { locale: "pt", dateFormat: "Y-m-d", altInput: true, altFormat: "d/m/Y", minDate: "today" });
+    flatpickr("#app-time-only", { enableTime: true, noCalendar: true, dateFormat: "H:i", time_24hr: true, minTime: "08:00", maxTime: "19:00" });
 
-    flatpickr("#app-time-only", {
-        enableTime: true,
-        noCalendar: true,
-        dateFormat: "H:i",
-        time_24hr: true,
-        minTime: "08:00",
-        maxTime: "19:00",
-        disableMobile: "true"
-    });
+    // Carregar e garantir pelo menos uma profissional padrão
+    let professionals = JSON.parse(localStorage.getItem('nail_professionals') || '[]');
 
-    if ("Notification" in window && Notification.permission !== "granted") {
-        Notification.requestPermission();
+    if (professionals.length === 0) {
+        professionals = [{
+            id: 'prof_default',
+            name: 'Studio Principal',
+            phone: SEU_NUMERO_REAL,
+            pass: '123456'
+        }];
+        localStorage.setItem('nail_professionals', JSON.stringify(professionals));
     }
 
-    // Salvar Agendamento
+    const profSelect = document.getElementById('prof-select');
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetProfId = urlParams.get('prof');
+
+    profSelect.innerHTML = professionals.map(p => `
+        <option value="${p.id}" ${p.id === targetProfId ? 'selected' : ''}>${p.name}</option>
+    `).join('');
+
+    // Processar formulário
     document.getElementById('booking-form').addEventListener('submit', function(e) {
         e.preventDefault();
-        
+
+        const selectedProfId = profSelect.value;
+        const prof = professionals.find(p => p.id === selectedProfId);
+
+        if (!prof || prof.phone.includes('999999999')) {
+            alert('Atenção: Altere a constante SEU_NUMERO_REAL no arquivo index.html para o seu número verdadeiro do WhatsApp!');
+            return;
+        }
+
         const clientName = document.getElementById('client-name').value;
         const clientPhone = document.getElementById('client-phone').value;
         const serviceType = document.getElementById('service-type').value;
         const dateValue = document.getElementById('app-date-only').value;
         const timeValue = document.getElementById('app-time-only').value;
-        const combinedDatetime = `${dateValue}T${timeValue}`;
 
         const appointment = {
             id: Date.now(),
+            profId: prof.id,
             client: clientName,
             phone: clientPhone,
             service: serviceType,
-            datetime: combinedDatetime,
-            alert30Sent: false // Flag para controle do alerta de 30 min
+            datetime: `${dateValue}T${timeValue}`,
+            alert30Sent: false
         };
 
         const appointments = JSON.parse(localStorage.getItem('nail_appointments') || '[]');
@@ -233,7 +135,7 @@
 
         alert('Agendamento realizado com sucesso!\n\nSe precisar cancelar, cancele com 30 minutos de antecedência.');
 
-        // Notificação de confirmação instantânea via WhatsApp para a profissional
+        // Envio estruturado para o WhatsApp da Profissional
         const msgWhatsApp = encodeURIComponent(
             `*Novo Agendamento Realizado!* 💅\n\n` +
             `*Cliente:* ${clientName}\n` +
@@ -244,48 +146,9 @@
             `_Aviso de cancelamento com 30 min de antecedência em vigor._`
         );
 
-        window.open(`https://wa.me/${NUMERO_PROFISSIONAL}?text=${msgWhatsApp}`, '_blank');
+        window.open(`https://wa.me/${prof.phone}?text=${msgWhatsApp}`, '_blank');
         this.reset();
     });
-
-    // Monitoramento contínuo: Alerta automático de 30 minutos (para Cliente e Profissional)
-    setInterval(() => {
-        const appointments = JSON.parse(localStorage.getItem('nail_appointments') || '[]');
-        const now = new Date().getTime();
-
-        appointments.forEach(app => {
-            const appTime = new Date(app.datetime).getTime();
-            const diffMinutes = (appTime - now) / (1000 * 60);
-
-            // Se faltarem entre 0 e 30 minutos e o alerta ainda não foi emitido
-            if (diffMinutes > 0 && diffMinutes <= 30 && !app.alert30Sent) {
-                const mensagem = `Faltam 30 minutos para o agendamento de ${app.client} (${app.service})!`;
-                
-                sendNotification("⏰ Lembrete de Agendamento (30 min)", mensagem);
-                app.alert30Sent = true;
-            }
-        });
-
-        localStorage.setItem('nail_appointments', JSON.stringify(appointments));
-    }, 10000);
-
-    function sendNotification(title, body) {
-        if ("Notification" in window && Notification.permission === "granted") {
-            new Notification(title, { body: body });
-        } else {
-            alert(`${title}\n${body}`);
-        }
-    }
-
-    // Bloqueios de inspeção de código
-    document.addEventListener('contextmenu', e => e.preventDefault());
-    document.onkeydown = function(e) {
-        if (e.keyCode == 123 || 
-            (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74 || e.keyCode == 67)) || 
-            (e.ctrlKey && e.keyCode == 85)) {
-            return false;
-        }
-    };
 </script>
 </body>
 </html>
