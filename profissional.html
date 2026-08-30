@@ -1,23 +1,215 @@
-// Adicione este trecho no script do profissional.html
-setInterval(() => {
-    const appointments = JSON.parse(localStorage.getItem('nail_appointments') || '[]');
-    const now = new Date().getTime();
-
-    appointments.forEach(app => {
-        const appTime = new Date(app.datetime).getTime();
-        const diffMinutes = (appTime - now) / (1000 * 60);
-
-        if (diffMinutes > 0 && diffMinutes <= 30 && !app.alert30Sent) {
-            if ("Notification" in window && Notification.permission === "granted") {
-                new Notification("⏰ Próximo Atendimento em 30 min!", {
-                    body: `Cliente: ${app.client} - Serviço: ${app.service}`
-                });
-            } else {
-                alert(`⏰ Atenção: Faltam 30 minutos para o atendimento de ${app.client}!`);
-            }
-            app.alert30Sent = true;
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nail Studio - Painel do Profissional</title>
+    <style>
+        :root {
+            --primary: #d81b60;
+            --primary-hover: #c2185b;
+            --surface: #ffffff;
+            --bg: #fce4ec;
+            --text-main: #2c3e50;
+            --border: #e2e8f0;
         }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body { background: var(--bg); color: var(--text-main); min-height: 100vh; padding: 20px; display: flex; justify-content: center; }
+        .container { width: 100%; max-width: 500px; background: var(--surface); border-radius: 20px; padding: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        
+        h2, h3 { color: var(--primary); margin-bottom: 15px; text-align: center; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: 600; font-size: 0.88rem; margin-bottom: 6px; }
+        input { width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: 10px; font-size: 0.95rem; outline: none; }
+        input:focus { border-color: var(--primary); }
+        
+        button { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; transition: 0.2s; margin-top: 8px; }
+        button:hover { background: var(--primary-hover); }
+        .btn-link { background: none; color: var(--primary); text-decoration: underline; margin-top: 10px; font-size: 0.9rem; }
+
+        .hidden { display: none; }
+        .appointment-card { background: #fafafa; border-left: 4px solid var(--primary); padding: 12px; margin-bottom: 10px; border-radius: 8px; }
+        .link-box { background: #fff3f8; padding: 12px; border-radius: 10px; border: 1px dashed var(--primary); margin-bottom: 20px; word-break: break-all; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Tela de Login -->
+    <div id="auth-login">
+        <h2>Área do Profissional</h2>
+        <form id="form-login">
+            <div class="form-group">
+                <label>WhatsApp (Login):</label>
+                <input type="tel" id="login-phone" required placeholder="55839XXXXXXX">
+            </div>
+            <div class="form-group">
+                <label>Senha:</label>
+                <input type="password" id="login-pass" required placeholder="Sua senha">
+            </div>
+            <button type="submit">Entrar</button>
+        </form>
+        <button class="btn-link" onclick="toggleAuth('register')">Não tem conta? Cadastre-se</button>
+    </div>
+
+    <!-- Tela de Cadastro -->
+    <div id="auth-register" class="hidden">
+        <h2>Cadastro de Profissional</h2>
+        <form id="form-register">
+            <div class="form-group">
+                <label>Seu Nome / Nome do Studio:</label>
+                <input type="text" id="reg-name" required placeholder="Ex: Studio Ana Nails">
+            </div>
+            <div class="form-group">
+                <label>WhatsApp (com DDD):</label>
+                <input type="tel" id="reg-phone" required placeholder="Ex: 5583988887777">
+            </div>
+            <div class="form-group">
+                <label>Crie uma Senha:</label>
+                <input type="password" id="reg-pass" required placeholder="Senha de acesso">
+            </div>
+            <button type="submit">Cadastrar</button>
+        </form>
+        <button class="btn-link" onclick="toggleAuth('login')">Já tem conta? Faça login</button>
+    </div>
+
+    <!-- Painel do Profissional Logado -->
+    <div id="dashboard" class="hidden">
+        <h2 id="welcome-msg">Bem-vinda!</h2>
+        
+        <div class="link-box">
+            <strong>Seu link de agendamento para clientes:</strong><br>
+            <span id="client-link" style="color: var(--primary); font-size: 0.85rem;"></span>
+        </div>
+
+        <h3>Seus Agendamentos</h3>
+        <div id="appointments-list">Nenhum agendamento encontrado.</div>
+
+        <button onclick="logout()" style="background: #7f8c8d; margin-top: 20px;">Sair da Conta</button>
+    </div>
+</div>
+
+<script>
+    let currentProf = null;
+
+    function toggleAuth(view) {
+        document.getElementById('auth-login').classList.toggle('hidden', view !== 'login');
+        document.getElementById('auth-register').classList.toggle('hidden', view !== 'register');
+    }
+
+    // Cadastro de Profissional
+    document.getElementById('form-register').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const name = document.getElementById('reg-name').value;
+        let phone = document.getElementById('reg-phone').value.replace(/\D/g, '');
+        const pass = document.getElementById('reg-pass').value;
+
+        if (!phone.startsWith('55')) phone = '55' + phone;
+
+        const professionals = JSON.parse(localStorage.getItem('nail_professionals') || '[]');
+        
+        if (professionals.some(p => p.phone === phone)) {
+            alert('Este WhatsApp já está cadastrado!');
+            return;
+        }
+
+        const newProf = { id: 'prof_' + Date.now(), name, phone, pass };
+        professionals.push(newProf);
+        localStorage.setItem('nail_professionals', JSON.stringify(professionals));
+
+        alert('Cadastro realizado com sucesso! Faça login.');
+        toggleAuth('login');
     });
 
-    localStorage.setItem('nail_appointments', JSON.stringify(appointments));
-}, 10000);
+    // Login do Profissional
+    document.getElementById('form-login').addEventListener('submit', function(e) {
+        e.preventDefault();
+        let phone = document.getElementById('login-phone').value.replace(/\D/g, '');
+        const pass = document.getElementById('login-pass').value;
+
+        if (!phone.startsWith('55')) phone = '55' + phone;
+
+        const professionals = JSON.parse(localStorage.getItem('nail_professionals') || '[]');
+        const prof = professionals.find(p => p.phone === phone && p.pass === pass);
+
+        if (!prof) {
+            alert('WhatsApp ou senha incorretos!');
+            return;
+        }
+
+        currentProf = prof;
+        localStorage.setItem('nail_current_session', JSON.stringify(prof));
+        loadDashboard();
+    });
+
+    function loadDashboard() {
+        document.getElementById('auth-login').classList.add('hidden');
+        document.getElementById('auth-register').classList.add('hidden');
+        document.getElementById('dashboard').classList.remove('hidden');
+
+        document.getElementById('welcome-msg').innerText = `Olá, ${currentProf.name}!`;
+        
+        // Gera o link específico da cliente apontando para o id do profissional
+        const baseUrl = window.location.href.replace('profissional.html', 'index.html');
+        const uniqueLink = `${baseUrl}?prof=${currentProf.id}`;
+        document.getElementById('client-link').innerText = uniqueLink;
+
+        renderAppointments();
+    }
+
+    function renderAppointments() {
+        const allAppointments = JSON.parse(localStorage.getItem('nail_appointments') || '[]');
+        const myAppointments = allAppointments.filter(a => a.profId === currentProf.id);
+        const listContainer = document.getElementById('appointments-list');
+
+        if (myAppointments.length === 0) {
+            listContainer.innerHTML = '<p style="text-align:center; color:#777;">Nenhum agendamento recebido ainda.</p>';
+            return;
+        }
+
+        listContainer.innerHTML = myAppointments.map(app => `
+            <div class="appointment-card">
+                <strong>Cliente:</strong> ${app.client}<br>
+                <strong>WhatsApp:</strong> ${app.phone}<br>
+                <strong>Serviço:</strong> ${app.service}<br>
+                <strong>Data/Hora:</strong> ${app.datetime.replace('T', ' às ')}
+            </div>
+        `).join('');
+    }
+
+    function logout() {
+        localStorage.removeItem('nail_current_session');
+        location.reload();
+    }
+
+    // Auto-login se sessão ativa
+    const savedSession = localStorage.getItem('nail_current_session');
+    if (savedSession) {
+        currentProf = JSON.parse(savedSession);
+        loadDashboard();
+    }
+
+    // Alerta automático de 30 minutos na tela do profissional
+    setInterval(() => {
+        if (!currentProf) return;
+        const appointments = JSON.parse(localStorage.getItem('nail_appointments') || '[]');
+        const now = new Date().getTime();
+
+        appointments.forEach(app => {
+            if (app.profId === currentProf.id) {
+                const appTime = new Date(app.datetime).getTime();
+                const diffMinutes = (appTime - now) / (1000 * 60);
+
+                if (diffMinutes > 0 && diffMinutes <= 30 && !app.alert30Sent) {
+                    alert(`⏰ Lembrete: Faltam 30 minutos para o agendamento de ${app.client}!`);
+                    app.alert30Sent = true;
+                }
+            }
+        });
+
+        localStorage.setItem('nail_appointments', JSON.stringify(appointments));
+    }, 10000);
+</script>
+</body>
+</html>
