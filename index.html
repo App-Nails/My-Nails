@@ -32,7 +32,21 @@
         }
 
         h2 { color: var(--primary); text-align: center; margin-bottom: 4px; }
-        .prof-name { text-align: center; color: var(--primary-dark); font-weight: 600; margin-bottom: 20px; }
+        .prof-name { text-align: center; color: var(--primary-dark); font-weight: 600; margin-bottom: 12px; }
+
+        .location-info-box {
+            background: #fff0f6;
+            border: 1px solid #fbcfe8;
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 20px;
+            font-size: 0.88rem;
+            color: #831843;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
         .form-group { margin-bottom: 16px; }
         label { display: block; font-weight: 600; font-size: 0.88rem; margin-bottom: 6px; }
 
@@ -59,7 +73,6 @@
         }
 
         .alert-success { background: #d1fae5; color: #047857; padding: 12px; border-radius: 8px; font-size: 0.88rem; display: none; text-align: center; }
-        .alert-error { background: #fee2e2; color: #b91c1c; padding: 12px; border-radius: 8px; font-size: 0.88rem; display: none; }
     </style>
 </head>
 <body>
@@ -68,7 +81,15 @@
     <h2>Agende seu Horário</h2>
     <div class="prof-name" id="prof-title">Nail Studio</div>
 
-    <div id="error-msg" class="alert-error"></div>
+    <!-- CAIXA DE ENDEREÇO / MENSAGEM DO LOCAL -->
+    <div class="location-info-box" id="location-box">
+        <span style="font-size: 1.2rem;">📍</span>
+        <div>
+            <strong id="location-type-label">Local de Atendimento:</strong><br>
+            <span id="location-text">Carregando informações...</span>
+        </div>
+    </div>
+
     <div id="success-msg" class="alert-success"></div>
 
     <form id="booking-form">
@@ -119,6 +140,19 @@
         if (currentProf) {
             document.getElementById('prof-title').innerText = `Profissional: ${currentProf.name}`;
             
+            // ATUALIZA ENDEREÇO / INFORMAÇÕES DE ATENDIMENTO
+            const locationTextEl = document.getElementById('location-text');
+            const locationLabelEl = document.getElementById('location-type-label');
+
+            if (currentProf.locationType === 'home') {
+                locationLabelEl.innerText = "Atendimento A Domicílio:";
+                locationTextEl.innerText = "A profissional vai até a sua residência no horário agendado.";
+            } else {
+                locationLabelEl.innerText = "Endereço do Local:";
+                locationTextEl.innerText = currentProf.address || "Endereço não informado.";
+            }
+
+            // CARREGA LISTA DE SERVIÇOS
             const selectService = document.getElementById('client-service');
             selectService.innerHTML = '<option value="">Selecione um serviço...</option>' + 
                 currentProf.services.map(s => {
@@ -129,7 +163,6 @@
         }
     }
 
-    // ATUALIZA OS HORÁRIOS OCUPADOS X DISPONÍVEIS
     function updateAvailableTimes() {
         const dateVal = document.getElementById('client-date').value;
         const selectTime = document.getElementById('client-time');
@@ -137,13 +170,10 @@
         if (!dateVal || !currentProf) return;
 
         const appointments = JSON.parse(localStorage.getItem('nail_appointments') || '[]');
-        
-        // Pega horários já ocupados para a data selecionada
         const occupiedTimes = appointments
             .filter(a => a.profId === currentProf.id && a.datetime.startsWith(dateVal))
             .map(a => a.datetime.split('T')[1]);
 
-        // Filtra lista removendo os ocupados
         const masterSlots = currentProf.availableSlots || ["08:00", "09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"];
         const freeSlots = masterSlots.filter(slot => !occupiedTimes.includes(slot));
 
@@ -163,14 +193,8 @@
         const serviceSelect = document.getElementById('client-service');
         const serviceName = serviceSelect.value;
         const price = parseFloat(serviceSelect.options[serviceSelect.selectedIndex].getAttribute('data-price') || 0);
-        
         const date = document.getElementById('client-date').value;
         const time = document.getElementById('client-time').value;
-
-        if (!time) {
-            alert('Selecione um horário válido!');
-            return;
-        }
 
         const appointments = JSON.parse(localStorage.getItem('nail_appointments') || '[]');
         
@@ -187,7 +211,7 @@
 
         localStorage.setItem('nail_appointments', JSON.stringify(appointments));
 
-        document.getElementById('success-msg').innerText = '✨ Agendamento confirmado!';
+        document.getElementById('success-msg').innerText = '✨ Agendamento confirmado com sucesso!';
         document.getElementById('success-msg').style.display = 'block';
         document.getElementById('booking-form').reset();
     });
