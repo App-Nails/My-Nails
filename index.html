@@ -20,7 +20,7 @@
             margin: 0;
             padding: 0;
             font-family: 'Segoe UI', system-ui, sans-serif;
-            -webkit-user-select: none; /* Desativa seleção de texto */
+            -webkit-user-select: none;
             -ms-user-select: none;
             user-select: none;
         }
@@ -88,7 +88,7 @@
             font-size: 0.95rem;
             outline: none;
             background: #fafafa;
-            -webkit-user-select: auto; /* Permite digitar nos campos */
+            -webkit-user-select: auto;
             -ms-user-select: auto;
             user-select: auto;
         }
@@ -98,29 +98,42 @@
             background: #fff;
         }
 
+        /* AJUSTE: Grid em 3 colunas conforme a imagem */
         .slots-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(3, 1fr);
             gap: 10px;
             margin-top: 8px;
         }
 
         .slot-btn {
-            padding: 10px;
-            border: 2px solid var(--border);
-            border-radius: 10px;
-            background: #fff;
+            padding: 12px 8px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: #f8fafc;
             text-align: center;
             font-weight: 600;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
+            color: #334155;
             cursor: pointer;
             transition: all 0.2s;
         }
 
+        /* Estilo para horário selecionado */
         .slot-btn.selected {
             background: var(--primary);
             color: white;
             border-color: var(--primary);
+        }
+
+        /* Estilo para horário indisponível (igual à imagem: fundo claro com risco) */
+        .slot-btn.disabled {
+            background: #ffebee;
+            border-color: #ffcdd2;
+            color: #e57373;
+            text-decoration: line-through;
+            cursor: not-allowed;
+            pointer-events: none;
         }
 
         .btn-submit {
@@ -172,7 +185,7 @@
         </div>
 
         <div class="form-group">
-            <label for="service-select">💅 Selecione o Serviço</label>
+            <label for="service-select">✨ Selecione o Serviço</label>
             <select id="service-select" required>
                 <option value="">Selecione um serviço...</option>
             </select>
@@ -186,7 +199,7 @@
         <div class="form-group">
             <label>⏰ Horários para a Data Selecionada</label>
             <div id="slots-container" class="slots-grid">
-                <p style="grid-column: span 2; font-size: 0.85rem; color: #666;">Carregando horários...</p>
+                <p style="grid-column: span 3; font-size: 0.85rem; color: #666;">Carregando horários...</p>
             </div>
         </div>
 
@@ -198,33 +211,23 @@
     // ==========================================
     // PROTEÇÃO CONTRA CTRL+U E BOTÃO DIREITO
     // ==========================================
-    
-    // 1. Bloqueia o clique com o botão direito (menu de contexto)
     document.addEventListener('contextmenu', function(e) {
         e.preventDefault();
     });
 
-    // 2. Bloqueia os atalhos de teclado de inspeção e código-fonte
     document.addEventListener('keydown', function(e) {
-        // Bloqueia Ctrl+U
         if (e.ctrlKey && (e.key === 'u' || e.key === 'U')) {
             e.preventDefault();
             return false;
         }
-
-        // Bloqueia F12
         if (e.key === 'F12') {
             e.preventDefault();
             return false;
         }
-
-        // Bloqueia Ctrl+Shift+I e Ctrl+Shift+J
         if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j')) {
             e.preventDefault();
             return false;
         }
-
-        // Bloqueia Ctrl+S
         if (e.ctrlKey && (e.key === 's' || e.key === 'S')) {
             e.preventDefault();
             return false;
@@ -252,7 +255,6 @@
             activeProf = professionals[0];
         }
 
-        // Perfil padrão caso o localStorage esteja sem dados registrados
         if (!activeProf) {
             activeProf = {
                 id: 'prof_default',
@@ -263,7 +265,8 @@
                     { name: 'Apenas Mão', price: '30.00' },
                     { name: 'Apenas Pé', price: '30.00' }
                 ],
-                availableSlots: ["08:00", "09:00", "11:00", "13:00"]
+                // Lista de horários conforme exibida na imagem
+                availableSlots: ["08:00", "09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"]
             };
         }
 
@@ -281,13 +284,11 @@
             });
         }
 
-        // Define a data padrão para a data atual de hoje
         const dateInput = document.getElementById('booking-date');
         const today = new Date().toISOString().split('T')[0];
         dateInput.value = today;
         dateInput.setAttribute('min', today);
 
-        // Executa imediatamente a renderização dos botões de horário
         renderTimeSlots();
     }
 
@@ -298,39 +299,37 @@
 
         const selectedDate = document.getElementById('booking-date').value;
         if (!selectedDate) {
-            slotsGrid.innerHTML = '<p style="grid-column: span 2; font-size: 0.85rem; color: #666;">Selecione uma data para ver os horários.</p>';
+            slotsGrid.innerHTML = '<p style="grid-column: span 3; font-size: 0.85rem; color: #666;">Selecione uma data para ver os horários.</p>';
             return;
         }
 
-        // Grade padrão caso não haja lista cadastrada
-        const defaultSlots = ["08:00", "09:00", "11:00", "13:00"];
+        // Horários completos para preenchimento da grade
+        const fullGridSlots = ["08:00", "09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"];
         const baseSlots = (activeProf && activeProf.availableSlots && activeProf.availableSlots.length > 0) 
             ? activeProf.availableSlots 
-            : defaultSlots;
+            : fullGridSlots;
 
-        // Oculta horários já agendados para a data selecionada
+        // Recupera agendamentos salvos para identificar horários ocupados
         const appointments = JSON.parse(localStorage.getItem('nail_appointments') || '[]');
         const bookedSlots = appointments
             .filter(app => activeProf && app.profId === activeProf.id && app.datetime.startsWith(selectedDate))
             .map(app => app.datetime.split('T')[1]);
 
-        const availableSlots = baseSlots.filter(time => !bookedSlots.includes(time));
-
-        if (availableSlots.length === 0) {
-            slotsGrid.innerHTML = '<p style="grid-column: span 2; font-size: 0.85rem; color: #c2185b;">Nenhum horário disponível para esta data.</p>';
-            return;
-        }
-
-        // Cria os botões interativos de horário
-        availableSlots.forEach(time => {
+        baseSlots.forEach(time => {
             const btn = document.createElement('div');
             btn.className = 'slot-btn';
             btn.innerText = time;
-            btn.onclick = function() {
-                document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('selected'));
-                btn.classList.add('selected');
-                selectedSlot = time;
-            };
+
+            // Se o horário estiver ocupado, aplica a classe "disabled" (estilo riscado/rosa claro igual da foto)
+            if (bookedSlots.includes(time)) {
+                btn.classList.add('disabled');
+            } else {
+                btn.onclick = function() {
+                    document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                    selectedSlot = time;
+                };
+            }
             slotsGrid.appendChild(btn);
         });
     }
@@ -388,7 +387,6 @@
         loadProfessionalData();
     });
 
-    // Inicializa os dados da página
     loadProfessionalData();
 </script>
 
