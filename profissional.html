@@ -17,12 +17,7 @@
             --success: #10b981;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', system-ui, sans-serif;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
 
         body {
             background: linear-gradient(135deg, #fce4ec 0%, #f8bbd0 100%);
@@ -45,57 +40,32 @@
             margin-bottom: 20px;
         }
 
-        h2 {
-            color: var(--primary);
-            font-size: 1.5rem;
-            font-weight: 700;
-            text-align: center;
-            margin-bottom: 6px;
-        }
-
-        .subtitle {
-            text-align: center;
-            color: var(--text-muted);
-            font-size: 0.88rem;
-            margin-bottom: 20px;
-        }
+        h2 { color: var(--primary); font-size: 1.5rem; font-weight: 700; text-align: center; margin-bottom: 6px; }
+        .subtitle { text-align: center; color: var(--text-muted); font-size: 0.88rem; margin-bottom: 20px; }
 
         .tab-buttons {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            margin-bottom: 20px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            margin-bottom: 15px;
         }
 
         .tab-btn {
-            padding: 10px;
+            padding: 8px 4px;
             border: 2px solid var(--primary);
             background: transparent;
             color: var(--primary);
             font-weight: bold;
-            border-radius: 10px;
+            border-radius: 8px;
             cursor: pointer;
-            transition: 0.2s;
-            font-size: 0.82rem;
+            font-size: 0.75rem;
             text-align: center;
         }
 
-        .tab-btn.active {
-            background: var(--primary);
-            color: white;
-        }
+        .tab-btn.active { background: var(--primary); color: white; }
 
-        .form-group {
-            margin-bottom: 14px;
-            width: 100%;
-        }
-
-        label {
-            display: block;
-            font-weight: 600;
-            font-size: 0.85rem;
-            margin-bottom: 6px;
-        }
+        .form-group { margin-bottom: 14px; width: 100%; }
+        label { display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 6px; }
 
         input, select {
             width: 100%;
@@ -105,25 +75,23 @@
             font-size: 0.9rem;
             background-color: #fafafa;
             outline: none;
-            transition: border-color 0.2s;
         }
 
-        input:focus, select:focus {
-            border-color: var(--primary);
-            background: #fff;
+        input:focus, select:focus { border-color: var(--primary); background: #fff; }
+
+        .radio-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 6px;
+            margin-bottom: 10px;
         }
 
-        .checkbox-container {
+        .radio-group label {
+            font-weight: normal;
             display: flex;
             align-items: center;
-            gap: 8px;
-            font-size: 0.85rem;
+            gap: 6px;
             cursor: pointer;
-            margin-top: 10px;
-        }
-
-        .checkbox-container input {
-            width: auto;
         }
 
         button.btn-action {
@@ -140,132 +108,44 @@
         }
 
         .btn-link {
-            background: none;
-            border: none;
-            color: var(--primary);
-            font-weight: 600;
-            font-size: 0.85rem;
-            cursor: pointer;
-            text-decoration: underline;
-            margin-top: 10px;
-            display: block;
-            width: 100%;
-            text-align: center;
+            background: none; border: none; color: var(--primary);
+            font-weight: 600; font-size: 0.85rem; cursor: pointer;
+            text-decoration: underline; margin-top: 10px; display: block; width: 100%; text-align: center;
         }
 
         .hidden { display: none; }
 
         .card {
-            background: #fff3f8;
-            border-left: 4px solid var(--primary);
-            padding: 14px;
-            margin-bottom: 12px;
-            border-radius: 10px;
-            font-size: 0.88rem;
-        }
-
-        .card.expense-card {
-            background: #fff5f5;
-            border-left-color: var(--danger);
+            background: #fff3f8; border-left: 4px solid var(--primary);
+            padding: 14px; margin-bottom: 12px; border-radius: 10px; font-size: 0.88rem;
         }
 
         .metrics-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 8px;
-            margin-bottom: 20px;
+            display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 15px;
         }
 
         .metric-card {
-            background: #fafafa;
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 10px 6px;
-            text-align: center;
+            background: #fafafa; border: 1px solid var(--border);
+            border-radius: 12px; padding: 10px 6px; text-align: center;
         }
 
-        .metric-card h4 {
-            font-size: 0.7rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            margin-bottom: 4px;
-        }
-
-        .metric-card .value {
-            font-size: 0.95rem;
-            font-weight: 700;
-        }
-
+        .metric-card h4 { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px; }
+        .metric-card .value { font-size: 0.9rem; font-weight: 700; }
         .metric-card .value.income { color: var(--success); }
         .metric-card .value.expense { color: var(--danger); }
         .metric-card .value.profit { color: var(--primary); }
 
-        .btn-status {
-            margin-top: 8px;
-            padding: 6px 10px;
-            border-radius: 6px;
-            border: none;
-            font-size: 0.78rem;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .btn-status.pending { background: #fef3c7; color: #d97706; }
-        .btn-status.completed { background: #d1fae5; color: #047857; }
-
         .link-box {
-            background: #eef2ff;
-            border: 1px dashed #6366f1;
-            padding: 10px;
-            border-radius: 8px;
-            word-break: break-all;
-            font-size: 0.8rem;
-            margin-top: 8px;
-            color: #4338ca;
+            background: #eef2ff; border: 1px dashed #6366f1;
+            padding: 10px; border-radius: 8px; word-break: break-all; font-size: 0.8rem; margin-top: 8px; color: #4338ca;
         }
 
-        .alert-error {
-            background: #fee2e2;
-            color: #b91c1c;
-            padding: 10px;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            margin-bottom: 12px;
-            display: none;
-        }
+        .alert-error { background: #fee2e2; color: #b91c1c; padding: 10px; border-radius: 8px; font-size: 0.85rem; margin-bottom: 12px; display: none; }
+        .alert-success { background: #d1fae5; color: #047857; padding: 10px; border-radius: 8px; font-size: 0.85rem; margin-bottom: 12px; display: none; }
 
-        .alert-success {
-            background: #d1fae5;
-            color: #047857;
-            padding: 10px;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            margin-bottom: 12px;
-            display: none;
-        }
-
-        .time-slots-container {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-            margin-top: 10px;
-        }
-
-        .time-slot-btn {
-            padding: 8px;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            background: #fff;
-            text-align: center;
-            font-size: 0.85rem;
-            cursor: pointer;
-        }
-
-        .time-slot-btn.active {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-        }
+        .time-slots-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+        .time-slot-btn { padding: 8px; border: 1px solid var(--border); border-radius: 6px; background: #fff; text-align: center; font-size: 0.85rem; cursor: pointer; }
+        .time-slot-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
     </style>
 </head>
 <body>
@@ -288,13 +168,10 @@
                 <label for="login-pass">🔒 Senha</label>
                 <input type="password" id="login-pass" required placeholder="Digite sua senha">
             </div>
-            
-            <!-- OPÇÃO LEMBRAR DE MIM -->
-            <label class="checkbox-container">
-                <input type="checkbox" id="remember-me" checked>
-                Lembrar de mim (não pedir senha novamente)
+            <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; cursor: pointer;">
+                <input type="checkbox" id="remember-me" checked style="width: auto;">
+                Lembrar de mim
             </label>
-
             <button type="submit" class="btn-action" style="margin-top: 15px;">Entrar no Painel</button>
         </form>
         <button type="button" class="btn-link" onclick="showScreen('register')">Não tem conta? Cadastre-se</button>
@@ -308,21 +185,20 @@
                 <input type="text" id="reg-name" required placeholder="Ex: Maria Silva">
             </div>
             <div class="form-group">
-                <label for="reg-phone">📱 WhatsApp (Número Único)</label>
+                <label for="reg-phone">📱 WhatsApp</label>
                 <input type="tel" id="reg-phone" required placeholder="(83) 9XXXX-XXXX">
             </div>
             <div class="form-group">
                 <label for="reg-pass">🔒 Crie uma Senha</label>
-                <input type="password" id="reg-pass" required placeholder="Mínimo de 4 caracteres" minlength="4">
+                <input type="password" id="reg-pass" required placeholder="Mínimo 4 caracteres" minlength="4">
             </div>
             <button type="submit" class="btn-action">Criar Meu Perfil</button>
         </form>
         <button type="button" class="btn-link" onclick="showScreen('login')">Já tem conta? Voltar ao Login</button>
     </div>
 
-    <!-- TELA 3: DASHBOARD DO PROFISSIONAL -->
+    <!-- TELA 3: DASHBOARD -->
     <div id="screen-dashboard" class="hidden">
-        <!-- PAINEL FINANCEIRO DE FLUXO DE CAIXA -->
         <div class="metrics-grid">
             <div class="metric-card">
                 <h4>Entradas</h4>
@@ -333,13 +209,14 @@
                 <div class="value expense" id="val-expense">R$ 0,00</div>
             </div>
             <div class="metric-card">
-                <h4>Lucro Líquido</h4>
+                <h4>Lucro</h4>
                 <div class="value profit" id="val-profit">R$ 0,00</div>
             </div>
         </div>
 
         <div class="tab-buttons">
             <button id="tab-agenda-btn" class="tab-btn active" onclick="switchDashTab('agenda')">Agenda</button>
+            <button id="tab-perfil-btn" class="tab-btn" onclick="switchDashTab('perfil')">Perfil & Local</button>
             <button id="tab-horarios-btn" class="tab-btn" onclick="switchDashTab('horarios')">Horários</button>
             <button id="tab-despesas-btn" class="tab-btn" onclick="switchDashTab('despesas')">Despesas</button>
             <button id="tab-link-btn" class="tab-btn" onclick="switchDashTab('link')">Meu Link</button>
@@ -347,69 +224,81 @@
 
         <!-- ABA AGENDA -->
         <div id="dash-agenda">
-            <div id="appointments-list">
-                <p style="text-align: center; color: #777; margin-top: 15px;">Carregando agenda...</p>
-            </div>
+            <div id="appointments-list"></div>
         </div>
 
-        <!-- ABA GESTÃO DE HORÁRIOS DISPONÍVEIS -->
+        <!-- ABA PERFIL & ENDEREÇO -->
+        <div id="dash-perfil" class="hidden">
+            <form id="profile-form">
+                <div class="form-group">
+                    <label>📍 Modalidade de Atendimento</label>
+                    <div class="radio-group">
+                        <label>
+                            <input type="radio" name="locationType" value="physical" onchange="toggleAddressInput()" checked>
+                            Endereço Físico
+                        </label>
+                        <label>
+                            <input type="radio" name="locationType" value="home" onchange="toggleAddressInput()">
+                            Atendimento a Domicílio
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group" id="address-group">
+                    <label for="prof-address">🏬 Endereço Completo do Estabelecimento</label>
+                    <input type="text" id="prof-address" placeholder="Ex: Av. Epitácio Pessoa, 1000, Sala 102 - Tambaú">
+                </div>
+
+                <button type="submit" class="btn-action">Salvar Configurações de Local</button>
+            </form>
+        </div>
+
+        <!-- ABA HORÁRIOS -->
         <div id="dash-horarios" class="hidden">
-            <label style="font-size:0.85rem; color:#555;">Selecione os horários em que você atende (clique para ativar/desativar):</label>
+            <label style="font-size:0.85rem; color:#555;">Clique para ativar/desativar os horários de atendimento:</label>
             <div class="time-slots-container" id="slots-grid"></div>
             <button type="button" class="btn-action" onclick="saveSlots()" style="margin-top:15px;">Salvar Horários</button>
         </div>
 
-        <!-- ABA GESTÃO DE DESPESAS (SAÍDAS) -->
+        <!-- ABA DESPESAS -->
         <div id="dash-despesas" class="hidden">
             <form id="expense-form" style="margin-bottom: 20px;">
                 <div class="form-group">
-                    <label>📝 Descrição da Despesa</label>
-                    <input type="text" id="exp-desc" required placeholder="Ex: Esmaltes, Aluguel, Gel">
+                    <label>📝 Descrição</label>
+                    <input type="text" id="exp-desc" required placeholder="Ex: Esmaltes, Aluguel">
                 </div>
                 <div class="form-group">
                     <label>💵 Valor (R$)</label>
                     <input type="number" step="0.01" id="exp-val" required placeholder="0,00">
                 </div>
-                <button type="submit" class="btn-action" style="background: var(--danger);">Lançar Despesa (Saída)</button>
+                <button type="submit" class="btn-action" style="background: var(--danger);">Lançar Despesa</button>
             </form>
-
-            <h3 style="font-size: 0.9rem; margin-bottom: 10px;">Histórico de Despesas</h3>
             <div id="expenses-list"></div>
         </div>
 
-        <!-- ABA MEU LINK -->
+        <!-- ABA LINK -->
         <div id="dash-link" class="hidden">
-            <p style="font-size:0.88rem; color:#555; margin-bottom:8px;">Divulgue este link para suas clientes:</p>
+            <p style="font-size:0.88rem; color:#555; margin-bottom:8px;">Copie e envie este link para suas clientes:</p>
             <div class="link-box" id="prof-booking-link"></div>
             <button type="button" class="btn-action" onclick="copyBookingLink()" style="margin-top:10px;">Copiar Link</button>
         </div>
 
         <button type="button" class="btn-link" onclick="logout()" style="color:var(--danger); margin-top:20px;">Sair da Conta</button>
     </div>
-
 </div>
 
 <script>
     const defaultTimeSlots = ["08:00", "09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"];
     let loggedProf = null;
 
-    function cleanPhoneNumber(phone) {
-        return phone.replace(/\D/g, '');
-    }
+    function cleanPhoneNumber(phone) { return phone.replace(/\D/g, ''); }
 
     function showMsg(text, isError = false) {
         const errorEl = document.getElementById('error-msg');
         const successEl = document.getElementById('success-msg');
-        errorEl.style.display = 'none';
-        successEl.style.display = 'none';
-
-        if (isError) {
-            errorEl.innerText = text;
-            errorEl.style.display = 'block';
-        } else {
-            successEl.innerText = text;
-            successEl.style.display = 'block';
-        }
+        errorEl.style.display = isError ? 'block' : 'none';
+        successEl.style.display = isError ? 'none' : 'block';
+        if (isError) errorEl.innerText = text; else successEl.innerText = text;
     }
 
     function clearMsgs() {
@@ -422,14 +311,8 @@
         document.getElementById('screen-login').classList.toggle('hidden', screen !== 'login');
         document.getElementById('screen-register').classList.toggle('hidden', screen !== 'register');
         document.getElementById('screen-dashboard').classList.toggle('hidden', screen !== 'dashboard');
-
-        const subtitle = document.getElementById('panel-subtitle');
-        if (screen === 'login') subtitle.innerText = "Acesse sua conta para ver a agenda";
-        if (screen === 'register') subtitle.innerText = "Cadastre-se como profissional";
-        if (screen === 'dashboard') subtitle.innerText = `Bem-vinda(o), ${loggedProf.name}!`;
     }
 
-    // VERIFICA LOGIN AUTOMÁTICO ("LEMBRAR DE MIM")
     function checkAutoLogin() {
         const savedProfId = localStorage.getItem('nail_active_session');
         if (savedProfId) {
@@ -445,11 +328,47 @@
         showScreen('login');
     }
 
+    // ALTERAR CAMPO DE ENDEREÇO DEPENDENDO DA SELEÇÃO
+    function toggleAddressInput() {
+        const locationType = document.querySelector('input[name="locationType"]:checked').value;
+        const addressGroup = document.getElementById('address-group');
+        const addressInput = document.getElementById('prof-address');
+
+        if (locationType === 'home') {
+            addressGroup.style.display = 'none';
+            addressInput.removeAttribute('required');
+        } else {
+            addressGroup.style.display = 'block';
+            addressInput.setAttribute('required', 'true');
+        }
+    }
+
+    // SALVAR PERFIL E ENDEREÇO
+    document.getElementById('profile-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const locationType = document.querySelector('input[name="locationType"]:checked').value;
+        const address = document.getElementById('prof-address').value.trim();
+
+        if (locationType === 'physical' && !address) {
+            showMsg('Por favor, digite o endereço do seu estabelecimento.', true);
+            return;
+        }
+
+        loggedProf.locationType = locationType;
+        loggedProf.address = locationType === 'physical' ? address : 'Atendimento a Domicílio';
+
+        const professionals = JSON.parse(localStorage.getItem('nail_professionals') || '[]');
+        const idx = professionals.findIndex(p => p.id === loggedProf.id);
+        if (idx !== -1) {
+            professionals[idx] = loggedProf;
+            localStorage.setItem('nail_professionals', JSON.stringify(professionals));
+            showMsg('Configurações de local salvas!');
+        }
+    });
+
     // LOGIN
     document.getElementById('login-form').addEventListener('submit', function(e) {
         e.preventDefault();
-        clearMsgs();
-
         const cleanPhone = cleanPhoneNumber(document.getElementById('login-phone').value);
         const pass = document.getElementById('login-pass').value;
         const rememberMe = document.getElementById('remember-me').checked;
@@ -463,12 +382,8 @@
         }
 
         loggedProf = prof;
-
-        if (rememberMe) {
-            localStorage.setItem('nail_active_session', prof.id);
-        } else {
-            localStorage.removeItem('nail_active_session');
-        }
+        if (rememberMe) localStorage.setItem('nail_active_session', prof.id);
+        else localStorage.removeItem('nail_active_session');
 
         showScreen('dashboard');
         loadDashboard();
@@ -477,14 +392,11 @@
     // CADASTRO
     document.getElementById('register-form').addEventListener('submit', function(e) {
         e.preventDefault();
-        clearMsgs();
-
         const name = document.getElementById('reg-name').value.trim();
         const cleanPhone = cleanPhoneNumber(document.getElementById('reg-phone').value);
         const pass = document.getElementById('reg-pass').value;
 
         const professionals = JSON.parse(localStorage.getItem('nail_professionals') || '[]');
-
         if (professionals.some(p => cleanPhoneNumber(p.phone) === cleanPhone)) {
             showMsg('WhatsApp já cadastrado!', true);
             return;
@@ -495,6 +407,8 @@
             name: name,
             phone: cleanPhone,
             pass: pass,
+            locationType: 'physical',
+            address: '',
             availableSlots: [...defaultTimeSlots],
             services: [
                 { name: "Manicure Tradicional", price: 35 },
@@ -505,194 +419,105 @@
 
         professionals.push(newProf);
         localStorage.setItem('nail_professionals', JSON.stringify(professionals));
-
         loggedProf = newProf;
         localStorage.setItem('nail_active_session', newProf.id);
 
-        showMsg('Cadastro realizado com sucesso!');
-        setTimeout(() => {
-            showScreen('dashboard');
-            loadDashboard();
-        }, 1000);
+        showScreen('dashboard');
+        loadDashboard();
     });
 
-    // CONTROLE DE NAVEGAÇÃO DAS ABAS DO DASHBOARD
     function switchDashTab(tab) {
         document.getElementById('dash-agenda').classList.toggle('hidden', tab !== 'agenda');
+        document.getElementById('dash-perfil').classList.toggle('hidden', tab !== 'perfil');
         document.getElementById('dash-horarios').classList.toggle('hidden', tab !== 'horarios');
         document.getElementById('dash-despesas').classList.toggle('hidden', tab !== 'despesas');
         document.getElementById('dash-link').classList.toggle('hidden', tab !== 'link');
 
         document.getElementById('tab-agenda-btn').classList.toggle('active', tab === 'agenda');
+        document.getElementById('tab-perfil-btn').classList.toggle('active', tab === 'perfil');
         document.getElementById('tab-horarios-btn').classList.toggle('active', tab === 'horarios');
         document.getElementById('tab-despesas-btn').classList.toggle('active', tab === 'despesas');
         document.getElementById('tab-link-btn').classList.toggle('active', tab === 'link');
     }
 
-    // REGISTRO DE DESPESAS (SAÍDAS)
-    document.getElementById('expense-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const desc = document.getElementById('exp-desc').value.trim();
-        const val = parseFloat(document.getElementById('exp-val').value) || 0;
-
-        if (!desc || val <= 0) return;
-
-        const expenses = JSON.parse(localStorage.getItem('nail_expenses') || '[]');
-        expenses.push({
-            id: 'exp_' + Date.now(),
-            profId: loggedProf.id,
-            description: desc,
-            value: val,
-            date: new Date().toISOString()
-        });
-
-        localStorage.setItem('nail_expenses', JSON.stringify(expenses));
-        document.getElementById('expense-form').reset();
-        loadDashboard();
-    });
-
-    // CÁLCULO DE ENTRADAS, SAÍDAS E LUCRO
     function calculateFinances() {
         const appointments = JSON.parse(localStorage.getItem('nail_appointments') || '[]');
         const expenses = JSON.parse(localStorage.getItem('nail_expenses') || '[]');
 
-        // Entradas (Apenas serviços concluídos)
-        const income = appointments
-            .filter(a => a.profId === loggedProf.id && a.status === 'completed')
-            .reduce((sum, a) => sum + (parseFloat(a.price) || 0), 0);
-
-        // Saídas (Despesas lançadas)
-        const expense = expenses
-            .filter(e => e.profId === loggedProf.id)
-            .reduce((sum, e) => sum + (parseFloat(e.value) || 0), 0);
-
-        const profit = income - expense;
+        const income = appointments.filter(a => a.profId === loggedProf.id && a.status === 'completed').reduce((s, a) => s + (parseFloat(a.price) || 0), 0);
+        const expense = expenses.filter(e => e.profId === loggedProf.id).reduce((s, e) => s + (parseFloat(e.value) || 0), 0);
 
         document.getElementById('val-income').innerText = `R$ ${income.toFixed(2).replace('.', ',')}`;
         document.getElementById('val-expense').innerText = `R$ ${expense.toFixed(2).replace('.', ',')}`;
-        document.getElementById('val-profit').innerText = `R$ ${profit.toFixed(2).replace('.', ',')}`;
+        document.getElementById('val-profit').innerText = `R$ ${(income - expense).toFixed(2).replace('.', ',')}`;
     }
 
-    // MONTA GRADE DE HORÁRIOS
-    function renderSlotsConfig() {
-        const grid = document.getElementById('slots-grid');
-        const activeSlots = loggedProf.availableSlots || defaultTimeSlots;
-
-        grid.innerHTML = defaultTimeSlots.map(time => {
-            const isActive = activeSlots.includes(time);
-            return `
-                <div class="time-slot-btn ${isActive ? 'active' : ''}" onclick="toggleSlot(this, '${time}')">
-                    ${time}
-                </div>
-            `;
-        }).join('');
-    }
-
-    function toggleSlot(el, time) {
-        el.classList.toggle('active');
-    }
-
-    function saveSlots() {
-        const activeEls = document.querySelectorAll('.time-slot-btn.active');
-        const selectedSlots = Array.from(activeEls).map(el => el.innerText.trim());
-
-        loggedProf.availableSlots = selectedSlots;
-
-        const professionals = JSON.parse(localStorage.getItem('nail_professionals') || '[]');
-        const idx = professionals.findIndex(p => p.id === loggedProf.id);
-        if (idx !== -1) {
-            professionals[idx].availableSlots = selectedSlots;
-            localStorage.setItem('nail_professionals', JSON.stringify(professionals));
-            showMsg('Horários salvos com sucesso!');
-        }
-    }
-
-    // ALTERAR STATUS E PREÇO DO AGENDAMENTO
-    function toggleStatus(appId) {
-        const appointments = JSON.parse(localStorage.getItem('nail_appointments') || '[]');
-        const app = appointments.find(a => a.id === appId);
-        if (app) {
-            app.status = app.status === 'completed' ? 'pending' : 'completed';
-            localStorage.setItem('nail_appointments', JSON.stringify(appointments));
-            loadDashboard();
-        }
-    }
-
-    function updatePrice(appId, newPrice) {
-        const appointments = JSON.parse(localStorage.getItem('nail_appointments') || '[]');
-        const app = appointments.find(a => a.id === appId);
-        if (app) {
-            app.price = parseFloat(newPrice) || 0;
-            localStorage.setItem('nail_appointments', JSON.stringify(appointments));
-            calculateFinances();
-        }
-    }
-
-    // CARREGA TODOS OS DADOS NO PAINEL
     function loadDashboard() {
         if (!loggedProf) return;
 
         const baseUrl = window.location.href.substring(0, window.location.href.lastIndexOf('/'));
         document.getElementById('prof-booking-link').innerText = `${baseUrl}/index.html?prof=${loggedProf.id}`;
 
+        // Carrega configurações de Local
+        const isHome = loggedProf.locationType === 'home';
+        document.querySelectorAll('input[name="locationType"]').forEach(r => r.checked = (r.value === (isHome ? 'home' : 'physical')));
+        document.getElementById('prof-address').value = loggedProf.address || '';
+        toggleAddressInput();
+
         calculateFinances();
         renderSlotsConfig();
+        loadAppointments();
+    }
 
-        // Carrega Agenda
-        const appointments = JSON.parse(localStorage.getItem('nail_appointments') || '[]');
-        const profAppointments = appointments.filter(a => a.profId === loggedProf.id);
-        const listEl = document.getElementById('appointments-list');
+    function renderSlotsConfig() {
+        const grid = document.getElementById('slots-grid');
+        const activeSlots = loggedProf.availableSlots || defaultTimeSlots;
+        grid.innerHTML = defaultTimeSlots.map(time => `
+            <div class="time-slot-btn ${activeSlots.includes(time) ? 'active' : ''}" onclick="this.classList.toggle('active')">
+                ${time}
+            </div>
+        `).join('');
+    }
 
-        if (profAppointments.length === 0) {
-            listEl.innerHTML = '<p style="text-align: center; color: #777; margin-top: 15px;">Nenhum agendamento registrado.</p>';
-        } else {
-            listEl.innerHTML = profAppointments.map(app => {
-                const isCompleted = app.status === 'completed';
-                const [date, time] = app.datetime.split('T');
-                const [year, month, day] = date.split('-');
+    function saveSlots() {
+        const activeEls = document.querySelectorAll('.time-slot-btn.active');
+        loggedProf.availableSlots = Array.from(activeEls).map(el => el.innerText.trim());
 
-                return `
-                    <div class="card">
-                        <strong>Cliente:</strong> ${app.client}<br>
-                        <strong>WhatsApp:</strong> ${app.phone}<br>
-                        <strong>Serviço:</strong> ${app.service}<br>
-                        <strong>Data:</strong> ${day}/${month}/${year} às ${time} hs<br>
-                        
-                        <div style="margin-top: 8px; display: flex; gap: 8px; align-items: center;">
-                            <label style="font-weight: bold; font-size: 0.8rem; margin: 0;">Valor R$:</label>
-                            <input type="number" step="0.01" value="${app.price || 0}" 
-                                onchange="updatePrice('${app.id}', this.value)" 
-                                style="width: 90px !important; padding: 4px 6px; font-size: 0.85rem;">
-                        </div>
-
-                        <button type="button" class="btn-status ${isCompleted ? 'completed' : 'pending'}" onclick="toggleStatus('${app.id}')">
-                            ${isCompleted ? '✓ Concluído' : '⏳ Marcar como Concluído'}
-                        </button>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        // Carrega Lista de Despesas
-        const expenses = JSON.parse(localStorage.getItem('nail_expenses') || '[]');
-        const profExpenses = expenses.filter(e => e.profId === loggedProf.id);
-        const expListEl = document.getElementById('expenses-list');
-
-        if (profExpenses.length === 0) {
-            expListEl.innerHTML = '<p style="text-align: center; color: #777;">Nenhuma despesa lançada.</p>';
-        } else {
-            expListEl.innerHTML = profExpenses.map(e => `
-                <div class="card expense-card">
-                    <strong>Despesa:</strong> ${e.description}<br>
-                    <strong>Valor:</strong> R$ ${parseFloat(e.value).toFixed(2).replace('.', ',')}
-                </div>
-            `).join('');
+        const professionals = JSON.parse(localStorage.getItem('nail_professionals') || '[]');
+        const idx = professionals.findIndex(p => p.id === loggedProf.id);
+        if (idx !== -1) {
+            professionals[idx] = loggedProf;
+            localStorage.setItem('nail_professionals', JSON.stringify(professionals));
+            showMsg('Horários salvos!');
         }
     }
 
+    function loadAppointments() {
+        const appointments = JSON.parse(localStorage.getItem('nail_appointments') || '[]');
+        const listEl = document.getElementById('appointments-list');
+        const profAppointments = appointments.filter(a => a.profId === loggedProf.id);
+
+        if (profAppointments.length === 0) {
+            listEl.innerHTML = '<p style="text-align: center; color: #777;">Nenhum agendamento.</p>';
+            return;
+        }
+
+        listEl.innerHTML = profAppointments.map(app => {
+            const [date, time] = app.datetime.split('T');
+            const [year, month, day] = date.split('-');
+            return `
+                <div class="card">
+                    <strong>Cliente:</strong> ${app.client}<br>
+                    <strong>WhatsApp:</strong> ${app.phone}<br>
+                    <strong>Serviço:</strong> ${app.service}<br>
+                    <strong>Data:</strong> ${day}/${month}/${year} às ${time} hs
+                </div>
+            `;
+        }).join('');
+    }
+
     function copyBookingLink() {
-        const linkText = document.getElementById('prof-booking-link').innerText;
-        navigator.clipboard.writeText(linkText).then(() => alert('Link copiado!'));
+        navigator.clipboard.writeText(document.getElementById('prof-booking-link').innerText).then(() => alert('Link copiado!'));
     }
 
     function logout() {
@@ -701,7 +526,6 @@
         showScreen('login');
     }
 
-    // Inicialização
     checkAutoLogin();
 </script>
 </body>
