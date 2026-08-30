@@ -262,27 +262,39 @@
     </div>
 
     <!-- TELA 3: ESQUECEU A SENHA (REDEFINIÇÃO) -->
-    <div id="screen-forgot" class="hidden">
-        <form id="forgot-form">
-            <p style="font-size:0.85rem; color:#555; margin-bottom:12px;">
-                Informe o seu número de WhatsApp cadastrado para redefinir sua senha.
-            </p>
-            <div class="form-group">
-                <label for="reset-phone">📱 WhatsApp Cadastrado</label>
-                <input type="tel" id="reset-phone" required placeholder="(83) 9XXXX-XXXX">
-            </div>
-            <div class="form-group">
-                <label for="new-pass">🔑 Nova Senha</label>
-                <input type="password" id="new-pass" required placeholder="Digite a nova senha" minlength="4">
-            </div>
-            <div class="form-group">
-                <label for="confirm-new-pass">🔑 Confirme a Nova Senha</label>
-                <input type="password" id="confirm-new-pass" required placeholder="Repita a nova senha">
-            </div>
-            <button type="submit" class="btn-action">Alterar Senha</button>
-        </form>
-        <button type="button" class="btn-link" onclick="showScreen('login')">Voltar ao Login</button>
+    <!-- TELA 3: ESQUECEU A SENHA (REDEFINIÇÃO EM 2 ETAPAS) -->
+<div id="screen-forgot" class="hidden">
+    <!-- Etapa A: Solicitar Código -->
+    <div id="forgot-step-1">
+        <p style="font-size:0.85rem; color:#555; margin-bottom:12px;">
+            Informe seu WhatsApp para receber o código de segurança.
+        </p>
+        <div class="form-group">
+            <label for="reset-phone">📱 WhatsApp Cadastrado</label>
+            <input type="tel" id="reset-phone" required placeholder="(83) 9XXXX-XXXX">
+        </div>
+        <button type="button" class="btn-action" onclick="sendResetCode()">Enviar Código via WhatsApp</button>
     </div>
+
+    <!-- Etapa B: Validar Código e Alterar Senha -->
+    <form id="forgot-form" class="hidden">
+        <div class="form-group">
+            <label for="reset-code">🔢 Código de 6 dígitos recebido</label>
+            <input type="text" id="reset-code" maxlength="6" required placeholder="Ex: 123456">
+        </div>
+        <div class="form-group">
+            <label for="new-pass">🔑 Nova Senha</label>
+            <input type="password" id="new-pass" required placeholder="Digite a nova senha" minlength="4">
+        </div>
+        <div class="form-group">
+            <label for="confirm-new-pass">🔑 Confirme a Nova Senha</label>
+            <input type="password" id="confirm-new-pass" required placeholder="Repita a nova senha">
+        </div>
+        <button type="submit" class="btn-action">Alterar Senha</button>
+    </form>
+    
+    <button type="button" class="btn-link" onclick="showScreen('login')">Voltar ao Login</button>
+</div>
 
     <!-- TELA 4: DASHBOARD DO PROFISSIONAL -->
     <div id="screen-dashboard" class="hidden">
