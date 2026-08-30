@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agendamento - Nail Studio</title>
+    <title>Painel do Profissional - Nail Studio</title>
     <style>
         :root {
             --primary: #d81b60;
@@ -13,6 +13,8 @@
             --text-main: #2c3e50;
             --text-muted: #64748b;
             --border: #e2e8f0;
+            --danger: #ef4444;
+            --success: #10b981;
         }
 
         * {
@@ -34,7 +36,7 @@
 
         .container {
             width: 100%;
-            max-width: 480px;
+            max-width: 500px;
             background: var(--surface);
             border-radius: 20px;
             box-shadow: 0 12px 28px rgba(216, 27, 96, 0.12);
@@ -48,35 +50,58 @@
             font-size: 1.5rem;
             font-weight: 700;
             text-align: center;
-            margin-bottom: 4px;
+            margin-bottom: 6px;
         }
 
-        .prof-name {
+        .subtitle {
             text-align: center;
-            color: var(--primary-dark);
-            font-size: 1.1rem;
-            font-weight: 600;
+            color: var(--text-muted);
+            font-size: 0.88rem;
             margin-bottom: 20px;
         }
 
+        .tab-buttons {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid var(--primary);
+            background: transparent;
+            color: var(--primary);
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.88rem;
+        }
+
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
         .form-group {
-            margin-bottom: 16px;
+            margin-bottom: 14px;
             width: 100%;
         }
 
         label {
             display: block;
             font-weight: 600;
-            font-size: 0.88rem;
+            font-size: 0.85rem;
             margin-bottom: 6px;
         }
 
         input, select {
             width: 100%;
-            padding: 12px;
+            padding: 10px 12px;
             border: 2px solid var(--border);
             border-radius: 10px;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             background-color: #fafafa;
             outline: none;
             transition: border-color 0.2s;
@@ -87,89 +112,367 @@
             background: #fff;
         }
 
-        button.btn-submit {
+        .services-list-pricing {
+            max-height: 220px;
+            overflow-y: auto;
+            border: 2px solid var(--border);
+            padding: 10px;
+            border-radius: 10px;
+            background: #fafafa;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        /* LISTA DE SERVIÇOS E PREÇOS (AJUSTADO PARA MOBILE) */
+        .service-price-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            background: #fff;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
             width: 100%;
-            padding: 14px;
+        }
+
+        .service-price-item label {
+            margin-bottom: 0;
+            font-size: 0.82rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .service-price-item label input[type="checkbox"] {
+            width: auto !important;
+            cursor: pointer;
+        }
+
+        .service-price-item label span {
+            white-space: normal;
+            word-break: break-word;
+        }
+
+        .service-price-item input[type="number"] {
+            width: 85px !important;
+            min-width: 85px !important;
+            max-width: 85px !important;
+            padding: 6px 8px;
+            font-size: 0.85rem;
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        button.btn-action {
+            width: 100%;
+            padding: 12px;
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             color: white;
             border: none;
-            border-radius: 12px;
-            font-size: 1rem;
+            border-radius: 10px;
+            font-size: 0.95rem;
             font-weight: 700;
             cursor: pointer;
+            margin-top: 8px;
+        }
+
+        .btn-link {
+            background: none;
+            border: none;
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            text-decoration: underline;
             margin-top: 10px;
-            box-shadow: 0 4px 12px rgba(216, 27, 96, 0.25);
+            display: block;
+            width: 100%;
+            text-align: center;
+        }
+
+        .hidden { display: none; }
+
+        .card {
+            background: #fff3f8;
+            border-left: 4px solid var(--primary);
+            padding: 14px;
+            margin-bottom: 12px;
+            border-radius: 10px;
+            font-size: 0.88rem;
+        }
+
+        .card strong { color: var(--primary); }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .metric-card {
+            background: #fafafa;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .metric-card h4 {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .metric-card .value {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .metric-card .count {
+            font-size: 0.75rem;
+            color: #777;
+            margin-top: 2px;
+        }
+
+        .btn-status {
+            margin-top: 8px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            border: none;
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-status.pending {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .btn-status.completed {
+            background: #d1fae5;
+            color: #047857;
+        }
+
+        .link-box {
+            background: #eef2ff;
+            border: 1px dashed #6366f1;
+            padding: 10px;
+            border-radius: 8px;
+            word-break: break-all;
+            font-size: 0.8rem;
+            margin-top: 8px;
+            color: #4338ca;
         }
 
         .alert-error {
             background: #fee2e2;
             color: #b91c1c;
-            padding: 12px;
+            padding: 10px;
             border-radius: 8px;
-            font-size: 0.88rem;
-            margin-bottom: 16px;
+            font-size: 0.85rem;
+            margin-bottom: 12px;
             display: none;
         }
 
         .alert-success {
             background: #d1fae5;
             color: #047857;
-            padding: 12px;
+            padding: 10px;
             border-radius: 8px;
-            font-size: 0.88rem;
-            margin-bottom: 16px;
+            font-size: 0.85rem;
+            margin-bottom: 12px;
             display: none;
-            text-align: center;
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>Agende seu Horário</h2>
-    <div class="prof-name" id="prof-title">Nail Studio</div>
+    <h2>Painel do Profissional</h2>
+    <div class="subtitle" id="panel-subtitle">Gerencie seu perfil e agendamentos</div>
 
     <div id="error-msg" class="alert-error"></div>
     <div id="success-msg" class="alert-success"></div>
 
-    <form id="booking-form">
-        <div class="form-group">
-            <label for="client-name">👤 Seu Nome Completo</label>
-            <input type="text" id="client-name" required placeholder="Digite seu nome">
+    <!-- TELA 1: LOGIN -->
+    <div id="screen-login">
+        <form id="login-form">
+            <div class="form-group">
+                <label for="login-phone">📱 Seu WhatsApp (Telefone Cadastrado)</label>
+                <input type="tel" id="login-phone" required placeholder="(83) 9XXXX-XXXX">
+            </div>
+            <div class="form-group">
+                <label for="login-pass">🔒 Senha</label>
+                <input type="password" id="login-pass" required placeholder="Digite sua senha">
+            </div>
+            <button type="submit" class="btn-action">Entrar no Painel</button>
+        </form>
+        <button type="button" class="btn-link" onclick="showScreen('forgot')">Esqueceu a senha?</button>
+        <button type="button" class="btn-link" onclick="showScreen('register')">Não tem conta? Cadastre-se</button>
+    </div>
+
+    <!-- TELA 2: CADASTRO COM DEFINIÇÃO DE PREÇOS -->
+    <div id="screen-register" class="hidden">
+        <form id="register-form">
+            <div class="form-group">
+                <label for="reg-name">👤 Seu Nome Completo</label>
+                <input type="text" id="reg-name" required placeholder="Ex: Maria Silva">
+            </div>
+            <div class="form-group">
+                <label for="reg-phone">📱 WhatsApp (Número Único)</label>
+                <input type="tel" id="reg-phone" required placeholder="(83) 9XXXX-XXXX">
+            </div>
+            <div class="form-group">
+                <label for="reg-pass">🔒 Crie uma Senha</label>
+                <input type="password" id="reg-pass" required placeholder="Mínimo de 4 caracteres" minlength="4">
+            </div>
+            
+            <div class="form-group">
+                <label for="reg-question">🛡️ Pergunta de Segurança (Para Recuperar Senha)</label>
+                <select id="reg-question" required>
+                    <option value="">Selecione uma pergunta...</option>
+                    <option value="pet">Qual o nome do seu primeiro pet?</option>
+                    <option value="maiden">Qual o sobrenome de solteira da sua mãe?</option>
+                    <option value="city">Em qual cidade você nasceu?</option>
+                    <option value="school">Qual o nome da sua primeira escola?</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="reg-answer">🔑 Resposta Secreta</label>
+                <input type="text" id="reg-answer" required placeholder="Sua resposta pessoal">
+            </div>
+
+            <!-- SERVIÇOS E PREÇOS -->
+            <div class="form-group">
+                <label>✨ Selecione os Serviços e Defina os Valores (R$)</label>
+                <div class="services-list-pricing" id="register-services"></div>
+            </div>
+
+            <button type="submit" class="btn-action">Criar Meu Perfil</button>
+        </form>
+        <button type="button" class="btn-link" onclick="showScreen('login')">Já tem conta? Voltar ao Login</button>
+    </div>
+
+    <!-- TELA 3: ESQUECEU A SENHA -->
+    <div id="screen-forgot" class="hidden">
+        <div id="forgot-step-1">
+            <p style="font-size:0.85rem; color:#555; margin-bottom:12px;">
+                Informe seu WhatsApp para carregar sua pergunta de segurança.
+            </p>
+            <div class="form-group">
+                <label for="reset-phone">📱 WhatsApp Cadastrado</label>
+                <input type="tel" id="reset-phone" required placeholder="(83) 9XXXX-XXXX">
+            </div>
+            <button type="button" class="btn-action" onclick="fetchSecurityQuestion()">Verificar Conta</button>
         </div>
 
-        <div class="form-group">
-            <label for="client-phone">📱 Seu WhatsApp</label>
-            <input type="tel" id="client-phone" required placeholder="(83) 9XXXX-XXXX">
+        <form id="forgot-form" class="hidden">
+            <div class="form-group">
+                <label id="lbl-security-question">🛡️ Pergunta de Segurança</label>
+                <input type="text" id="reset-answer" required placeholder="Digite sua resposta secreta">
+            </div>
+            <div class="form-group">
+                <label for="new-pass">🔑 Nova Senha</label>
+                <input type="password" id="new-pass" required placeholder="Digite a nova senha" minlength="4">
+            </div>
+            <div class="form-group">
+                <label for="confirm-new-pass">🔑 Confirme a Nova Senha</label>
+                <input type="password" id="confirm-new-pass" required placeholder="Repita a nova senha">
+            </div>
+            <button type="submit" class="btn-action">Redefinir Senha</button>
+        </form>
+        
+        <button type="button" class="btn-link" onclick="showScreen('login')">Voltar ao Login</button>
+    </div>
+
+    <!-- TELA 4: DASHBOARD DO PROFISSIONAL -->
+    <div id="screen-dashboard" class="hidden">
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <h4>Hoje</h4>
+                <div class="value" id="val-today">R$ 0,00</div>
+                <div class="count" id="count-today">0 serviço(s)</div>
+            </div>
+            <div class="metric-card">
+                <h4>Este Mês</h4>
+                <div class="value" id="val-month">R$ 0,00</div>
+                <div class="count" id="count-month">0 serviço(s)</div>
+            </div>
         </div>
 
-        <div class="form-group">
-            <label for="client-service">✨ Selecione o Serviço</label>
-            <select id="client-service" required>
-                <option value="">Carregando serviços...</option>
-            </select>
+        <div class="tab-buttons">
+            <button id="tab-agenda-btn" class="tab-btn active" onclick="switchDashTab('agenda')">Minha Agenda</button>
+            <button id="tab-link-btn" class="tab-btn" onclick="switchDashTab('link')">Meu Link</button>
         </div>
 
-        <div class="form-group">
-            <label for="client-datetime">📅 Data e Horário</label>
-            <input type="datetime-local" id="client-datetime" required>
+        <div id="dash-agenda">
+            <div id="appointments-list">
+                <p style="text-align: center; color: #777; margin-top: 15px;">Carregando agenda...</p>
+            </div>
         </div>
 
-        <button type="submit" class="btn-submit">Confirmar Agendamento</button>
-    </form>
+        <div id="dash-link" class="hidden">
+            <p style="font-size:0.88rem; color:#555; margin-bottom:8px;">Divulgue este link para suas clientes. Ao acessarem, verão apenas os seus serviços:</p>
+            <div class="link-box" id="prof-booking-link"></div>
+            <button type="button" class="btn-action" onclick="copyBookingLink()" style="margin-top:10px;">Copiar Link de Agendamento</button>
+        </div>
+
+        <button type="button" class="btn-link" onclick="logout()" style="color:var(--danger); margin-top:20px;">Sair da Conta</button>
+    </div>
+
 </div>
 
 <script>
-    let currentProf = null;
+    const availableServices = [
+        { name: "Aplicação de Alongamento", defaultPrice: 120 },
+        { name: "Manutenção de Alongamento", defaultPrice: 80 },
+        { name: "Remoção de Alongamento", defaultPrice: 40 },
+        { name: "Esmaltação em Gel", defaultPrice: 60 },
+        { name: "Manicure Tradicional", defaultPrice: 35 },
+        { name: "Esmaltação Francesa", defaultPrice: 45 },
+        { name: "Nail Art", defaultPrice: 25 },
+        { name: "Decoração Encapsulada", defaultPrice: 30 },
+        { name: "Pedicure Tradicional", defaultPrice: 35 },
+        { name: "Esmaltação em Gel nos Pés", defaultPrice: 60 },
+        { name: "Spa dos Pés", defaultPrice: 70 },
+        { name: "Plástica dos Pés", defaultPrice: 90 }
+    ];
 
-    function getQueryParam(param) {
-        const urlParams = new URLSearchParams(window.location.search);
-        return urlParams.get(param);
-    }
+    const questionsMap = {
+        pet: "Qual o nome do seu primeiro pet?",
+        maiden: "Qual o sobrenome de solteira da sua mãe?",
+        city: "Em qual cidade você nasceu?",
+        school: "Qual o nome da sua primeira escola?"
+    };
+
+    let loggedProf = null;
+    let targetProf = null;
+
+    // Renderiza lista de serviços com inputs de valores no cadastro
+    const servicesGrid = document.getElementById('register-services');
+    servicesGrid.innerHTML = availableServices.map((s, index) => `
+        <div class="service-price-item">
+            <label>
+                <input type="checkbox" name="services" value="${s.name}" id="srv_check_${index}" checked>
+                <span>${s.name}</span>
+            </label>
+            <input type="number" step="0.01" min="0" id="srv_price_${index}" value="${s.defaultPrice.toFixed(2)}" placeholder="R$">
+        </div>
+    `).join('');
 
     function showMsg(text, isError = false) {
         const errorEl = document.getElementById('error-msg');
         const successEl = document.getElementById('success-msg');
+        
         errorEl.style.display = 'none';
         successEl.style.display = 'none';
 
@@ -182,86 +485,310 @@
         }
     }
 
-    // CARREGA DADOS DO PROFISSIONAL E MONTA O SELECT
-    function init() {
-        const profId = getQueryParam('prof');
-        const professionals = JSON.parse(localStorage.getItem('nail_professionals') || '[]');
-        const selectService = document.getElementById('client-service');
+    function clearMsgs() {
+        document.getElementById('error-msg').style.display = 'none';
+        document.getElementById('success-msg').style.display = 'none';
+    }
 
-        if (profId) {
-            currentProf = professionals.find(p => p.id === profId);
+    function showScreen(screen) {
+        clearMsgs();
+        document.getElementById('screen-login').classList.toggle('hidden', screen !== 'login');
+        document.getElementById('screen-register').classList.toggle('hidden', screen !== 'register');
+        document.getElementById('screen-forgot').classList.toggle('hidden', screen !== 'forgot');
+        document.getElementById('screen-dashboard').classList.toggle('hidden', screen !== 'dashboard');
+
+        const subtitle = document.getElementById('panel-subtitle');
+        if (screen === 'login') subtitle.innerText = "Acesse sua conta para ver a agenda";
+        if (screen === 'register') subtitle.innerText = "Cadastre-se como profissional";
+        if (screen === 'forgot') {
+            subtitle.innerText = "Redefinição de Senha Segura";
+            document.getElementById('forgot-step-1').classList.remove('hidden');
+            document.getElementById('forgot-form').classList.add('hidden');
+            document.getElementById('forgot-form').reset();
+        }
+        if (screen === 'dashboard') subtitle.innerText = `Bem-vinda(o), ${loggedProf.name}!`;
+    }
+
+    function cleanPhoneNumber(phone) {
+        return phone.replace(/\D/g, '');
+    }
+
+    // CADASTRO COM CAPTURA DE VALORES DOS SERVIÇOS
+    document.getElementById('register-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        clearMsgs();
+
+        const name = document.getElementById('reg-name').value.trim();
+        const rawPhone = document.getElementById('reg-phone').value;
+        const cleanPhone = cleanPhoneNumber(rawPhone);
+        const pass = document.getElementById('reg-pass').value;
+        const questionKey = document.getElementById('reg-question').value;
+        const answer = document.getElementById('reg-answer').value.trim().toLowerCase();
+
+        if (cleanPhone.length < 8) {
+            showMsg('Por favor, informe um número de telefone válido com DDD.', true);
+            return;
         }
 
-        // Se não encontrou por ID ou acessou sem link, pega o primeiro cadastrado
-        if (!currentProf && professionals.length > 0) {
-            currentProf = professionals[0];
-        }
+        // Mapeia serviços selecionados e seus respectivos preços cadastrados
+        const configuredServices = [];
+        availableServices.forEach((s, index) => {
+            const checkEl = document.getElementById(`srv_check_${index}`);
+            const priceEl = document.getElementById(`srv_price_${index}`);
 
-        if (currentProf) {
-            document.getElementById('prof-title').innerText = `Profissional: ${currentProf.name}`;
-            
-            if (currentProf.services && currentProf.services.length > 0) {
-                // CORREÇÃO DO [object Object]: extrai o .name e .price corretamente
-                selectService.innerHTML = '<option value="">Selecione um serviço...</option>' + 
-                    currentProf.services.map(s => {
-                        const name = typeof s === 'object' ? s.name : s;
-                        const priceNum = typeof s === 'object' ? parseFloat(s.price || 0) : 0;
-                        const priceFormatted = priceNum > 0 ? ` - R$ ${priceNum.toFixed(2).replace('.', ',')}` : '';
-                        
-                        return `<option value="${name}" data-price="${priceNum}">${name}${priceFormatted}</option>`;
-                    }).join('');
-            } else {
-                selectService.innerHTML = '<option value="">Nenhum serviço disponível</option>';
+            if (checkEl && checkEl.checked) {
+                configuredServices.push({
+                    name: s.name,
+                    price: parseFloat(priceEl.value) || 0
+                });
             }
-        } else {
-            document.getElementById('prof-title').innerText = "Nenhum profissional encontrado";
-            selectService.innerHTML = '<option value="">Cadastre um profissional no painel primeiro</option>';
+        });
+
+        if (configuredServices.length === 0) {
+            showMsg('Selecione pelo menos 1 serviço oferecido.', true);
+            return;
+        }
+
+        const professionals = JSON.parse(localStorage.getItem('nail_professionals') || '[]');
+
+        const exists = professionals.some(p => cleanPhoneNumber(p.phone) === cleanPhone);
+        if (exists) {
+            showMsg('Este número de WhatsApp já está cadastrado por outro profissional!', true);
+            return;
+        }
+
+        const newProf = {
+            id: 'prof_' + Date.now(),
+            name: name,
+            phone: cleanPhone,
+            pass: pass,
+            questionKey: questionKey,
+            answer: answer,
+            services: configuredServices // Salva os serviços + valores
+        };
+
+        professionals.push(newProf);
+        localStorage.setItem('nail_professionals', JSON.stringify(professionals));
+
+        loggedProf = newProf;
+        showMsg('Cadastro realizado com sucesso!');
+        setTimeout(() => {
+            showScreen('dashboard');
+            loadDashboard();
+        }, 1000);
+    });
+
+    // LOGIN
+    document.getElementById('login-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        clearMsgs();
+
+        const cleanPhone = cleanPhoneNumber(document.getElementById('login-phone').value);
+        const pass = document.getElementById('login-pass').value;
+
+        const professionals = JSON.parse(localStorage.getItem('nail_professionals') || '[]');
+        const prof = professionals.find(p => cleanPhoneNumber(p.phone) === cleanPhone && p.pass === pass);
+
+        if (!prof) {
+            showMsg('WhatsApp ou senha incorretos!', true);
+            return;
+        }
+
+        loggedProf = prof;
+        showScreen('dashboard');
+        loadDashboard();
+    });
+
+    // RECUPERAÇÃO DE SENHA
+    function fetchSecurityQuestion() {
+        clearMsgs();
+        const rawPhone = document.getElementById('reset-phone').value;
+        const cleanPhone = cleanPhoneNumber(rawPhone);
+
+        const professionals = JSON.parse(localStorage.getItem('nail_professionals') || '[]');
+        const prof = professionals.find(p => cleanPhoneNumber(p.phone) === cleanPhone);
+
+        if (!prof) {
+            showMsg('Número de WhatsApp não encontrado no cadastro!', true);
+            return;
+        }
+
+        targetProf = prof;
+        const questionText = questionsMap[prof.questionKey] || "Pergunta de segurança:";
+        document.getElementById('lbl-security-question').innerText = `🛡️ ${questionText}`;
+
+        document.getElementById('forgot-step-1').classList.add('hidden');
+        document.getElementById('forgot-form').classList.remove('hidden');
+    }
+
+    document.getElementById('forgot-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        clearMsgs();
+
+        const inputAnswer = document.getElementById('reset-answer').value.trim().toLowerCase();
+        const newPass = document.getElementById('new-pass').value;
+        const confirmPass = document.getElementById('confirm-new-pass').value;
+
+        if (inputAnswer !== targetProf.answer) {
+            showMsg('Resposta de segurança incorreta!', true);
+            return;
+        }
+
+        if (newPass !== confirmPass) {
+            showMsg('As senhas digitadas não coincidem!', true);
+            return;
+        }
+
+        const professionals = JSON.parse(localStorage.getItem('nail_professionals') || '[]');
+        const index = professionals.findIndex(p => p.id === targetProf.id);
+
+        if (index !== -1) {
+            professionals[index].pass = newPass;
+            localStorage.setItem('nail_professionals', JSON.stringify(professionals));
+
+            targetProf = null;
+
+            showMsg('Senha alterada com sucesso!');
+            setTimeout(() => {
+                showScreen('login');
+            }, 1200);
+        }
+    });
+
+    // DASHBOARD & CÁLCULOS
+    function switchDashTab(tab) {
+        document.getElementById('dash-agenda').classList.toggle('hidden', tab !== 'agenda');
+        document.getElementById('dash-link').classList.toggle('hidden', tab !== 'link');
+        document.getElementById('tab-agenda-btn').classList.toggle('active', tab === 'agenda');
+        document.getElementById('tab-link-btn').classList.toggle('active', tab === 'link');
+    }
+
+    function toggleStatus(appId) {
+        const appointments = JSON.parse(localStorage.getItem('nail_appointments') || '[]');
+        const app = appointments.find(a => a.id === appId);
+        if (app) {
+            app.status = app.status === 'completed' ? 'pending' : 'completed';
+            localStorage.setItem('nail_appointments', JSON.stringify(appointments));
+            loadDashboard();
         }
     }
 
-    // REGISTRA O AGENDAMENTO
-    document.getElementById('booking-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-
-        if (!currentProf) {
-            showMsg('Erro ao identificar o profissional.', true);
-            return;
+    function updatePrice(appId, newPrice) {
+        const appointments = JSON.parse(localStorage.getItem('nail_appointments') || '[]');
+        const app = appointments.find(a => a.id === appId);
+        if (app) {
+            app.price = parseFloat(newPrice) || 0;
+            localStorage.setItem('nail_appointments', JSON.stringify(appointments));
+            calculateMetrics(appointments.filter(a => a.profId === loggedProf.id));
         }
+    }
 
-        const name = document.getElementById('client-name').value.trim();
-        const phone = document.getElementById('client-phone').value.trim();
-        const serviceSelect = document.getElementById('client-service');
-        const serviceName = serviceSelect.value;
-        const selectedOption = serviceSelect.options[serviceSelect.selectedIndex];
-        const price = parseFloat(selectedOption.getAttribute('data-price') || 0);
-        const datetime = document.getElementById('client-datetime').value;
+    function calculateMetrics(profAppointments) {
+        const now = new Date();
+        const todayStr = now.toISOString().split('T')[0];
+        const currentMonthStr = todayStr.substring(0, 7);
 
-        if (!serviceName) {
-            showMsg('Por favor, selecione um serviço.', true);
-            return;
-        }
+        let todaySum = 0;
+        let todayCount = 0;
+        let monthSum = 0;
+        let monthCount = 0;
+
+        profAppointments.forEach(app => {
+            const appDate = app.datetime.split('T')[0];
+            const appMonth = appDate.substring(0, 7);
+            const price = parseFloat(app.price) || 0;
+
+            if (app.status === 'completed') {
+                if (appDate === todayStr) {
+                    todaySum += price;
+                    todayCount++;
+                }
+                if (appMonth === currentMonthStr) {
+                    monthSum += price;
+                    monthCount++;
+                }
+            }
+        });
+
+        document.getElementById('val-today').innerText = `R$ ${todaySum.toFixed(2).replace('.', ',')}`;
+        document.getElementById('count-today').innerText = `${todayCount} serviço(s) concluído(s)`;
+
+        document.getElementById('val-month').innerText = `R$ ${monthSum.toFixed(2).replace('.', ',')}`;
+        document.getElementById('count-month').innerText = `${monthCount} serviço(s) concluído(s)`;
+    }
+
+    function loadDashboard() {
+        if (!loggedProf) return;
+
+        const baseUrl = window.location.href.substring(0, window.location.href.lastIndexOf('/'));
+        const bookingUrl = `${baseUrl}/index.html?prof=${loggedProf.id}`;
+        document.getElementById('prof-booking-link').innerText = bookingUrl;
 
         const appointments = JSON.parse(localStorage.getItem('nail_appointments') || '[]');
+        const profAppointments = appointments.filter(a => a.profId === loggedProf.id);
 
-        const newAppointment = {
-            id: 'app_' + Date.now(),
-            profId: currentProf.id,
-            client: name,
-            phone: phone,
-            service: serviceName,
-            price: price,
-            datetime: datetime,
-            status: 'pending'
-        };
+        // Preenche automaticamente o preço do serviço com base na tabela da profissional caso o agendamento não tenha valor
+        profAppointments.forEach(app => {
+            if (app.price === undefined || app.price === null) {
+                const srv = loggedProf.services.find(s => s.name === app.service);
+                app.price = srv ? srv.price : 0;
+            }
+        });
 
-        appointments.push(newAppointment);
+        calculateMetrics(profAppointments);
+
+        const listEl = document.getElementById('appointments-list');
+
+        if (profAppointments.length === 0) {
+            listEl.innerHTML = '<p style="text-align: center; color: #777; margin-top: 15px;">Nenhum agendamento encontrado para o seu perfil.</p>';
+            return;
+        }
+
+        profAppointments.sort((a, b) => a.datetime.localeCompare(b.datetime));
+
+        listEl.innerHTML = profAppointments.map(app => {
+            if (!app.id) app.id = 'app_' + Math.random().toString(36).substr(2, 9);
+            const isCompleted = app.status === 'completed';
+            const price = app.price !== undefined ? app.price : 0;
+
+            const [date, time] = app.datetime.split('T');
+            const [year, month, day] = date.split('-');
+
+            return `
+                <div class="card">
+                    <strong>Cliente:</strong> ${app.client}<br>
+                    <strong>WhatsApp:</strong> ${app.phone}<br>
+                    <strong>Serviço:</strong> ${app.service}<br>
+                    <strong>Data:</strong> ${day}/${month}/${year} às ${time} hs<br>
+                    
+                    <div style="margin-top: 10px; display: flex; gap: 8px; align-items: center;">
+                        <label style="font-weight: bold; font-size: 0.8rem; margin: 0;">Valor R$:</label>
+                        <input type="number" step="0.01" value="${price}" 
+                            onchange="updatePrice('${app.id}', this.value)" 
+                            style="width: 100px !important; padding: 4px 8px; font-size: 0.85rem;">
+                    </div>
+
+                    <button type="button" class="btn-status ${isCompleted ? 'completed' : 'pending'}" onclick="toggleStatus('${app.id}')">
+                        ${isCompleted ? '✓ Concluído' : '⏳ Marcar como Concluído'}
+                    </button>
+                </div>
+            `;
+        }).join('');
+
         localStorage.setItem('nail_appointments', JSON.stringify(appointments));
+    }
 
-        showMsg('✨ Agendamento realizado com sucesso! Aguardamos você.');
-        document.getElementById('booking-form').reset();
-    });
+    function copyBookingLink() {
+        const linkText = document.getElementById('prof-booking-link').innerText;
+        navigator.clipboard.writeText(linkText).then(() => {
+            alert('Link copiado para a área de transferência!');
+        });
+    }
 
-    init();
+    function logout() {
+        loggedProf = null;
+        showScreen('login');
+    }
 </script>
 </body>
 </html>
