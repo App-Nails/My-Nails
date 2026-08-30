@@ -94,7 +94,6 @@
             color: var(--text-main);
         }
 
-        /* CORREÇÃO DO CALENDÁRIO: Força esquema claro padrão sem interferir nas cores do navegador */
         input[type="date"] {
             color-scheme: light;
         }
@@ -243,6 +242,17 @@
     let activeProf = null;
     let selectedSlot = null;
 
+    // LISTA FIXA DE SERVIÇOS EXATAMENTE DA IMAGEM
+    const defaultServices = [
+        { name: 'Aplicação de Alongamento', price: '120.00' },
+        { name: 'Manutenção de Alongamento', price: '80.00' },
+        { name: 'Remoção de Alongamento', price: '40.00' },
+        { name: 'Esmaltação em Gel', price: '60.00' },
+        { name: 'Manicure Tradicional', price: '35.00' },
+        { name: 'Esmaltação Francesa', price: '45.00' },
+        { name: 'Nail Art', price: '25.00' }
+    ];
+
     function getQueryParam(param) {
         const urlParams = new URLSearchParams(window.location.search);
         return urlParams.get(param);
@@ -263,11 +273,7 @@
                 id: 'prof_default',
                 name: 'Myrna',
                 address: 'Atendimento a Domicílio',
-                services: [
-                    { name: 'Pé e Mão', price: '50.00' },
-                    { name: 'Apenas Mão', price: '30.00' },
-                    { name: 'Apenas Pé', price: '30.00' }
-                ],
+                services: defaultServices,
                 availableSlots: ["08:00", "09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"]
             };
         }
@@ -275,30 +281,17 @@
         document.getElementById('prof-header').innerText = activeProf.name;
         document.getElementById('prof-address-display').innerText = activeProf.address || "Atendimento a Domicílio";
 
-        // CORREÇÃO DOS SERVIÇOS: Mapeia todas as possíveis variações de nome de chave salvas no localStorage
+        // POPULA A LISTA COM OS SERVIÇOS FIXOS DEFINIDOS NA IMAGEM
         const serviceSelect = document.getElementById('service-select');
         serviceSelect.innerHTML = '<option value="">Selecione um serviço...</option>';
-        
-        const rawServices = (activeProf.services && activeProf.services.length > 0) 
-            ? activeProf.services 
-            : [
-                { name: 'Pé e Mão', price: '50.00' },
-                { name: 'Apenas Mão', price: '30.00' },
-                { name: 'Apenas Pé', price: '30.00' }
-            ];
 
-        rawServices.forEach(s => {
-            // Extrai o nome independente do campo salvo (name, title, nome ou serviço)
-            const serviceName = s.name || s.title || s.nome || s.service || 'Serviço';
-            
-            // Extrai o valor numérico independente da chave salva (price, valor, preco ou cost)
-            const rawPrice = s.price !== undefined ? s.price : (s.valor !== undefined ? s.valor : (s.preco !== undefined ? s.preco : s.cost));
-            const numPrice = parseFloat(rawPrice);
-            const formattedPrice = !isNaN(numPrice) ? numPrice.toFixed(2).replace('.', ',') : '0,00';
+        defaultServices.forEach(s => {
+            const numPrice = parseFloat(s.price);
+            const formattedPrice = numPrice.toFixed(2).replace('.', ',');
 
             const opt = document.createElement('option');
-            opt.value = JSON.stringify({ name: serviceName, price: rawPrice || 0 });
-            opt.innerText = `${serviceName} - R$ ${formattedPrice}`;
+            opt.value = JSON.stringify(s);
+            opt.innerText = `${s.name} - R$ ${formattedPrice}`;
             serviceSelect.appendChild(opt);
         });
 
