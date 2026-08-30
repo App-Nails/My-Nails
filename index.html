@@ -40,7 +40,7 @@
             border-radius: 20px; 
             box-shadow: 0 12px 28px rgba(216, 27, 96, 0.12); 
             padding: 32px 28px; 
-            overflow: hidden; /* Garante que nada saia das bordas arredondadas */
+            overflow: hidden;
         }
 
         h2 { color: var(--primary); font-size: 1.5rem; font-weight: 700; text-align: center; margin-bottom: 6px; }
@@ -53,7 +53,6 @@
         .form-group { margin-bottom: 18px; width: 100%; }
         label { display: block; font-weight: 600; font-size: 0.88rem; margin-bottom: 8px; }
         
-        /* Ajuste de tamanho e box-sizing universal para inputs, inclusive os gerados pelo Flatpickr */
         input, select, .flatpickr-input { 
             width: 100% !important; 
             max-width: 100% !important;
@@ -107,12 +106,7 @@
 
             <div class="form-group">
                 <label for="service-type">✨ Serviço</label>
-                <select id="service-type" required>
-                    <option value="Alongamento em Gel">Alongamento em Gel</option>
-                    <option value="Manutenção">Manutenção</option>
-                    <option value="Esmaltação em Gel">Esmaltação em Gel</option>
-                    <option value="Pé e Mão">Pé e Mão</option>
-                </select>
+                <select id="service-type" required></select>
             </div>
 
             <div class="form-group">
@@ -147,7 +141,6 @@
     flatpickr("#app-date-only", { locale: "pt", dateFormat: "Y-m-d", altInput: true, altFormat: "d/m/Y", minDate: "today" });
     flatpickr("#app-time-only", { enableTime: true, noCalendar: true, dateFormat: "H:i", time_24hr: true, minTime: "08:00", maxTime: "19:00" });
 
-    // Identifica o profissional pela URL
     const urlParams = new URLSearchParams(window.location.search);
     const targetProfId = urlParams.get('prof');
     const professionals = JSON.parse(localStorage.getItem('nail_professionals') || '[]');
@@ -159,10 +152,23 @@
     }
 
     const subtitleEl = document.getElementById('prof-subtitle');
+    const serviceSelect = document.getElementById('service-type');
+
     if (currentProf) {
         subtitleEl.innerText = `Atendimento com ${currentProf.name}`;
+        
+        // Carrega apenas os serviços cadastrados pelo profissional
+        const availableServices = currentProf.services || [
+            "Aplicação de Alongamento", "Manutenção de Alongamento", "Remoção de Alongamento",
+            "Esmaltação em Gel", "Manicure Tradicional", "Esmaltação Francesa",
+            "Nail Art", "Decoração Encapsulada", "Pedicure Tradicional",
+            "Esmaltação em Gel nos Pés", "Spa dos Pés", "Plástica dos Pés"
+        ];
+
+        serviceSelect.innerHTML = availableServices.map(s => `<option value="${s}">${s}</option>`).join('');
     } else {
         subtitleEl.innerText = "Nenhum profissional cadastrado no momento.";
+        serviceSelect.innerHTML = '<option value="">Sem serviços disponíveis</option>';
     }
 
     function switchTab(tab) {
@@ -172,7 +178,6 @@
         document.getElementById('tab-list-btn').classList.toggle('active', tab === 'list');
     }
 
-    // Processar Novo Agendamento
     document.getElementById('booking-form').addEventListener('submit', function(e) {
         e.preventDefault();
 
@@ -205,7 +210,6 @@
 
         alert('Agendamento realizado com sucesso!\n\nSe precisar cancelar, cancele com 30 minutos de antecedência.');
 
-        // Envia mensagem via WhatsApp
         const msgWhatsApp = encodeURIComponent(
             `*Novo Agendamento Realizado!* 💅\n\n` +
             `*Profissional:* ${currentProf.name}\n` +
@@ -221,7 +225,6 @@
         this.reset();
     });
 
-    // Consultar Agendamentos do Cliente
     function searchAppointments() {
         const inputPhone = document.getElementById('search-phone').value.replace(/\D/g, '');
         const resultsContainer = document.getElementById('client-appointments-results');
@@ -232,7 +235,6 @@
         }
 
         const appointments = JSON.parse(localStorage.getItem('nail_appointments') || '[]');
-        
         const userAppointments = appointments.filter(a => a.phone && a.phone.includes(inputPhone));
 
         if (userAppointments.length === 0) {
