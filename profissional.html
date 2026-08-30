@@ -234,7 +234,7 @@
         <button type="button" class="btn-link" onclick="showScreen('register')">Não tem conta? Cadastre-se</button>
     </div>
 
-    <!-- TELA 2: CADASTRO -->
+    <!-- TELA 2: CADASTRO COM PERGUNTA DE SEGURANÇA -->
     <div id="screen-register" class="hidden">
         <form id="register-form">
             <div class="form-group">
@@ -244,11 +244,25 @@
             <div class="form-group">
                 <label for="reg-phone">📱 WhatsApp (Número Único)</label>
                 <input type="tel" id="reg-phone" required placeholder="(83) 9XXXX-XXXX">
-                <small style="color:#777; font-size:0.75rem;">Este número será seu login único e chave de recuperação.</small>
             </div>
             <div class="form-group">
                 <label for="reg-pass">🔒 Crie uma Senha</label>
                 <input type="password" id="reg-pass" required placeholder="Mínimo de 4 caracteres" minlength="4">
+            </div>
+            
+            <div class="form-group">
+                <label for="reg-question">🛡️ Pergunta de Segurança (Para Recuperar Senha)</label>
+                <select id="reg-question" required>
+                    <option value="">Selecione uma pergunta...</option>
+                    <option value="pet">Qual o nome do seu primeiro pet?</option>
+                    <option value="maiden">Qual o sobrenome de solteira da sua mãe?</option>
+                    <option value="city">Em qual cidade você nasceu?</option>
+                    <option value="school">Qual o nome da sua primeira escola?</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="reg-answer">🔑 Resposta Secreta</label>
+                <input type="text" id="reg-answer" required placeholder="Sua resposta pessoal">
             </div>
 
             <div class="form-group">
@@ -261,25 +275,25 @@
         <button type="button" class="btn-link" onclick="showScreen('login')">Já tem conta? Voltar ao Login</button>
     </div>
 
-    <!-- TELA 3: ESQUECEU A SENHA (REDEFINIÇÃO EM 2 ETAPAS) -->
+    <!-- TELA 3: ESQUECEU A SENHA (VALIDAÇÃO DE SEGURANÇA) -->
     <div id="screen-forgot" class="hidden">
-        <!-- ETAPA A: Solicitar Código -->
+        <!-- ETAPA A: Informar Telefone -->
         <div id="forgot-step-1">
             <p style="font-size:0.85rem; color:#555; margin-bottom:12px;">
-                Informe seu WhatsApp cadastrado para enviar o código de segurança.
+                Informe seu WhatsApp para carregar sua pergunta de segurança.
             </p>
             <div class="form-group">
                 <label for="reset-phone">📱 WhatsApp Cadastrado</label>
                 <input type="tel" id="reset-phone" required placeholder="(83) 9XXXX-XXXX">
             </div>
-            <button type="button" class="btn-action" onclick="sendResetCode()">Gerar Código e Abrir WhatsApp</button>
+            <button type="button" class="btn-action" onclick="fetchSecurityQuestion()">Verificar Conta</button>
         </div>
 
-        <!-- ETAPA B: Validar Código e Alterar Senha -->
+        <!-- ETAPA B: Responder Pergunta e Criar Nova Senha -->
         <form id="forgot-form" class="hidden">
             <div class="form-group">
-                <label for="reset-code">🔢 Código de 6 dígitos</label>
-                <input type="text" id="reset-code" maxlength="6" required placeholder="Ex: 123456">
+                <label id="lbl-security-question">🛡️ Pergunta de Segurança</label>
+                <input type="text" id="reset-answer" required placeholder="Digite sua resposta secreta">
             </div>
             <div class="form-group">
                 <label for="new-pass">🔑 Nova Senha</label>
@@ -289,7 +303,7 @@
                 <label for="confirm-new-pass">🔑 Confirme a Nova Senha</label>
                 <input type="password" id="confirm-new-pass" required placeholder="Repita a nova senha">
             </div>
-            <button type="submit" class="btn-action">Alterar Senha</button>
+            <button type="submit" class="btn-action">Redefinir Senha</button>
         </form>
         
         <button type="button" class="btn-link" onclick="showScreen('login')">Voltar ao Login</button>
@@ -335,9 +349,15 @@
         "Plástica dos Pés"
     ];
 
+    const questionsMap = {
+        pet: "Qual o nome do seu primeiro pet?",
+        maiden: "Qual o sobrenome de solteira da sua mãe?",
+        city: "Em qual cidade você nasceu?",
+        school: "Qual o nome da sua primeira escola?"
+    };
+
     let loggedProf = null;
-    let generatedCode = null;
-    let targetProfPhone = null;
+    let targetProf = null;
 
     // Renderiza lista de serviços no cadastro
     const servicesGrid = document.getElementById('register-services');
@@ -380,8 +400,7 @@
         if (screen === 'login') subtitle.innerText = "Acesse sua conta para ver a agenda";
         if (screen === 'register') subtitle.innerText = "Cadastre-se como profissional";
         if (screen === 'forgot') {
-            subtitle.innerText = "Redefinição de Senha";
-            // Reseta a tela de esqueci a senha para a Etapa 1 sempre que abrir
+            subtitle.innerText = "Redefinição de Senha Segura";
             document.getElementById('forgot-step-1').classList.remove('hidden');
             document.getElementById('forgot-form').classList.add('hidden');
             document.getElementById('forgot-form').reset();
@@ -402,6 +421,8 @@
         const rawPhone = document.getElementById('reg-phone').value;
         const cleanPhone = cleanPhoneNumber(rawPhone);
         const pass = document.getElementById('reg-pass').value;
+        const questionKey = document.getElementById('reg-question').value;
+        const answer = document.getElementById('reg-answer').value.trim().toLowerCase();
 
         if (cleanPhone.length < 8) {
             showMsg('Por favor, informe um número de telefone válido com DDD.', true);
@@ -429,6 +450,8 @@
             name: name,
             phone: cleanPhone,
             pass: pass,
+            questionKey: questionKey,
+            answer: answer,
             services: selectedServices
         };
 
@@ -464,8 +487,8 @@
         loadDashboard();
     });
 
-    // RECUPERAÇÃO DE SENHA - ETAPA 1: Gerar e Enviar Código
-    function sendResetCode() {
+    // RECUPERAÇÃO - ETAPA 1: Buscar Pergunta de Segurança
+    function fetchSecurityQuestion() {
         clearMsgs();
         const rawPhone = document.getElementById('reset-phone').value;
         const cleanPhone = cleanPhoneNumber(rawPhone);
@@ -478,31 +501,25 @@
             return;
         }
 
-        generatedCode = Math.floor(100000 + Math.random() * 900000).toString();
-        targetProfPhone = cleanPhone;
+        targetProf = prof;
+        const questionText = questionsMap[prof.questionKey] || "Pergunta de segurança:";
+        document.getElementById('lbl-security-question').innerText = `🛡️ ${questionText}`;
 
-        const message = encodeURIComponent(`Seu código de verificação para alterar a senha é: ${generatedCode}`);
-        
-        // Alterna o formulário visível para a etapa 2 antes de redirecionar
         document.getElementById('forgot-step-1').classList.add('hidden');
         document.getElementById('forgot-form').classList.remove('hidden');
-        showMsg(`Código gerado: ${generatedCode}. Insira-o abaixo para alterar a senha.`);
-
-        // Abre o WhatsApp numa nova aba para enviar o código
-        window.open(`https://wa.me/55${cleanPhone}?text=${message}`, '_blank');
     }
 
-    // RECUPERAÇÃO DE SENHA - ETAPA 2: Validar Código e Salvar Nova Senha
+    // RECUPERAÇÃO - ETAPA 2: Validar Resposta Secreta e Salvar Senha
     document.getElementById('forgot-form').addEventListener('submit', function(e) {
         e.preventDefault();
         clearMsgs();
 
-        const inputCode = document.getElementById('reset-code').value.trim();
+        const inputAnswer = document.getElementById('reset-answer').value.trim().toLowerCase();
         const newPass = document.getElementById('new-pass').value;
         const confirmPass = document.getElementById('confirm-new-pass').value;
 
-        if (inputCode !== generatedCode) {
-            showMsg('Código de segurança incorreto!', true);
+        if (inputAnswer !== targetProf.answer) {
+            showMsg('Resposta de segurança incorreta!', true);
             return;
         }
 
@@ -512,19 +529,18 @@
         }
 
         const professionals = JSON.parse(localStorage.getItem('nail_professionals') || '[]');
-        const index = professionals.findIndex(p => cleanPhoneNumber(p.phone) === targetProfPhone);
+        const index = professionals.findIndex(p => p.id === targetProf.id);
 
         if (index !== -1) {
             professionals[index].pass = newPass;
             localStorage.setItem('nail_professionals', JSON.stringify(professionals));
 
-            generatedCode = null;
-            targetProfPhone = null;
+            targetProf = null;
 
-            showMsg('Senha alterada com sucesso! Redirecionando...');
+            showMsg('Senha alterada com sucesso!');
             setTimeout(() => {
                 showScreen('login');
-            }, 1500);
+            }, 1200);
         }
     });
 
