@@ -111,7 +111,6 @@
             background: #fff; 
         }
 
-        /* ESTILIZAÇÃO CORRIGIDA PARA AS OPÇÕES DE ATENDIMENTO */
         .radio-group {
             display: flex;
             flex-direction: column;
@@ -150,6 +149,35 @@
             cursor: pointer;
         }
 
+        /* CARD DE ENDEREÇO SALVO */
+        .address-saved-card {
+            background: #f8fafc;
+            border: 2px dashed #cbd5e1;
+            padding: 12px 14px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            color: var(--text-main);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 6px;
+        }
+
+        .btn-edit-address {
+            background: #e2e8f0;
+            border: none;
+            color: #334155;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .btn-edit-address:hover {
+            background: #cbd5e1;
+        }
+
         button.btn-action {
             width: 100%;
             padding: 12px;
@@ -177,7 +205,7 @@
             text-align: center;
         }
 
-        .hidden { display: none; }
+        .hidden { display: none !important; }
 
         .card {
             background: #fff3f8; 
@@ -367,7 +395,7 @@
             <div id="appointments-list"></div>
         </div>
 
-        <!-- ABA PERFIL & ENDEREÇO (CORRIGIDA) -->
+        <!-- ABA PERFIL & ENDEREÇO (COM BLOQUEIO DE EDIÇÃO) -->
         <div id="dash-perfil" class="hidden">
             <form id="profile-form">
                 <div class="form-group">
@@ -386,10 +414,20 @@
 
                 <div class="form-group" id="address-group">
                     <label for="prof-address">🏬 Endereço Completo do Estabelecimento</label>
-                    <input type="text" id="prof-address" placeholder="Ex: Av. Epitácio Pessoa, 1000, Sala 102 - Tambaú">
+                    
+                    <!-- MODO EDIÇÃO (INPUT) -->
+                    <div id="address-edit-mode">
+                        <input type="text" id="prof-address" placeholder="Ex: Av. Epitácio Pessoa, 1000, Sala 102 - Tambaú">
+                    </div>
+
+                    <!-- MODO VISUALIZAÇÃO (ENDEREÇO TRAVADO / SALVO) -->
+                    <div id="address-display-mode" class="address-saved-card hidden">
+                        <span id="saved-address-text">--</span>
+                        <button type="button" class="btn-edit-address" onclick="enableAddressEdit()">✏️ Editar</button>
+                    </div>
                 </div>
 
-                <button type="submit" class="btn-action">Salvar Configurações de Local</button>
+                <button type="submit" id="btn-save-location" class="btn-action">Salvar Configurações de Local</button>
             </form>
         </div>
 
@@ -473,7 +511,7 @@
         showScreen('login');
     }
 
-    // ALTERAR VISIBILIDADE DO CAMPO DE ENDEREÇO
+    // CONTROLE DE CAMPO E ESTADO DO ENDEREÇO
     function toggleAddressInput() {
         const selectedRadio = document.querySelector('input[name="locationType"]:checked');
         if (!selectedRadio) return;
@@ -483,12 +521,32 @@
         const addressInput = document.getElementById('prof-address');
 
         if (locationType === 'home') {
-            addressGroup.style.display = 'none';
+            addressGroup.classList.add('hidden');
             addressInput.removeAttribute('required');
         } else {
-            addressGroup.style.display = 'block';
-            addressInput.setAttribute('required', 'true');
+            addressGroup.classList.remove('hidden');
+            if (loggedProf && loggedProf.address && loggedProf.address !== 'Atendimento a Domicílio') {
+                renderSavedAddressMode(loggedProf.address);
+            } else {
+                enableAddressEdit();
+            }
         }
+    }
+
+    function renderSavedAddressMode(addressText) {
+        document.getElementById('address-edit-mode').classList.add('hidden');
+        document.getElementById('address-display-mode').classList.remove('hidden');
+        document.getElementById('saved-address-text').innerText = addressText;
+        document.getElementById('btn-save-location').classList.add('hidden');
+        document.getElementById('prof-address').removeAttribute('required');
+    }
+
+    function enableAddressEdit() {
+        document.getElementById('address-edit-mode').classList.remove('hidden');
+        document.getElementById('address-display-mode').classList.add('hidden');
+        document.getElementById('btn-save-location').classList.remove('hidden');
+        document.getElementById('prof-address').setAttribute('required', 'true');
+        document.getElementById('prof-address').focus();
     }
 
     // SALVAR CONFIGURAÇÕES DE PERFIL E ENDEREÇO
@@ -512,6 +570,7 @@
             professionals[idx] = loggedProf;
             localStorage.setItem('nail_professionals', JSON.stringify(professionals));
             showMsg('Configurações de local salvas!');
+            toggleAddressInput();
         }
     });
 
