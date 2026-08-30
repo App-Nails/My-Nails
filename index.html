@@ -71,7 +71,6 @@
             background: #fff; 
         }
 
-        /* Agrupamento em duas colunas para Data e Hora */
         .datetime-row {
             display: flex;
             gap: 10px;
@@ -119,7 +118,6 @@
                 <select id="service-type" required></select>
             </div>
 
-            <!-- Data e Hora lado a lado em tamanho reduzido -->
             <div class="datetime-row">
                 <div class="form-group">
                     <label for="app-date-only">📅 Data</label>
@@ -154,6 +152,22 @@
     flatpickr("#app-date-only", { locale: "pt", dateFormat: "Y-m-d", altInput: true, altFormat: "d/m/Y", minDate: "today" });
     flatpickr("#app-time-only", { enableTime: true, noCalendar: true, dateFormat: "H:i", time_24hr: true, minTime: "08:00", maxTime: "19:00" });
 
+    // Lista completa padrão de serviços (Fallback)
+    const defaultServices = [
+        "Aplicação de Alongamento",
+        "Manutenção de Alongamento",
+        "Remoção de Alongamento",
+        "Esmaltação em Gel",
+        "Manicure Tradicional",
+        "Esmaltação Francesa",
+        "Nail Art",
+        "Decoração Encapsulada",
+        "Pedicure Tradicional",
+        "Esmaltação em Gel nos Pés",
+        "Spa dos Pés",
+        "Plástica dos Pés"
+    ];
+
     const urlParams = new URLSearchParams(window.location.search);
     const targetProfId = urlParams.get('prof');
     const professionals = JSON.parse(localStorage.getItem('nail_professionals') || '[]');
@@ -169,18 +183,13 @@
 
     if (currentProf) {
         subtitleEl.innerText = `Atendimento com ${currentProf.name}`;
-        
-        const availableServices = currentProf.services || [
-            "Aplicação de Alongamento", "Manutenção de Alongamento", "Remoção de Alongamento",
-            "Esmaltação em Gel", "Manicure Tradicional", "Esmaltação Francesa",
-            "Nail Art", "Decoração Encapsulada", "Pedicure Tradicional",
-            "Esmaltação em Gel nos Pés", "Spa dos Pés", "Plástica dos Pés"
-        ];
-
-        serviceSelect.innerHTML = availableServices.map(s => `<option value="${s}">${s}</option>`).join('');
+        const servicesToDisplay = (currentProf.services && currentProf.services.length > 0) 
+            ? currentProf.services 
+            : defaultServices;
+        serviceSelect.innerHTML = servicesToDisplay.map(s => `<option value="${s}">${s}</option>`).join('');
     } else {
-        subtitleEl.innerText = "Nenhum profissional cadastrado no momento.";
-        serviceSelect.innerHTML = '<option value="">Sem serviços disponíveis</option>';
+        subtitleEl.innerText = "Agendamento de Serviços";
+        serviceSelect.innerHTML = defaultServices.map(s => `<option value="${s}">${s}</option>`).join('');
     }
 
     function switchTab(tab) {
@@ -193,11 +202,6 @@
     document.getElementById('booking-form').addEventListener('submit', function(e) {
         e.preventDefault();
 
-        if (!currentProf) {
-            alert('Atenção: O profissional responsável ainda não cadastrou o perfil no painel!');
-            return;
-        }
-
         const clientName = document.getElementById('client-name').value;
         const rawPhone = document.getElementById('client-phone').value;
         const cleanPhone = rawPhone.replace(/\D/g, '');
@@ -205,10 +209,14 @@
         const dateValue = document.getElementById('app-date-only').value;
         const timeValue = document.getElementById('app-time-only').value;
 
+        const profId = currentProf ? currentProf.id : 'default';
+        const profName = currentProf ? currentProf.name : 'Studio';
+        const profPhone = currentProf ? currentProf.phone : '5583999999999';
+
         const appointment = {
             id: Date.now(),
-            profId: currentProf.id,
-            profName: currentProf.name,
+            profId: profId,
+            profName: profName,
             client: clientName,
             phone: cleanPhone,
             service: serviceType,
@@ -224,7 +232,7 @@
 
         const msgWhatsApp = encodeURIComponent(
             `*Novo Agendamento Realizado!* 💅\n\n` +
-            `*Profissional:* ${currentProf.name}\n` +
+            `*Profissional:* ${profName}\n` +
             `*Cliente:* ${clientName}\n` +
             `*WhatsApp:* ${rawPhone}\n` +
             `*Serviço:* ${serviceType}\n` +
@@ -233,7 +241,7 @@
             `_Aviso de cancelamento com 30 min de antecedência em vigor._`
         );
 
-        window.open(`https://wa.me/${currentProf.phone}?text=${msgWhatsApp}`, '_blank');
+        window.open(`https://wa.me/${profPhone}?text=${msgWhatsApp}`, '_blank');
         this.reset();
     });
 
