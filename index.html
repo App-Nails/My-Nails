@@ -36,6 +36,7 @@
             <label for="client-name">Seu Nome:</label>
             <input type="text" id="client-name" required placeholder="Digite seu nome completo">
         </div>
+
         <div class="form-group">
             <label for="service-type">Serviço:</label>
             <select id="service-type" required>
@@ -45,16 +46,24 @@
                 <option value="Pé e Mão">Pé e Mão</option>
             </select>
         </div>
+
+        <!-- Data/Calendário -->
         <div class="form-group">
-            <label for="app-date">Data e Horário:</label>
-            <input type="datetime-local" id="app-date" required>
+            <label for="app-date-only">Selecione a Data:</label>
+            <input type="date" id="app-date-only" required>
         </div>
+
+        <!-- Horário posicionado abaixo -->
+        <div class="form-group">
+            <label for="app-time-only">Selecione o Horário:</label>
+            <input type="time" id="app-time-only" required>
+        </div>
+
         <button type="submit" class="btn-action">Confirmar Agendamento</button>
     </form>
 </div>
 
 <script>
-    // Solicitar permissão de notificação (alerta de 30 minutos)
     if ("Notification" in window && Notification.permission !== "granted") {
         Notification.requestPermission();
     }
@@ -63,11 +72,17 @@
     document.getElementById('booking-form').addEventListener('submit', function(e) {
         e.preventDefault();
         
+        const dateValue = document.getElementById('app-date-only').value;
+        const timeValue = document.getElementById('app-time-only').value;
+        
+        // Combina a data e a hora selecionadas
+        const combinedDatetime = `${dateValue}T${timeValue}`;
+
         const appointment = {
             id: Date.now(),
             client: document.getElementById('client-name').value,
             service: document.getElementById('service-type').value,
-            datetime: document.getElementById('app-date').value,
+            datetime: combinedDatetime,
             alert30Sent: false,
             alert10Sent: false
         };
@@ -76,7 +91,6 @@
         appointments.push(appointment);
         localStorage.setItem('nail_appointments', JSON.stringify(appointments));
 
-        // Mensagem com o aviso de cancelamento
         alert('Agendamento realizado com sucesso!\n\nSe precisar cancelar, cancele com 30 minutos de antecedência.');
         this.reset();
     });
