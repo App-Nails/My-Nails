@@ -30,19 +30,20 @@
 
         .hidden { display: none; }
         .appointment-card { background: #fafafa; border-left: 4px solid var(--primary); padding: 12px; margin-bottom: 10px; border-radius: 8px; }
-        .link-box { background: #fff3f8; padding: 12px; border-radius: 10px; border: 1px dashed var(--primary); margin-bottom: 20px; word-break: break-all; }
+        .link-box { background: #fff3f8; padding: 15px; border-radius: 10px; border: 1px dashed var(--primary); margin-bottom: 20px; text-align: center; }
+        .copy-btn { background: #27ae60; margin-top: 8px; padding: 8px; font-size: 0.85rem; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <!-- Tela de Login -->
+    <!-- Login -->
     <div id="auth-login">
         <h2>Área do Profissional</h2>
         <form id="form-login">
             <div class="form-group">
                 <label>WhatsApp (Login):</label>
-                <input type="tel" id="login-phone" required placeholder="55839XXXXXXX">
+                <input type="tel" id="login-phone" required placeholder="Ex: 5583988887777">
             </div>
             <div class="form-group">
                 <label>Senha:</label>
@@ -53,16 +54,16 @@
         <button class="btn-link" onclick="toggleAuth('register')">Não tem conta? Cadastre-se</button>
     </div>
 
-    <!-- Tela de Cadastro -->
+    <!-- Cadastro -->
     <div id="auth-register" class="hidden">
         <h2>Cadastro de Profissional</h2>
         <form id="form-register">
             <div class="form-group">
-                <label>Seu Nome / Nome do Studio:</label>
+                <label>Seu Nome / Studio:</label>
                 <input type="text" id="reg-name" required placeholder="Ex: Studio Ana Nails">
             </div>
             <div class="form-group">
-                <label>WhatsApp (com DDD):</label>
+                <label>Seu WhatsApp (com DDD):</label>
                 <input type="tel" id="reg-phone" required placeholder="Ex: 5583988887777">
             </div>
             <div class="form-group">
@@ -74,13 +75,14 @@
         <button class="btn-link" onclick="toggleAuth('login')">Já tem conta? Faça login</button>
     </div>
 
-    <!-- Painel do Profissional Logado -->
+    <!-- Painel do Profissional -->
     <div id="dashboard" class="hidden">
         <h2 id="welcome-msg">Bem-vinda!</h2>
         
         <div class="link-box">
-            <strong>Seu link de agendamento para clientes:</strong><br>
-            <span id="client-link" style="color: var(--primary); font-size: 0.85rem;"></span>
+            <strong>Seu Link de Agendamento:</strong><br>
+            <input type="text" id="client-link-input" readonly style="margin-top: 8px; font-size: 0.8rem; text-align: center; background: #fff;">
+            <button class="copy-btn" onclick="copyLink()">📋 Copiar Link para Clientes</button>
         </div>
 
         <h3>Seus Agendamentos</h3>
@@ -98,7 +100,7 @@
         document.getElementById('auth-register').classList.toggle('hidden', view !== 'register');
     }
 
-    // Cadastro de Profissional
+    // Cadastro
     document.getElementById('form-register').addEventListener('submit', function(e) {
         e.preventDefault();
         const name = document.getElementById('reg-name').value;
@@ -108,7 +110,6 @@
         if (!phone.startsWith('55')) phone = '55' + phone;
 
         const professionals = JSON.parse(localStorage.getItem('nail_professionals') || '[]');
-        
         if (professionals.some(p => p.phone === phone)) {
             alert('Este WhatsApp já está cadastrado!');
             return;
@@ -118,11 +119,11 @@
         professionals.push(newProf);
         localStorage.setItem('nail_professionals', JSON.stringify(professionals));
 
-        alert('Cadastro realizado com sucesso! Faça login.');
+        alert('Cadastro realizado! Faça login com seus dados.');
         toggleAuth('login');
     });
 
-    // Login do Profissional
+    // Login
     document.getElementById('form-login').addEventListener('submit', function(e) {
         e.preventDefault();
         let phone = document.getElementById('login-phone').value.replace(/\D/g, '');
@@ -150,12 +151,19 @@
 
         document.getElementById('welcome-msg').innerText = `Olá, ${currentProf.name}!`;
         
-        // Gera o link específico da cliente apontando para o id do profissional
+        // Gera o link exclusivo com o parâmetro ?prof=
         const baseUrl = window.location.href.replace('profissional.html', 'index.html');
         const uniqueLink = `${baseUrl}?prof=${currentProf.id}`;
-        document.getElementById('client-link').innerText = uniqueLink;
+        document.getElementById('client-link-input').value = uniqueLink;
 
         renderAppointments();
+    }
+
+    function copyLink() {
+        const input = document.getElementById('client-link-input');
+        input.select();
+        document.execCommand('copy');
+        alert('Link copiado! Agora você pode compartilhar com suas clientes.');
     }
 
     function renderAppointments() {
@@ -183,33 +191,12 @@
         location.reload();
     }
 
-    // Auto-login se sessão ativa
+    // Restaura sessão se recarregar
     const savedSession = localStorage.getItem('nail_current_session');
     if (savedSession) {
         currentProf = JSON.parse(savedSession);
         loadDashboard();
     }
-
-    // Alerta automático de 30 minutos na tela do profissional
-    setInterval(() => {
-        if (!currentProf) return;
-        const appointments = JSON.parse(localStorage.getItem('nail_appointments') || '[]');
-        const now = new Date().getTime();
-
-        appointments.forEach(app => {
-            if (app.profId === currentProf.id) {
-                const appTime = new Date(app.datetime).getTime();
-                const diffMinutes = (appTime - now) / (1000 * 60);
-
-                if (diffMinutes > 0 && diffMinutes <= 30 && !app.alert30Sent) {
-                    alert(`⏰ Lembrete: Faltam 30 minutos para o agendamento de ${app.client}!`);
-                    app.alert30Sent = true;
-                }
-            }
-        });
-
-        localStorage.setItem('nail_appointments', JSON.stringify(appointments));
-    }, 10000);
 </script>
 </body>
 </html>
