@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agendamento - Studio de Unhas</title>
+    <title>Painel do Profissional - Nail Studio</title>
     <style>
         :root {
             --primary: #d81b60;
@@ -13,21 +13,22 @@
             --text-main: #2c3e50;
             --text-muted: #64748b;
             --border: #e2e8f0;
+            --danger: #ef4444;
             --success: #10b981;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+            font-family: 'Segoe UI', system-ui, sans-serif; 
         }
 
         body {
             background: linear-gradient(135deg, #fce4ec 0%, #f8bbd0 100%);
             color: var(--text-main);
             min-height: 100vh;
-            padding: 16px;
+            padding: 20px;
             display: flex;
             justify-content: center;
             align-items: flex-start;
@@ -35,431 +36,894 @@
 
         .container {
             width: 100%;
-            max-width: 440px;
+            max-width: 500px;
             background: var(--surface);
-            border-radius: 24px;
+            border-radius: 20px;
             box-shadow: 0 12px 28px rgba(216, 27, 96, 0.12);
-            padding: 24px 20px;
-            margin-top: 10px;
-            margin-bottom: 20px;
-            overflow: hidden;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 16px;
-        }
-
-        .header h1 {
-            color: var(--primary);
-            font-size: 1.4rem;
-            font-weight: 700;
-        }
-
-        /* CARD DO ENDEREÇO */
-        .location-card {
-            background: #fff0f5;
-            border: 1px solid #ffe4e6;
-            border-radius: 14px;
-            padding: 12px 14px;
+            padding: 28px 24px;
+            margin-top: 20px;
             margin-bottom: 20px;
         }
 
-        .location-header {
-            display: flex;
-            align-items: flex-start;
-            gap: 8px;
-            font-weight: 700;
-            font-size: 0.9rem;
-            color: #9f1239;
-            margin-bottom: 2px;
+        h2 { 
+            color: var(--primary); 
+            font-size: 1.5rem; 
+            font-weight: 700; 
+            text-align: center; 
+            margin-bottom: 6px; 
         }
 
-        .location-address {
-            font-size: 0.88rem;
-            color: #475569;
-            line-height: 1.3;
-            margin-left: 24px;
+        .subtitle { 
+            text-align: center; 
+            color: var(--text-muted); 
+            font-size: 0.88rem; 
+            margin-bottom: 20px; 
         }
 
-        .btn-map {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            background: #ffffff;
-            color: var(--primary);
-            border: 1px solid var(--primary);
-            padding: 6px 10px;
-            border-radius: 8px;
-            font-weight: 700;
-            font-size: 0.75rem;
-            text-decoration: none;
-            margin-top: 8px;
-            margin-left: 24px;
-            transition: all 0.2s;
-        }
-
-        .btn-map:hover {
-            background: var(--primary);
-            color: #ffffff;
-        }
-
-        .form-group {
-            margin-bottom: 16px;
-            width: 100%;
-        }
-
-        label {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-weight: 700;
-            font-size: 0.9rem;
-            color: #1e293b;
-            margin-bottom: 8px;
-        }
-
-        input[type="text"],
-        input[type="tel"],
-        input[type="date"],
-        select {
-            width: 100% !important;
-            max-width: 100% !important;
-            min-width: 0 !important;
-            height: 48px;
-            padding: 0 14px;
-            border: 1.5px solid #e2e8f0;
-            border-radius: 12px;
-            font-size: 0.95rem;
-            background-color: #f8fafc;
-            color: #334155;
-            outline: none;
-            -webkit-appearance: none;
-            appearance: none;
-            box-sizing: border-box;
-        }
-
-        select {
-            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%3c334155' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-            background-repeat: no-repeat;
-            background-position: right 12px center;
-            background-size: 16px;
-            padding-right: 36px;
-        }
-
-        input:focus, select:focus {
-            border-color: var(--primary);
-            background-color: #ffffff;
-        }
-
-        input[type="date"] {
-            display: block;
-            position: relative;
-            line-height: 48px;
-        }
-
-        .slots-grid {
+        .tab-buttons {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
+            gap: 6px;
+            margin-bottom: 15px;
+        }
+
+        .tab-btn {
+            padding: 8px 4px;
+            border: 2px solid var(--primary);
+            background: transparent;
+            color: var(--primary);
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            text-align: center;
+        }
+
+        .tab-btn.active { 
+            background: var(--primary); 
+            color: white; 
+        }
+
+        .form-group { 
+            margin-bottom: 14px; 
+            width: 100%; 
+        }
+
+        label { 
+            display: block; 
+            font-weight: 600; 
+            font-size: 0.85rem; 
+            margin-bottom: 6px; 
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            font-size: 0.9rem;
+            background-color: #fafafa;
+            outline: none;
+        }
+
+        input:focus, select:focus { 
+            border-color: var(--primary); 
+            background: #fff; 
+        }
+
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 8px;
+            margin-bottom: 14px;
+        }
+
+        .radio-option {
+            display: flex !important;
+            align-items: center !important;
+            gap: 10px !important;
+            background: #fafafa;
+            border: 2px solid var(--border);
+            padding: 12px 14px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600 !important;
+            font-size: 0.9rem !important;
+            width: 100%;
+            margin-bottom: 0 !important;
+            transition: border-color 0.2s, background-color 0.2s;
+        }
+
+        .radio-option:has(input:checked) {
+            border-color: var(--primary);
+            background: #fff0f6;
+            color: var(--primary-dark);
+        }
+
+        .radio-option input[type="radio"] {
+            width: 18px !important;
+            height: 18px !important;
+            accent-color: var(--primary);
+            margin: 0 !important;
+            cursor: pointer;
+        }
+
+        .address-saved-card {
+            background: #f8fafc;
+            border: 2px dashed #cbd5e1;
+            padding: 12px 14px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            color: var(--text-main);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-top: 6px;
         }
 
-        .slot-btn {
-            height: 42px;
-            border: 1.5px solid var(--border);
-            border-radius: 10px;
-            background: #f8fafc;
-            color: var(--text-main);
-            font-weight: 600;
-            font-size: 0.85rem;
-            cursor: pointer;
-            text-align: center;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .slot-btn:hover {
-            border-color: var(--primary);
-        }
-
-        .slot-btn.selected {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-        }
-
-        /* Estilo para horários Ocupados / Preenchidos */
-        .slot-btn.disabled {
-            background: #fee2e2;
-            color: #ef4444;
-            border-color: #fca5a5;
-            cursor: not-allowed;
-            text-decoration: line-through;
-            opacity: 0.7;
-        }
-
-        button.btn-submit {
-            width: 100%;
-            height: 50px;
-            background: var(--primary);
-            color: white;
+        .btn-edit-address {
+            background: #e2e8f0;
             border: none;
-            border-radius: 12px;
-            font-size: 1rem;
+            color: #334155;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.75rem;
             font-weight: 700;
             cursor: pointer;
-            margin-top: 10px;
-            box-shadow: 0 4px 12px rgba(216, 27, 96, 0.2);
         }
 
-        button.btn-submit:active {
-            background: var(--primary-dark);
+        .btn-edit-address:hover { background: #cbd5e1; }
+
+        button.btn-action {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
+        .btn-link {
+            background: none; 
+            border: none; 
+            color: var(--primary);
+            font-weight: 600; 
+            font-size: 0.85rem; 
+            cursor: pointer;
+            text-decoration: underline; 
+            margin-top: 10px; 
+            display: block; 
+            width: 100%; 
+            text-align: center;
         }
 
         .hidden { display: none !important; }
 
-        .alert-error {
-            background: #fee2e2;
-            color: #b91c1c;
-            padding: 10px 14px;
-            border-radius: 10px;
-            font-size: 0.85rem;
-            margin-bottom: 12px;
-            display: none;
+        .card {
+            background: #fff3f8; 
+            border-left: 4px solid var(--primary);
+            padding: 14px; 
+            margin-bottom: 12px; 
+            border-radius: 10px; 
+            font-size: 0.88rem;
+            position: relative;
         }
 
-        .alert-success {
-            background: #d1fae5;
-            color: #047857;
-            padding: 12px 14px;
-            border-radius: 10px;
-            font-size: 0.9rem;
-            margin-bottom: 12px;
+        .card.expense-card {
+            background: #fff5f5;
+            border-left-color: var(--danger);
+        }
+
+        .card-delete-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: transparent;
+            border: none;
+            color: var(--danger);
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .metrics-grid {
+            display: grid; 
+            grid-template-columns: 1fr 1fr 1fr; 
+            gap: 8px; 
+            margin-bottom: 15px;
+        }
+
+        .metric-card {
+            background: #fafafa; 
+            border: 1px solid var(--border);
+            border-radius: 12px; 
+            padding: 10px 6px; 
             text-align: center;
-            display: none;
+        }
+
+        .metric-card h4 { 
+            font-size: 0.7rem; 
+            color: var(--text-muted); 
+            text-transform: uppercase; 
+            margin-bottom: 4px; 
+        }
+
+        .metric-card .value { font-size: 0.9rem; font-weight: 700; }
+        .metric-card .value.income { color: var(--success); }
+        .metric-card .value.expense { color: var(--danger); }
+        .metric-card .value.profit { color: var(--primary); }
+
+        .btn-status {
+            margin-top: 8px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            border: none;
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-status.pending { background: #fef3c7; color: #d97706; }
+        .btn-status.completed { background: #d1fae5; color: #047857; }
+
+        .filter-container {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .btn-filter {
+            flex: 1;
+            padding: 6px;
+            border: 1px solid var(--border);
+            background: #fafafa;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            color: var(--text-muted);
+        }
+
+        .btn-filter.active {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+        }
+
+        .link-box {
+            background: #eef2ff; 
+            border: 1px dashed #6366f1;
+            padding: 10px; 
+            border-radius: 8px; 
+            word-break: break-all; 
+            font-size: 0.8rem; 
+            margin-top: 8px; 
+            color: #4338ca;
+        }
+
+        .alert-error { 
+            background: #fee2e2; 
+            color: #b91c1c; 
+            padding: 10px; 
+            border-radius: 8px; 
+            font-size: 0.85rem; 
+            margin-bottom: 12px; 
+            display: none; 
+        }
+
+        .alert-success { 
+            background: #d1fae5; 
+            color: #047857; 
+            padding: 10px; 
+            border-radius: 8px; 
+            font-size: 0.85rem; 
+            margin-bottom: 12px; 
+            display: none; 
+        }
+
+        .time-slots-container { 
+            display: grid; 
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 8px; 
+            margin-top: 10px; 
+        }
+
+        .time-slot-btn { 
+            padding: 8px; 
+            border: 1px solid var(--border); 
+            border-radius: 6px; 
+            background: #fff; 
+            text-align: center; 
+            font-size: 0.85rem; 
+            cursor: pointer; 
+        }
+
+        .time-slot-btn.active { 
+            background: var(--primary); 
+            color: white; 
+            border-color: var(--primary); 
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="header">
-        <h1 id="prof-name-title">Agendamento de Horário</h1>
-    </div>
+    <h2>Painel do Profissional</h2>
+    <div class="subtitle" id="panel-subtitle">Gerencie seu perfil e agendamentos</div>
 
     <div id="error-msg" class="alert-error"></div>
     <div id="success-msg" class="alert-success"></div>
 
-    <div class="location-card" id="location-card">
-        <div class="location-header">
-            <span>📍 Endereço do Local:</span>
-        </div>
-        <div class="location-address" id="location-text">
-            Carregando endereço...
-        </div>
-        <a id="btn-open-map" href="#" target="_blank" class="btn-map hidden">
-            🗺️ Abrir no Mapa
-        </a>
+    <!-- TELA 1: LOGIN -->
+    <div id="screen-login">
+        <form id="login-form">
+            <div class="form-group">
+                <label for="login-phone">📱 Seu WhatsApp</label>
+                <input type="tel" id="login-phone" required placeholder="(83) 9XXXX-XXXX">
+            </div>
+            <div class="form-group">
+                <label for="login-pass">🔒 Senha</label>
+                <input type="password" id="login-pass" required placeholder="Digite sua senha">
+            </div>
+            <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; cursor: pointer;">
+                <input type="checkbox" id="remember-me" checked style="width: auto;">
+                Lembrar de mim
+            </label>
+            <button type="submit" class="btn-action" style="margin-top: 15px;">Entrar no Painel</button>
+        </form>
+        <button type="button" class="btn-link" onclick="showScreen('register')">Não tem conta? Cadastre-se</button>
     </div>
 
-    <form id="booking-form">
-        <div class="form-group">
-            <label for="client-name">👤 Seu Nome Completo</label>
-            <input type="text" id="client-name" required placeholder="Digite seu nome">
+    <!-- TELA 2: CADASTRO -->
+    <div id="screen-register" class="hidden">
+        <form id="register-form">
+            <div class="form-group">
+                <label for="reg-name">👤 Seu Nome Completo</label>
+                <input type="text" id="reg-name" required placeholder="Ex: Maria Silva">
+            </div>
+            <div class="form-group">
+                <label for="reg-phone">📱 WhatsApp</label>
+                <input type="tel" id="reg-phone" required placeholder="(83) 9XXXX-XXXX">
+            </div>
+            <div class="form-group">
+                <label for="reg-pass">🔒 Crie uma Senha</label>
+                <input type="password" id="reg-pass" required placeholder="Mínimo 4 caracteres" minlength="4">
+            </div>
+            <button type="submit" class="btn-action">Criar Meu Perfil</button>
+        </form>
+        <button type="button" class="btn-link" onclick="showScreen('login')">Já tem conta? Voltar ao Login</button>
+    </div>
+
+    <!-- TELA 3: DASHBOARD -->
+    <div id="screen-dashboard" class="hidden">
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <h4>Entradas</h4>
+                <div class="value income" id="val-income">R$ 0,00</div>
+            </div>
+            <div class="metric-card">
+                <h4>Saídas</h4>
+                <div class="value expense" id="val-expense">R$ 0,00</div>
+            </div>
+            <div class="metric-card">
+                <h4>Lucro</h4>
+                <div class="value profit" id="val-profit">R$ 0,00</div>
+            </div>
         </div>
 
-        <div class="form-group">
-            <label for="client-phone">📱 Seu WhatsApp</label>
-            <input type="tel" id="client-phone" required placeholder="(83) 9XXXX-XXXX">
+        <div class="tab-buttons">
+            <button id="tab-agenda-btn" class="tab-btn active" onclick="switchDashTab('agenda')">Agenda</button>
+            <button id="tab-servicos-btn" class="tab-btn" onclick="switchDashTab('servicos')">Serviços</button>
+            <button id="tab-perfil-btn" class="tab-btn" onclick="switchDashTab('perfil')">Perfil</button>
+            <button id="tab-horarios-btn" class="tab-btn" onclick="switchDashTab('horarios')">Horários</button>
+            <button id="tab-despesas-btn" class="tab-btn" onclick="switchDashTab('despesas')">Despesas</button>
+            <button id="tab-link-btn" class="tab-btn" onclick="switchDashTab('link')">Meu Link</button>
         </div>
 
-        <div class="form-group">
-            <label for="service-select">✨ Selecione o Serviço</label>
-            <select id="service-select" required>
-                </select>
+        <!-- ABA AGENDA -->
+        <div id="dash-agenda">
+            <div class="filter-container">
+                <button class="btn-filter active" id="filter-all" onclick="setAgendaFilter('all')">Todos</button>
+                <button class="btn-filter" id="filter-today" onclick="setAgendaFilter('today')">Hoje</button>
+                <button class="btn-filter" id="filter-upcoming" onclick="setAgendaFilter('upcoming')">Próximos</button>
+            </div>
+            <div id="appointments-list"></div>
         </div>
 
-        <div class="form-group">
-            <label for="booking-date">📅 Data do Agendamento</label>
-            <input type="date" id="booking-date" required onchange="loadAvailableSlots()">
-        </div>
-
-        <div class="form-group">
-            <label>⏰ Horários para a Data Selecionada</label>
-            <div id="slots-container" class="slots-grid">
+        <!-- ABA SERVIÇOS -->
+        <div id="dash-servicos" class="hidden">
+            <form id="service-form" style="margin-bottom: 20px;">
+                <div class="form-group">
+                    <label>💅 Nome do Serviço</label>
+                    <input type="text" id="serv-name" required placeholder="Ex: Banho de Gel">
                 </div>
+                <div class="form-group">
+                    <label>💵 Valor (R$)</label>
+                    <input type="number" step="0.01" id="serv-price" required placeholder="0,00">
+                </div>
+                <button type="submit" class="btn-action">Adicionar Serviço</button>
+            </form>
+            <div id="services-list"></div>
         </div>
 
-        <button type="submit" class="btn-submit">Confirmar Agendamento</button>
-    </form>
+        <!-- ABA PERFIL & ENDEREÇO -->
+        <div id="dash-perfil" class="hidden">
+            <form id="profile-form">
+                <div class="form-group">
+                    <label>📍 Modalidade de Atendimento</label>
+                    <div class="radio-group">
+                        <label class="radio-option">
+                            <input type="radio" name="locationType" value="physical" onchange="toggleAddressInput()" checked>
+                            <span>Endereço Físico</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="locationType" value="home" onchange="toggleAddressInput()">
+                            <span>Atendimento a Domicílio</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group" id="address-group">
+                    <label for="prof-address">🏬 Endereço Completo do Estabelecimento</label>
+                    <div id="address-edit-mode">
+                        <input type="text" id="prof-address" placeholder="Ex: Av. Epitácio Pessoa, 1000, Sala 102 - Tambaú">
+                    </div>
+                    <div id="address-display-mode" class="address-saved-card hidden">
+                        <span id="saved-address-text">--</span>
+                        <button type="button" class="btn-edit-address" onclick="enableAddressEdit()">✏️ Editar</button>
+                    </div>
+                </div>
+
+                <button type="submit" id="btn-save-location" class="btn-action">Salvar Configurações de Local</button>
+            </form>
+        </div>
+
+        <!-- ABA HORÁRIOS -->
+        <div id="dash-horarios" class="hidden">
+            <label style="font-size:0.85rem; color:#555;">Clique para ativar/desativar os horários de atendimento:</label>
+            <div class="time-slots-container" id="slots-grid"></div>
+            <button type="button" class="btn-action" onclick="saveSlots()" style="margin-top:15px;">Salvar Horários</button>
+        </div>
+
+        <!-- ABA DESPESAS -->
+        <div id="dash-despesas" class="hidden">
+            <form id="expense-form" style="margin-bottom: 20px;">
+                <div class="form-group">
+                    <label>📝 Descrição</label>
+                    <input type="text" id="exp-desc" required placeholder="Ex: Esmaltes, Aluguel">
+                </div>
+                <div class="form-group">
+                    <label>💵 Valor (R$)</label>
+                    <input type="number" step="0.01" id="exp-val" required placeholder="0,00">
+                </div>
+                <button type="submit" class="btn-action" style="background: var(--danger);">Lançar Despesa</button>
+            </form>
+            <div id="expenses-list"></div>
+        </div>
+
+        <!-- ABA LINK -->
+        <div id="dash-link" class="hidden">
+            <p style="font-size:0.88rem; color:#555; margin-bottom:8px;">Copie e envie este link para suas clientes:</p>
+            <div class="link-box" id="prof-booking-link"></div>
+            <button type="button" class="btn-action" onclick="copyBookingLink()" style="margin-top:10px;">Copiar Link</button>
+        </div>
+
+        <button type="button" class="btn-link" onclick="logout()" style="color:var(--danger); margin-top:20px;">Sair da Conta</button>
+    </div>
 </div>
 
 <script>
-    let currentProf = null;
-    let selectedTimeSlot = null;
+    const defaultTimeSlots = ["08:00", "09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"];
+    let loggedProf = null;
+    let currentAgendaFilter = 'all';
 
-    function getQueryParam(param) {
-        const urlParams = new URLSearchParams(window.location.search);
-        return urlParams.get(param);
+    function cleanPhoneNumber(phone) { return phone.replace(/\D/g, ''); }
+
+    function showMsg(text, isError = false) {
+        const errorEl = document.getElementById('error-msg');
+        const successEl = document.getElementById('success-msg');
+        errorEl.style.display = isError ? 'block' : 'none';
+        successEl.style.display = isError ? 'none' : 'block';
+        if (isError) errorEl.innerText = text; else successEl.innerText = text;
     }
 
-    function showError(msg) {
-        const err = document.getElementById('error-msg');
-        err.innerText = msg;
-        err.style.display = 'block';
-    }
-
-    function hideError() {
+    function clearMsgs() {
         document.getElementById('error-msg').style.display = 'none';
+        document.getElementById('success-msg').style.display = 'none';
     }
 
-    function loadProfessional() {
-        const profId = getQueryParam('prof');
-        const professionals = JSON.parse(localStorage.getItem('nail_professionals') || '[]');
+    function showScreen(screen) {
+        clearMsgs();
+        document.getElementById('screen-login').classList.toggle('hidden', screen !== 'login');
+        document.getElementById('screen-register').classList.toggle('hidden', screen !== 'register');
+        document.getElementById('screen-dashboard').classList.toggle('hidden', screen !== 'dashboard');
 
-        if (profId) {
-            currentProf = professionals.find(p => p.id === profId);
-        } else if (professionals.length > 0) {
-            currentProf = professionals[0];
+        const subtitle = document.getElementById('panel-subtitle');
+        if (screen === 'login') subtitle.innerText = "Acesse sua conta para ver a agenda";
+        if (screen === 'register') subtitle.innerText = "Cadastre-se como profissional";
+        if (screen === 'dashboard') subtitle.innerText = `Bem-vinda(o), ${loggedProf.name}!`;
+    }
+
+    function checkAutoLogin() {
+        const savedProfId = localStorage.getItem('nail_active_session');
+        if (savedProfId) {
+            const professionals = JSON.parse(localStorage.getItem('nail_professionals') || '[]');
+            const prof = professionals.find(p => p.id === savedProfId);
+            if (prof) {
+                loggedProf = prof;
+                showScreen('dashboard');
+                loadDashboard();
+                return;
+            }
         }
+        showScreen('login');
+    }
 
-        if (!currentProf) {
-            showError("Profissional não encontrado! Verifique o link enviado.");
-            document.getElementById('booking-form').style.display = 'none';
-            document.getElementById('location-card').style.display = 'none';
+    function toggleAddressInput() {
+        const selectedRadio = document.querySelector('input[name="locationType"]:checked');
+        if (!selectedRadio) return;
+
+        const locationType = selectedRadio.value;
+        const addressGroup = document.getElementById('address-group');
+        const addressInput = document.getElementById('prof-address');
+
+        if (locationType === 'home') {
+            addressGroup.classList.add('hidden');
+            addressInput.removeAttribute('required');
+        } else {
+            addressGroup.classList.remove('hidden');
+            if (loggedProf && loggedProf.address && loggedProf.address !== 'Atendimento a Domicílio') {
+                renderSavedAddressMode(loggedProf.address);
+            } else {
+                enableAddressEdit();
+            }
+        }
+    }
+
+    function renderSavedAddressMode(addressText) {
+        document.getElementById('address-edit-mode').classList.add('hidden');
+        document.getElementById('address-display-mode').classList.remove('hidden');
+        document.getElementById('saved-address-text').innerText = addressText;
+        document.getElementById('btn-save-location').classList.add('hidden');
+        document.getElementById('prof-address').removeAttribute('required');
+    }
+
+    function enableAddressEdit() {
+        document.getElementById('address-edit-mode').classList.remove('hidden');
+        document.getElementById('address-display-mode').classList.add('hidden');
+        document.getElementById('btn-save-location').classList.remove('hidden');
+        document.getElementById('prof-address').setAttribute('required', 'true');
+        document.getElementById('prof-address').focus();
+    }
+
+    document.getElementById('profile-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const selectedRadio = document.querySelector('input[name="locationType"]:checked');
+        const locationType = selectedRadio ? selectedRadio.value : 'physical';
+        const address = document.getElementById('prof-address').value.trim();
+
+        if (locationType === 'physical' && !address) {
+            showMsg('Por favor, digite o endereço do seu estabelecimento.', true);
             return;
         }
 
-        setupLocationInfo();
+        loggedProf.locationType = locationType;
+        loggedProf.address = locationType === 'physical' ? address : 'Atendimento a Domicílio';
 
-        const serviceSelect = document.getElementById('service-select');
-        const services = currentProf.services || [
-            { name: "Manicure Tradicional", price: 35 },
-            { name: "Esmaltação em Gel", price: 60 },
-            { name: "Alongamento", price: 120 }
-        ];
+        saveLoggedProfData();
+        showMsg('Configurações de local salvas!');
+        toggleAddressInput();
+    });
 
-        serviceSelect.innerHTML = '<option value="" disabled selected>Selecione um serviço...</option>' + 
-            services.map(s => `
-                <option value="${s.name}" data-price="${s.price}">
-                    ${s.name} - R$ ${parseFloat(s.price).toFixed(2).replace('.', ',')}
-                </option>
-            `).join('');
+    document.getElementById('login-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const cleanPhone = cleanPhoneNumber(document.getElementById('login-phone').value);
+        const pass = document.getElementById('login-pass').value;
+        const rememberMe = document.getElementById('remember-me').checked;
 
-        // Define a data atual por padrão
-        const today = new Date().toISOString().split('T')[0];
-        const dateInput = document.getElementById('booking-date');
-        dateInput.min = today;
-        dateInput.value = today;
+        const professionals = JSON.parse(localStorage.getItem('nail_professionals') || '[]');
+        const prof = professionals.find(p => cleanPhoneNumber(p.phone) === cleanPhone && p.pass === pass);
 
-        // Carrega imediatamente os horários de HOJE
-        loadAvailableSlots();
+        if (!prof) {
+            showMsg('WhatsApp ou senha incorretos!', true);
+            return;
+        }
+
+        loggedProf = prof;
+        if (rememberMe) localStorage.setItem('nail_active_session', prof.id);
+        else localStorage.removeItem('nail_active_session');
+
+        showScreen('dashboard');
+        loadDashboard();
+    });
+
+    document.getElementById('register-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const name = document.getElementById('reg-name').value.trim();
+        const cleanPhone = cleanPhoneNumber(document.getElementById('reg-phone').value);
+        const pass = document.getElementById('reg-pass').value;
+
+        const professionals = JSON.parse(localStorage.getItem('nail_professionals') || '[]');
+        if (professionals.some(p => cleanPhoneNumber(p.phone) === cleanPhone)) {
+            showMsg('WhatsApp já cadastrado!', true);
+            return;
+        }
+
+        const newProf = {
+            id: 'prof_' + Date.now(),
+            name: name,
+            phone: cleanPhone,
+            pass: pass,
+            locationType: 'physical',
+            address: '',
+            availableSlots: [...defaultTimeSlots],
+            services: [
+                { name: "Manicure Tradicional", price: 35 },
+                { name: "Esmaltação em Gel", price: 60 },
+                { name: "Alongamento", price: 120 }
+            ]
+        };
+
+        professionals.push(newProf);
+        localStorage.setItem('nail_professionals', JSON.stringify(professionals));
+        loggedProf = newProf;
+        localStorage.setItem('nail_active_session', newProf.id);
+
+        showScreen('dashboard');
+        loadDashboard();
+    });
+
+    function switchDashTab(tab) {
+        document.getElementById('dash-agenda').classList.toggle('hidden', tab !== 'agenda');
+        document.getElementById('dash-servicos').classList.toggle('hidden', tab !== 'servicos');
+        document.getElementById('dash-perfil').classList.toggle('hidden', tab !== 'perfil');
+        document.getElementById('dash-horarios').classList.toggle('hidden', tab !== 'horarios');
+        document.getElementById('dash-despesas').classList.toggle('hidden', tab !== 'despesas');
+        document.getElementById('dash-link').classList.toggle('hidden', tab !== 'link');
+
+        document.getElementById('tab-agenda-btn').classList.toggle('active', tab === 'agenda');
+        document.getElementById('tab-servicos-btn').classList.toggle('active', tab === 'servicos');
+        document.getElementById('tab-perfil-btn').classList.toggle('active', tab === 'perfil');
+        document.getElementById('tab-horarios-btn').classList.toggle('active', tab === 'horarios');
+        document.getElementById('tab-despesas-btn').classList.toggle('active', tab === 'despesas');
+        document.getElementById('tab-link-btn').classList.toggle('active', tab === 'link');
     }
 
-    function setupLocationInfo() {
-        const locText = document.getElementById('location-text');
-        const mapBtn = document.getElementById('btn-open-map');
+    // CADASTRO DE SERVIÇOS
+    document.getElementById('service-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const name = document.getElementById('serv-name').value.trim();
+        const price = parseFloat(document.getElementById('serv-price').value) || 0;
 
-        if (currentProf.locationType === 'home' || !currentProf.address || currentProf.address === 'Atendimento a Domicílio') {
-            locText.innerText = "Atendimento a Domicílio";
-            mapBtn.classList.add('hidden');
-        } else {
-            locText.innerText = currentProf.address;
-            const encodedAddress = encodeURIComponent(currentProf.address);
-            mapBtn.href = `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
-            mapBtn.classList.remove('hidden');
+        if (!name || price <= 0) return;
+
+        if (!loggedProf.services) loggedProf.services = [];
+        loggedProf.services.push({ name, price });
+
+        saveLoggedProfData();
+        document.getElementById('service-form').reset();
+        loadServices();
+        showMsg('Serviço adicionado com sucesso!');
+    });
+
+    function deleteService(index) {
+        if (confirm('Deseja excluir este serviço?')) {
+            loggedProf.services.splice(index, 1);
+            saveLoggedProfData();
+            loadServices();
         }
     }
 
-    function loadAvailableSlots() {
-        const dateInput = document.getElementById('booking-date');
-        const slotsContainer = document.getElementById('slots-container');
-        selectedTimeSlot = null;
+    function loadServices() {
+        const listEl = document.getElementById('services-list');
+        const services = loggedProf.services || [];
 
-        // Se por algum motivo não houver data, utiliza HOJE como fallback
-        if (!dateInput.value) {
-            const today = new Date().toISOString().split('T')[0];
-            dateInput.value = today;
+        if (services.length === 0) {
+            listEl.innerHTML = '<p style="text-align: center; color: #777;">Nenhum serviço cadastrado.</p>';
+            return;
         }
 
-        const date = dateInput.value;
+        listEl.innerHTML = services.map((s, idx) => `
+            <div class="card">
+                <button type="button" class="card-delete-btn" onclick="deleteService(${idx})">✕</button>
+                <strong>Serviço:</strong> ${s.name}<br>
+                <strong>Preço:</strong> R$ ${parseFloat(s.price).toFixed(2).replace('.', ',')}
+            </div>
+        `).join('');
+    }
+
+    // REGISTRO DE DESPESAS
+    document.getElementById('expense-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const desc = document.getElementById('exp-desc').value.trim();
+        const val = parseFloat(document.getElementById('exp-val').value) || 0;
+
+        if (!desc || val <= 0) return;
+
+        const expenses = JSON.parse(localStorage.getItem('nail_expenses') || '[]');
+        expenses.push({
+            id: 'exp_' + Date.now(),
+            profId: loggedProf.id,
+            description: desc,
+            value: val,
+            date: new Date().toISOString()
+        });
+
+        localStorage.setItem('nail_expenses', JSON.stringify(expenses));
+        document.getElementById('expense-form').reset();
+        loadDashboard();
+    });
+
+    function saveLoggedProfData() {
+        const professionals = JSON.parse(localStorage.getItem('nail_professionals') || '[]');
+        const idx = professionals.findIndex(p => p.id === loggedProf.id);
+        if (idx !== -1) {
+            professionals[idx] = loggedProf;
+            localStorage.setItem('nail_professionals', JSON.stringify(professionals));
+        }
+    }
+
+    function calculateFinances() {
         const appointments = JSON.parse(localStorage.getItem('nail_appointments') || '[]');
+        const expenses = JSON.parse(localStorage.getItem('nail_expenses') || '[]');
+
+        const income = appointments
+            .filter(a => a.profId === loggedProf.id && a.status === 'completed')
+            .reduce((s, a) => s + (parseFloat(a.price) || 0), 0);
+
+        const expense = expenses
+            .filter(e => e.profId === loggedProf.id)
+            .reduce((s, e) => s + (parseFloat(e.value) || 0), 0);
+
+        document.getElementById('val-income').innerText = `R$ ${income.toFixed(2).replace('.', ',')}`;
+        document.getElementById('val-expense').innerText = `R$ ${expense.toFixed(2).replace('.', ',')}`;
+        document.getElementById('val-profit').innerText = `R$ ${(income - expense).toFixed(2).replace('.', ',')}`;
+    }
+
+    function loadDashboard() {
+        if (!loggedProf) return;
+
+        const baseUrl = window.location.href.substring(0, window.location.href.lastIndexOf('/'));
+        document.getElementById('prof-booking-link').innerText = `${baseUrl}/index.html?prof=${loggedProf.id}`;
+
+        const isHome = loggedProf.locationType === 'home';
+        document.querySelectorAll('input[name="locationType"]').forEach(r => {
+            r.checked = (r.value === (isHome ? 'home' : 'physical'));
+        });
+        document.getElementById('prof-address').value = loggedProf.address || '';
+        toggleAddressInput();
+
+        calculateFinances();
+        renderSlotsConfig();
+        loadAppointments();
+        loadExpenses();
+        loadServices();
+    }
+
+    function renderSlotsConfig() {
+        const grid = document.getElementById('slots-grid');
+        const activeSlots = loggedProf.availableSlots || defaultTimeSlots;
+        grid.innerHTML = defaultTimeSlots.map(time => `
+            <div class="time-slot-btn ${activeSlots.includes(time) ? 'active' : ''}" onclick="this.classList.toggle('active')">
+                ${time}
+            </div>
+        `).join('');
+    }
+
+    function saveSlots() {
+        const activeEls = document.querySelectorAll('.time-slot-btn.active');
+        loggedProf.availableSlots = Array.from(activeEls).map(el => el.innerText.trim());
+        saveLoggedProfData();
+        showMsg('Horários salvos!');
+    }
+
+    function toggleStatus(appId) {
+        const appointments = JSON.parse(localStorage.getItem('nail_appointments') || '[]');
+        const app = appointments.find(a => a.id === appId);
+        if (app) {
+            app.status = app.status === 'completed' ? 'pending' : 'completed';
+            localStorage.setItem('nail_appointments', JSON.stringify(appointments));
+            loadDashboard();
+        }
+    }
+
+    function updatePrice(appId, newPrice) {
+        const appointments = JSON.parse(localStorage.getItem('nail_appointments') || '[]');
+        const app = appointments.find(a => a.id === appId);
+        if (app) {
+            app.price = parseFloat(newPrice) || 0;
+            localStorage.setItem('nail_appointments', JSON.stringify(appointments));
+            calculateFinances();
+        }
+    }
+
+    function setAgendaFilter(filter) {
+        currentAgendaFilter = filter;
+        document.getElementById('filter-all').classList.toggle('active', filter === 'all');
+        document.getElementById('filter-today').classList.toggle('active', filter === 'today');
+        document.getElementById('filter-upcoming').classList.toggle('active', filter === 'upcoming');
+        loadAppointments();
+    }
+
+    function loadAppointments() {
+        const appointments = JSON.parse(localStorage.getItem('nail_appointments') || '[]');
+        const listEl = document.getElementById('appointments-list');
         
-        // Identifica horários ocupados nessa data específica
-        const occupiedSlots = appointments
-            .filter(a => a.profId === currentProf.id && a.datetime.startsWith(date))
-            .map(a => a.datetime.split('T')[1]);
+        const now = new Date();
+        const todayStr = now.toISOString().split('T')[0];
 
-        const allSlots = currentProf.availableSlots || ["08:00", "09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"];
+        let profAppointments = appointments.filter(a => a.profId === loggedProf.id);
 
-        // Renderiza os botões mostrando quais estão livres e quais estão ocupados (riscados/vermelhos)
-        slotsContainer.innerHTML = allSlots.map(time => {
-            const isTaken = occupiedSlots.includes(time);
-            if (isTaken) {
-                return `<button type="button" class="slot-btn disabled" disabled title="Horário Ocupado">${time}</button>`;
-            }
-            return `<button type="button" class="slot-btn" onclick="selectSlot(this, '${time}')">${time}</button>`;
+        if (currentAgendaFilter === 'today') {
+            profAppointments = profAppointments.filter(a => a.datetime.startsWith(todayStr));
+        } else if (currentAgendaFilter === 'upcoming') {
+            profAppointments = profAppointments.filter(a => a.datetime.split('T')[0] >= todayStr);
+        }
+
+        if (profAppointments.length === 0) {
+            listEl.innerHTML = '<p style="text-align: center; color: #777;">Nenhum agendamento encontrado.</p>';
+            return;
+        }
+
+        listEl.innerHTML = profAppointments.map(app => {
+            const isCompleted = app.status === 'completed';
+            const [date, time] = app.datetime.split('T');
+            const [year, month, day] = date.split('-');
+            return `
+                <div class="card">
+                    <strong>Cliente:</strong> ${app.client}<br>
+                    <strong>WhatsApp:</strong> ${app.phone}<br>
+                    <strong>Serviço:</strong> ${app.service}<br>
+                    <strong>Data:</strong> ${day}/${month}/${year} às ${time} hs<br>
+
+                    <div style="margin-top: 8px; display: flex; gap: 8px; align-items: center;">
+                        <label style="font-weight: bold; font-size: 0.8rem; margin: 0;">Valor R$:</label>
+                        <input type="number" step="0.01" value="${app.price || 0}" 
+                            onchange="updatePrice('${app.id}', this.value)" 
+                            style="width: 90px !important; padding: 4px 6px; font-size: 0.85rem;">
+                    </div>
+
+                    <button type="button" class="btn-status ${isCompleted ? 'completed' : 'pending'}" onclick="toggleStatus('${app.id}')">
+                        ${isCompleted ? '✓ Concluído' : '⏳ Marcar como Concluído'}
+                    </button>
+                </div>
+            `;
         }).join('');
     }
 
-    function selectSlot(btn, time) {
-        document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('selected'));
-        btn.classList.add('selected');
-        selectedTimeSlot = time;
-        hideError();
+    function loadExpenses() {
+        const expenses = JSON.parse(localStorage.getItem('nail_expenses') || '[]');
+        const profExpenses = expenses.filter(e => e.profId === loggedProf.id);
+        const expListEl = document.getElementById('expenses-list');
+
+        if (profExpenses.length === 0) {
+            expListEl.innerHTML = '<p style="text-align: center; color: #777;">Nenhuma despesa lançada.</p>';
+        } else {
+            expListEl.innerHTML = profExpenses.map(e => `
+                <div class="card expense-card">
+                    <strong>Despesa:</strong> ${e.description}<br>
+                    <strong>Valor:</strong> R$ ${parseFloat(e.value).toFixed(2).replace('.', ',')}
+                </div>
+            `).join('');
+        }
     }
 
-    document.getElementById('booking-form').addEventListener('submit', function(e) {
-        e.preventDefault();
+    function copyBookingLink() {
+        navigator.clipboard.writeText(document.getElementById('prof-booking-link').innerText).then(() => alert('Link copiado!'));
+    }
 
-        const serviceSelect = document.getElementById('service-select');
-        if (!serviceSelect.value) {
-            showError("Por favor, selecione um serviço.");
-            return;
-        }
+    function logout() {
+        localStorage.removeItem('nail_active_session');
+        loggedProf = null;
+        showScreen('login');
+    }
 
-        if (!selectedTimeSlot) {
-            showError("Por favor, selecione um horário disponível.");
-            return;
-        }
-
-        const clientName = document.getElementById('client-name').value.trim();
-        const clientPhone = document.getElementById('client-phone').value.trim();
-        const serviceName = serviceSelect.value;
-        const selectedOption = serviceSelect.options[serviceSelect.selectedIndex];
-        const price = parseFloat(selectedOption.getAttribute('data-price')) || 0;
-        const date = document.getElementById('booking-date').value;
-
-        const newAppointment = {
-            id: 'app_' + Date.now(),
-            profId: currentProf.id,
-            client: clientName,
-            phone: clientPhone,
-            service: serviceName,
-            price: price,
-            datetime: `${date}T${selectedTimeSlot}`,
-            status: 'pending'
-        };
-
-        const appointments = JSON.parse(localStorage.getItem('nail_appointments') || '[]');
-        appointments.push(newAppointment);
-        localStorage.setItem('nail_appointments', JSON.stringify(appointments));
-
-        const successMsg = document.getElementById('success-msg');
-        successMsg.innerText = "✨ Agendamento realizado com sucesso!";
-        successMsg.style.display = 'block';
-
-        document.getElementById('booking-form').reset();
-        loadProfessional(); // Recarrega os dados para atualizar o painel de horários para HOJE
-
-        setTimeout(() => {
-            successMsg.style.display = 'none';
-        }, 4000);
-    });
-
-    loadProfessional();
+    checkAutoLogin();
 </script>
 </body>
 </html>
