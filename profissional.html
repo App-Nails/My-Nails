@@ -261,40 +261,39 @@
         <button type="button" class="btn-link" onclick="showScreen('login')">Já tem conta? Voltar ao Login</button>
     </div>
 
-    <!-- TELA 3: ESQUECEU A SENHA (REDEFINIÇÃO) -->
     <!-- TELA 3: ESQUECEU A SENHA (REDEFINIÇÃO EM 2 ETAPAS) -->
-<div id="screen-forgot" class="hidden">
-    <!-- Etapa A: Solicitar Código -->
-    <div id="forgot-step-1">
-        <p style="font-size:0.85rem; color:#555; margin-bottom:12px;">
-            Informe seu WhatsApp para receber o código de segurança.
-        </p>
-        <div class="form-group">
-            <label for="reset-phone">📱 WhatsApp Cadastrado</label>
-            <input type="tel" id="reset-phone" required placeholder="(83) 9XXXX-XXXX">
+    <div id="screen-forgot" class="hidden">
+        <!-- ETAPA A: Solicitar Código -->
+        <div id="forgot-step-1">
+            <p style="font-size:0.85rem; color:#555; margin-bottom:12px;">
+                Informe seu WhatsApp cadastrado para enviar o código de segurança.
+            </p>
+            <div class="form-group">
+                <label for="reset-phone">📱 WhatsApp Cadastrado</label>
+                <input type="tel" id="reset-phone" required placeholder="(83) 9XXXX-XXXX">
+            </div>
+            <button type="button" class="btn-action" onclick="sendResetCode()">Gerar Código e Abrir WhatsApp</button>
         </div>
-        <button type="button" class="btn-action" onclick="sendResetCode()">Enviar Código via WhatsApp</button>
-    </div>
 
-    <!-- Etapa B: Validar Código e Alterar Senha -->
-    <form id="forgot-form" class="hidden">
-        <div class="form-group">
-            <label for="reset-code">🔢 Código de 6 dígitos recebido</label>
-            <input type="text" id="reset-code" maxlength="6" required placeholder="Ex: 123456">
-        </div>
-        <div class="form-group">
-            <label for="new-pass">🔑 Nova Senha</label>
-            <input type="password" id="new-pass" required placeholder="Digite a nova senha" minlength="4">
-        </div>
-        <div class="form-group">
-            <label for="confirm-new-pass">🔑 Confirme a Nova Senha</label>
-            <input type="password" id="confirm-new-pass" required placeholder="Repita a nova senha">
-        </div>
-        <button type="submit" class="btn-action">Alterar Senha</button>
-    </form>
-    
-    <button type="button" class="btn-link" onclick="showScreen('login')">Voltar ao Login</button>
-</div>
+        <!-- ETAPA B: Validar Código e Alterar Senha -->
+        <form id="forgot-form" class="hidden">
+            <div class="form-group">
+                <label for="reset-code">🔢 Código de 6 dígitos</label>
+                <input type="text" id="reset-code" maxlength="6" required placeholder="Ex: 123456">
+            </div>
+            <div class="form-group">
+                <label for="new-pass">🔑 Nova Senha</label>
+                <input type="password" id="new-pass" required placeholder="Digite a nova senha" minlength="4">
+            </div>
+            <div class="form-group">
+                <label for="confirm-new-pass">🔑 Confirme a Nova Senha</label>
+                <input type="password" id="confirm-new-pass" required placeholder="Repita a nova senha">
+            </div>
+            <button type="submit" class="btn-action">Alterar Senha</button>
+        </form>
+        
+        <button type="button" class="btn-link" onclick="showScreen('login')">Voltar ao Login</button>
+    </div>
 
     <!-- TELA 4: DASHBOARD DO PROFISSIONAL -->
     <div id="screen-dashboard" class="hidden">
@@ -337,6 +336,8 @@
     ];
 
     let loggedProf = null;
+    let generatedCode = null;
+    let targetProfPhone = null;
 
     // Renderiza lista de serviços no cadastro
     const servicesGrid = document.getElementById('register-services');
@@ -378,7 +379,13 @@
         const subtitle = document.getElementById('panel-subtitle');
         if (screen === 'login') subtitle.innerText = "Acesse sua conta para ver a agenda";
         if (screen === 'register') subtitle.innerText = "Cadastre-se como profissional";
-        if (screen === 'forgot') subtitle.innerText = "Redefinição de Senha";
+        if (screen === 'forgot') {
+            subtitle.innerText = "Redefinição de Senha";
+            // Reseta a tela de esqueci a senha para a Etapa 1 sempre que abrir
+            document.getElementById('forgot-step-1').classList.remove('hidden');
+            document.getElementById('forgot-form').classList.add('hidden');
+            document.getElementById('forgot-form').reset();
+        }
         if (screen === 'dashboard') subtitle.innerText = `Bem-vinda(o), ${loggedProf.name}!`;
     }
 
@@ -386,7 +393,7 @@
         return phone.replace(/\D/g, '');
     }
 
-    // CADASTRO DE PROFISSIONAL (COM VALIDAÇÃO DE NÚMERO ÚNICO)
+    // CADASTRO DE PROFISSIONAL
     document.getElementById('register-form').addEventListener('submit', function(e) {
         e.preventDefault();
         clearMsgs();
@@ -411,7 +418,6 @@
 
         const professionals = JSON.parse(localStorage.getItem('nail_professionals') || '[]');
 
-        // VALIDAÇÃO DE NÚMERO ÚNICO
         const exists = professionals.some(p => cleanPhoneNumber(p.phone) === cleanPhone);
         if (exists) {
             showMsg('Este número de WhatsApp já está cadastrado por outro profissional!', true);
@@ -458,111 +464,68 @@
         loadDashboard();
     });
 
-    // RESET DE SENHA
-    let generatedCode = null;
-let targetProfPhone = null;
-
-// ETAPA 1: Gerar o código e redirecionar para o WhatsApp
-function sendResetCode() {
-    clearMsgs();
-    const rawPhone = document.getElementById('reset-phone').value;
-    const cleanPhone = cleanPhoneNumber(rawPhone);
-
-    const professionals = JSON.parse(localStorage.getItem('nail_professionals') || '[]');
-    const prof = professionals.find(p => cleanPhoneNumber(p.phone) === cleanPhone);
-
-    if (!prof) {
-        showMsg('Número de WhatsApp não encontrado no cadastro!', true);
-        return;
-    }
-
-    generatedCode = Math.floor(100000 + Math.random() * 900000).toString();
-    targetProfPhone = cleanPhone;
-
-    const message = encodeURIComponent(`Seu código de verificação é: ${generatedCode}`);
-    
-    // Alterna a tela primeiro
-    document.getElementById('forgot-step-1').classList.add('hidden');
-    document.getElementById('forgot-form').classList.remove('hidden');
-    showMsg('Código gerado! Redirecionando para o WhatsApp...');
-
-    // Abre o WhatsApp na mesma aba para evitar bloqueio de pop-up
-    setTimeout(() => {
-        window.location.href = `https://wa.me/55${cleanPhone}?text=${message}`;
-    }, 1000);
-}
-
-    // Gerar código aleatório de 6 dígitos
-    generatedCode = Math.floor(100000 + Math.random() * 900000).toString();
-    targetProfPhone = cleanPhone;
-
-    // Alternar formulário para a etapa 2
-    document.getElementById('forgot-step-1').classList.add('hidden');
-    document.getElementById('forgot-form').classList.remove('hidden');
-
-    // Alerta na tela exibindo o código simulado
-    showMsg(`Seu código de recuperação é: ${generatedCode}`);
-}
-
-// ETAPA 2: Validar o código digitado e atualizar a senha
-document.getElementById('forgot-form').addEventListener('submit', function(e) {
-    e.preventDefault();
-    clearMsgs();
-
-    const inputCode = document.getElementById('reset-code').value.trim();
-    const newPass = document.getElementById('new-pass').value;
-    const confirmPass = document.getElementById('confirm-new-pass').value;
-
-    if (inputCode !== generatedCode) {
-        showMsg('Código de segurança incorreto!', true);
-        return;
-    }
-
-    if (newPass !== confirmPass) {
-        showMsg('As senhas digitadas não coincidem!', true);
-        return;
-    }
-
-    const professionals = JSON.parse(localStorage.getItem('nail_professionals') || '[]');
-    const index = professionals.findIndex(p => cleanPhoneNumber(p.phone) === targetProfPhone);
-
-    if (index !== -1) {
-        professionals[index].pass = newPass;
-        localStorage.setItem('nail_professionals', JSON.stringify(professionals));
-
-        // Limpa os dados temporários
-        generatedCode = null;
-        targetProfPhone = null;
-
-        showMsg('Senha alterada com sucesso!');
-        setTimeout(() => {
-            // Reset de tela para o estado padrão do forgot
-            document.getElementById('forgot-step-1').classList.remove('hidden');
-            document.getElementById('forgot-form').classList.add('hidden');
-            document.getElementById('forgot-form').reset();
-            
-            showScreen('login');
-        }, 1500);
-    }
-});
+    // RECUPERAÇÃO DE SENHA - ETAPA 1: Gerar e Enviar Código
+    function sendResetCode() {
+        clearMsgs();
+        const rawPhone = document.getElementById('reset-phone').value;
+        const cleanPhone = cleanPhoneNumber(rawPhone);
 
         const professionals = JSON.parse(localStorage.getItem('nail_professionals') || '[]');
-        const index = professionals.findIndex(p => cleanPhoneNumber(p.phone) === cleanPhone);
+        const prof = professionals.find(p => cleanPhoneNumber(p.phone) === cleanPhone);
 
-        if (index === -1) {
+        if (!prof) {
             showMsg('Número de WhatsApp não encontrado no cadastro!', true);
             return;
         }
 
-        // Atualiza a senha do profissional
-        professionals[index].pass = newPass;
-        localStorage.setItem('nail_professionals', JSON.stringify(professionals));
+        generatedCode = Math.floor(100000 + Math.random() * 900000).toString();
+        targetProfPhone = cleanPhone;
 
-        showMsg('Senha alterada com sucesso! Você já pode fazer login com a nova senha.');
-        setTimeout(() => {
-            document.getElementById('login-phone').value = document.getElementById('reset-phone').value;
-            showScreen('login');
-        }, 1500);
+        const message = encodeURIComponent(`Seu código de verificação para alterar a senha é: ${generatedCode}`);
+        
+        // Alterna o formulário visível para a etapa 2 antes de redirecionar
+        document.getElementById('forgot-step-1').classList.add('hidden');
+        document.getElementById('forgot-form').classList.remove('hidden');
+        showMsg(`Código gerado: ${generatedCode}. Insira-o abaixo para alterar a senha.`);
+
+        // Abre o WhatsApp numa nova aba para enviar o código
+        window.open(`https://wa.me/55${cleanPhone}?text=${message}`, '_blank');
+    }
+
+    // RECUPERAÇÃO DE SENHA - ETAPA 2: Validar Código e Salvar Nova Senha
+    document.getElementById('forgot-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        clearMsgs();
+
+        const inputCode = document.getElementById('reset-code').value.trim();
+        const newPass = document.getElementById('new-pass').value;
+        const confirmPass = document.getElementById('confirm-new-pass').value;
+
+        if (inputCode !== generatedCode) {
+            showMsg('Código de segurança incorreto!', true);
+            return;
+        }
+
+        if (newPass !== confirmPass) {
+            showMsg('As senhas digitadas não coincidem!', true);
+            return;
+        }
+
+        const professionals = JSON.parse(localStorage.getItem('nail_professionals') || '[]');
+        const index = professionals.findIndex(p => cleanPhoneNumber(p.phone) === targetProfPhone);
+
+        if (index !== -1) {
+            professionals[index].pass = newPass;
+            localStorage.setItem('nail_professionals', JSON.stringify(professionals));
+
+            generatedCode = null;
+            targetProfPhone = null;
+
+            showMsg('Senha alterada com sucesso! Redirecionando...');
+            setTimeout(() => {
+                showScreen('login');
+            }, 1500);
+        }
     });
 
     // DASHBOARD
@@ -576,12 +539,10 @@ document.getElementById('forgot-form').addEventListener('submit', function(e) {
     function loadDashboard() {
         if (!loggedProf) return;
 
-        // Monta o Link
         const baseUrl = window.location.href.substring(0, window.location.href.lastIndexOf('/'));
         const bookingUrl = `${baseUrl}/index.html?prof=${loggedProf.id}`;
         document.getElementById('prof-booking-link').innerText = bookingUrl;
 
-        // Monta a Agenda
         const appointments = JSON.parse(localStorage.getItem('nail_appointments') || '[]');
         const profAppointments = appointments.filter(a => a.profId === loggedProf.id);
 
@@ -592,7 +553,6 @@ document.getElementById('forgot-form').addEventListener('submit', function(e) {
             return;
         }
 
-        // Ordena por data e hora
         profAppointments.sort((a, b) => a.datetime.localeCompare(b.datetime));
 
         listEl.innerHTML = profAppointments.map(app => {
