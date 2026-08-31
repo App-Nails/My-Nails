@@ -149,6 +149,50 @@
             cursor: pointer;
         }
 
+        /* SELEÇÃO DE SERVIÇOS NO CADASTRO */
+        .services-selection-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 6px;
+        }
+
+        .service-select-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            background: #fafafa;
+            border: 1px solid var(--border);
+            padding: 8px 10px;
+            border-radius: 8px;
+        }
+
+        .service-checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 0;
+            flex: 1;
+        }
+
+        .service-checkbox-label input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--primary);
+            cursor: pointer;
+        }
+
+        .service-price-input {
+            width: 90px !important;
+            padding: 6px;
+            font-size: 0.85rem;
+            text-align: right;
+        }
+
         /* CARD DE ENDEREÇO SALVO */
         .address-saved-card {
             background: #f8fafc;
@@ -345,7 +389,7 @@
         <button type="button" class="btn-link" onclick="showScreen('register')">Não tem conta? Cadastre-se</button>
     </div>
 
-    <!-- TELA 2: CADASTRO -->
+    <!-- TELA 2: CADASTRO COM SELEÇÃO DE SERVIÇOS E VALORES -->
     <div id="screen-register" class="hidden">
         <form id="register-form">
             <div class="form-group">
@@ -360,6 +404,15 @@
                 <label for="reg-pass">🔒 Crie uma Senha</label>
                 <input type="password" id="reg-pass" required placeholder="Mínimo 4 caracteres" minlength="4">
             </div>
+
+            <!-- NOVO CAMPO DE SELEÇÃO DE SERVIÇOS E VALORES -->
+            <div class="form-group">
+                <label>💅 Selecione seus Serviços e Defina os Valores (R$)</label>
+                <div class="services-selection-container" id="reg-services-list">
+                    <!-- Gerado via JavaScript -->
+                </div>
+            </div>
+
             <button type="submit" class="btn-action">Criar Meu Perfil</button>
         </form>
         <button type="button" class="btn-link" onclick="showScreen('login')">Já tem conta? Voltar ao Login</button>
@@ -395,7 +448,7 @@
             <div id="appointments-list"></div>
         </div>
 
-        <!-- ABA PERFIL & ENDEREÇO (COM BLOQUEIO DE EDIÇÃO) -->
+        <!-- ABA PERFIL & ENDEREÇO -->
         <div id="dash-perfil" class="hidden">
             <form id="profile-form">
                 <div class="form-group">
@@ -415,12 +468,10 @@
                 <div class="form-group" id="address-group">
                     <label for="prof-address">🏬 Endereço Completo do Estabelecimento</label>
                     
-                    <!-- MODO EDIÇÃO (INPUT) -->
                     <div id="address-edit-mode">
                         <input type="text" id="prof-address" placeholder="Ex: Av. Epitácio Pessoa, 1000, Sala 102 - Tambaú">
                     </div>
 
-                    <!-- MODO VISUALIZAÇÃO (ENDEREÇO TRAVADO / SALVO) -->
                     <div id="address-display-mode" class="address-saved-card hidden">
                         <span id="saved-address-text">--</span>
                         <button type="button" class="btn-edit-address" onclick="enableAddressEdit()">✏️ Editar</button>
@@ -467,6 +518,22 @@
 
 <script>
     const defaultTimeSlots = ["08:00", "09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"];
+    
+    // LISTA PADRÃO DE SERVIÇOS DISPONÍVEIS PARA ESCOLHA NO CADASTRO
+    const availableServicesMaster = [
+        { id: 'srv_pe_mao', name: 'Pé e Mão', defaultPrice: 50 },
+        { id: 'srv_mao', name: 'Apenas Mão', defaultPrice: 30 },
+        { id: 'srv_pe', name: 'Apenas Pé', defaultPrice: 30 },
+        { id: 'srv_mani_trad', name: 'Manicure Tradicional', defaultPrice: 35 },
+        { id: 'srv_esmalte_gel', name: 'Esmaltação em Gel', defaultPrice: 60 },
+        { id: 'srv_esmalte_fran', name: 'Esmaltação Francesa', defaultPrice: 45 },
+        { id: 'srv_aplic_along', name: 'Aplicação de Alongamento', defaultPrice: 120 },
+        { id: 'srv_along_gel', name: 'Alongamento em Gel', defaultPrice: 120 },
+        { id: 'srv_manut_along', name: 'Manutenção de Alongamento', defaultPrice: 80 },
+        { id: 'srv_remov_along', name: 'Remoção de Alongamento', defaultPrice: 40 },
+        { id: 'srv_nail_art', name: 'Nail Art', defaultPrice: 25 }
+    ];
+
     let loggedProf = null;
 
     function cleanPhoneNumber(phone) { return phone.replace(/\D/g, ''); }
@@ -484,6 +551,20 @@
         document.getElementById('success-msg').style.display = 'none';
     }
 
+    // RENDERIZA A LISTA DE SELEÇÃO DE SERVIÇOS NO CADASTRO
+    function renderRegisterServicesList() {
+        const container = document.getElementById('reg-services-list');
+        container.innerHTML = availableServicesMaster.map(srv => `
+            <div class="service-select-row">
+                <label class="service-checkbox-label">
+                    <input type="checkbox" class="srv-checkbox" data-id="${srv.id}" data-name="${srv.name}" checked>
+                    <span>${srv.name}</span>
+                </label>
+                <input type="number" step="0.01" class="service-price-input srv-price" data-id="${srv.id}" value="${srv.defaultPrice.toFixed(2)}">
+            </div>
+        `).join('');
+    }
+
     function showScreen(screen) {
         clearMsgs();
         document.getElementById('screen-login').classList.toggle('hidden', screen !== 'login');
@@ -492,7 +573,10 @@
 
         const subtitle = document.getElementById('panel-subtitle');
         if (screen === 'login') subtitle.innerText = "Acesse sua conta para ver a agenda";
-        if (screen === 'register') subtitle.innerText = "Cadastre-se como profissional";
+        if (screen === 'register') {
+            subtitle.innerText = "Cadastre-se como profissional";
+            renderRegisterServicesList();
+        }
         if (screen === 'dashboard') subtitle.innerText = `Bem-vinda(o), ${loggedProf.name}!`;
     }
 
@@ -511,7 +595,6 @@
         showScreen('login');
     }
 
-    // CONTROLE DE CAMPO E ESTADO DO ENDEREÇO
     function toggleAddressInput() {
         const selectedRadio = document.querySelector('input[name="locationType"]:checked');
         if (!selectedRadio) return;
@@ -549,7 +632,6 @@
         document.getElementById('prof-address').focus();
     }
 
-    // SALVAR CONFIGURAÇÕES DE PERFIL E ENDEREÇO
     document.getElementById('profile-form').addEventListener('submit', function(e) {
         e.preventDefault();
         const selectedRadio = document.querySelector('input[name="locationType"]:checked');
@@ -597,7 +679,7 @@
         loadDashboard();
     });
 
-    // CADASTRO
+    // CADASTRO PROCESSANDO OS SERVIÇOS E PREÇOS SELECIONADOS
     document.getElementById('register-form').addEventListener('submit', function(e) {
         e.preventDefault();
         const name = document.getElementById('reg-name').value.trim();
@@ -610,6 +692,29 @@
             return;
         }
 
+        // CAPTURA APENAS OS SERVIÇOS SELECIONADOS E SEUS RESPECTIVOS PREÇOS
+        const selectedServices = [];
+        const checkboxes = document.querySelectorAll('.srv-checkbox');
+
+        checkboxes.forEach(cb => {
+            if (cb.checked) {
+                const srvId = cb.getAttribute('data-id');
+                const srvName = cb.getAttribute('data-name');
+                const priceInput = document.querySelector(`.srv-price[data-id="${srvId}"]`);
+                const priceVal = parseFloat(priceInput.value) || 0;
+
+                selectedServices.push({
+                    name: srvName,
+                    price: priceVal
+                });
+            }
+        });
+
+        if (selectedServices.length === 0) {
+            showMsg('Selecione pelo menos um serviço oferecido!', true);
+            return;
+        }
+
         const newProf = {
             id: 'prof_' + Date.now(),
             name: name,
@@ -618,11 +723,7 @@
             locationType: 'physical',
             address: '',
             availableSlots: [...defaultTimeSlots],
-            services: [
-                { name: "Manicure Tradicional", price: 35 },
-                { name: "Esmaltação em Gel", price: 60 },
-                { name: "Alongamento", price: 120 }
-            ]
+            services: selectedServices
         };
 
         professionals.push(newProf);
@@ -634,7 +735,6 @@
         loadDashboard();
     });
 
-    // TROCAR ABAS
     function switchDashTab(tab) {
         document.getElementById('dash-agenda').classList.toggle('hidden', tab !== 'agenda');
         document.getElementById('dash-perfil').classList.toggle('hidden', tab !== 'perfil');
@@ -649,7 +749,6 @@
         document.getElementById('tab-link-btn').classList.toggle('active', tab === 'link');
     }
 
-    // REGISTRO DE DESPESAS
     document.getElementById('expense-form').addEventListener('submit', function(e) {
         e.preventDefault();
         const desc = document.getElementById('exp-desc').value.trim();
@@ -671,7 +770,6 @@
         loadDashboard();
     });
 
-    // CÁLCULO DE ENTRADAS, SAÍDAS E LUCRO
     function calculateFinances() {
         const appointments = JSON.parse(localStorage.getItem('nail_appointments') || '[]');
         const expenses = JSON.parse(localStorage.getItem('nail_expenses') || '[]');
@@ -689,7 +787,6 @@
         document.getElementById('val-profit').innerText = `R$ ${(income - expense).toFixed(2).replace('.', ',')}`;
     }
 
-    // CARREGAR PAINEL DADOS
     function loadDashboard() {
         if (!loggedProf) return;
 
