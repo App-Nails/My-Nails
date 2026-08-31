@@ -55,10 +55,14 @@
                 <label class="form-label">Senha</label>
                 <input type="password" id="reg-pass" class="form-control" required>
             </div>
-            <div class="mb-3 border p-3 rounded">
-                <h6>Pergunta de Segurança (Reset de Senha)</h6>
-                <input type="text" id="reg-q" class="form-control mb-2" placeholder="Ex: Nome do primeiro pet?" required>
-                <input type="text" id="reg-a" class="form-control" placeholder="Resposta" required>
+            <div class="form-group">
+                <label for="reg-question">🛡️ Pergunta de Segurança (Para Recuperar Senha)</label>
+                <select id="reg-question" required>
+                    <option value="">Selecione uma pergunta...</option>
+                    <option value="pet">Qual o nome do seu primeiro pet?</option>
+                    <option value="maiden">Qual o sobrenome de solteira da sua mãe?</option>
+                    <option value="city">Em qual cidade você nasceu?</option>
+                    <option value="school">Qual o nome da sua primeira escola?</option>
             </div>
             
             <h6>Tabela de Serviços e Valores</h6>
