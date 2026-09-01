@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+    <!-- Colocar dentro da tag <head> -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Agendamento - Nail Designer</title>
@@ -54,6 +56,47 @@
 </div>
 
 <script>
+    // Configuração da conexão com o Supabase
+const SUPABASE_URL = 'https://zvxcakqpbrpfdsvhuhbh.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_41upAZ0wW1NC4i3zTnkU9Q_gF8Tc4Ry';
+const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// Substitua a sua antiga função saveBooking por esta:
+async function saveBooking() {
+  const name = document.getElementById('client-name').value;
+  const phone = document.getElementById('client-phone').value;
+  const service = document.getElementById('client-service-select').value;
+  const slot = document.getElementById('client-slot-select').value;
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const proId = urlParams.get('pro');
+
+  if (!name || !phone || !service || !slot) {
+    alert('Por favor, preencha todos os campos!');
+    return;
+  }
+
+  const { data, error } = await _supabase
+    .from('agendamentos')
+    .insert([
+      { 
+        nome: name, 
+        telefone: phone, 
+        servico: service, 
+        horario: slot, 
+        pro_id: proId 
+      }
+    ]);
+
+  if (error) {
+    console.error('Erro no Supabase:', error);
+    alert('Erro ao realizar o agendamento: ' + error.message);
+  } else {
+    alert('Agendamento realizado com sucesso!');
+    document.getElementById('client-name').value = '';
+    document.getElementById('client-phone').value = '';
+  }
+}
 function getDB(key) { return JSON.parse(localStorage.getItem(key)) || []; }
 function setDB(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
 
@@ -87,45 +130,40 @@ function loadClientView() {
         : '<option value="">Nenhum horário disponível</option>';
 }
 
-function saveBooking() {
-    alert("Se precisar cancelar, cancele com 30 minutos de antecedência.");
+async function saveBooking() {
+  const name = document.getElementById('client-name').value;
+  const phone = document.getElementById('client-phone').value;
+  const service = document.getElementById('client-service-select').value;
+  const slot = document.getElementById('client-slot-select').value;
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const proPhone = urlParams.get('pro') || (getDB('pro_users')[0] ? getDB('pro_users')[0].phone : null);
+  const urlParams = new URLSearchParams(window.location.search);
+  const proId = urlParams.get('pro');
 
-    const clientName = document.getElementById('client-name').value;
-    const clientPhone = document.getElementById('client-phone').value.trim();
-    const serviceSelect = document.getElementById('client-service-select');
-    const slotId = document.getElementById('client-slot-select').value;
+  if (!name || !phone || !service || !slot) {
+    alert('Por favor, preencha todos os campos!');
+    return;
+  }
 
-    if (!clientName || !clientPhone || !slotId) return alert("Preencha todos os campos.");
+  const { data, error } = await _supabase
+    .from('agendamentos')
+    .insert([
+      { 
+        nome: name, 
+        telefone: phone, 
+        servico: service, 
+        horario: slot, 
+        pro_id: proId 
+      }
+    ]);
 
-    let slots = getDB('slots');
-    let slotIndex = slots.findIndex(s => s.id == slotId);
-    
-    if (slotIndex === -1 || slots[slotIndex].booked) return alert("Horário indisponível!");
-
-    slots[slotIndex].booked = true;
-    setDB('slots', slots);
-
-    const serviceObj = serviceSelect.options[serviceSelect.selectedIndex];
-
-    let bookings = getDB('bookings');
-    bookings.push({
-        id: Date.now(),
-        proPhone: proPhone,
-        clientName: clientName,
-        clientPhone: clientPhone,
-        serviceName: serviceSelect.value,
-        price: parseFloat(serviceObj.dataset.price),
-        slotDate: slots[slotIndex].date,
-        slotTime: slots[slotIndex].time,
-        clientNotified: false
-    });
-    setDB('bookings', bookings);
-
-    alert("Agendamento confirmado com sucesso!");
-    loadClientView();
+  if (error) {
+    console.error('Erro no Supabase:', error);
+    alert('Erro ao realizar o agendamento: ' + error.message);
+  } else {
+    alert('Agendamento realizado com sucesso!');
+    document.getElementById('client-name').value = '';
+    document.getElementById('client-phone').value = '';
+  }
 }
 
 function loadClientBookings() {
