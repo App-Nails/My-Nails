@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Studio Nail Designer - Painel do Profissional</title>
@@ -349,6 +350,10 @@
 </div>
 
 <script>
+    const SUPABASE_URL = 'https://zvxcakqpbrpfdsvhuhbh.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_41upAZ0wW1NC4i3zTnkU9Q_gF8Tc4Ry';
+  const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    
 const DEFAULT_SERVICES = [
     "Aplicação de Alongamento", "Manutenção de Alongamento", "Remoção de Alongamento",
     "Esmaltação em Gel", "Manicure Tradicional", "Esmaltação Francesa",
@@ -621,16 +626,41 @@ function calculateFinances() {
     document.getElementById('fin-month-count').innerText = monthCount;
 }
 
-function renderBookingsPro() {
-    const phone = localStorage.getItem('active_pro_user');
-    const bookings = getDB('bookings').filter(b => b.proPhone === phone);
+async function renderBookingsPro() {
+  const proPhone = localStorage.getItem('loggedProPhone');
+  const container = document.getElementById('admin-appointments-list'); // ou o ID da sua div de lista
 
-    const list = document.getElementById('pro-bookings-list');
+  if (!container) return;
 
-    if (bookings.length === 0) {
-        list.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">Nenhum agendamento recebido ainda.</td></tr>';
-        return;
-    }
+  // Busca os agendamentos direto do Supabase filtrados pelo pro_id
+  const { data: bookings, error } = await _supabase
+    .from('agendamentos')
+    .select('*')
+    .eq('pro_id', proPhone);
+
+  if (error) {
+    console.error('Erro ao buscar agendamentos:', error);
+    container.innerHTML = '<p class="text-danger">Erro ao carregar agendamentos.</p>';
+    return;
+  }
+
+  if (!bookings || bookings.length === 0) {
+    container.innerHTML = '<p class="text-muted">Nenhum agendamento encontrado.</p>';
+    return;
+  }
+
+  // Renderiza cada agendamento retornado pelo banco
+  container.innerHTML = bookings.map(b => `
+    <div class="card mb-2 p-3 border-start border-4 border-pink shadow-sm">
+      <div class="d-flex justify-content-between align-items-center">
+        <h5 class="mb-1 text-pink">${b.nome}</h5>
+        <span class="badge bg-secondary">${b.horario}</span>
+      </div>
+      <p class="mb-1"><strong>Telefone:</strong> ${b.telefone}</p>
+      <p class="mb-0"><strong>Serviço:</strong> ${b.servico}</p>
+    </div>
+  `).join('');
+}
 
     list.innerHTML = bookings.map(b => `
         <tr>
