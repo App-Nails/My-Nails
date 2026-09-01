@@ -496,20 +496,20 @@ function executePasswordReset() {
     }
 }
 
-function loadProDashboard() {
+async function loadProDashboard() {
     const phone = localStorage.getItem('active_pro_user');
     const user = getDB('pro_users').find(u => u.phone === phone);
 
     if (!user) return;
 
-    document.getElementById('welcome-user').innerText = `Olá, ${user.name}! Gerencie seus atendimentos e fluxo de caixa.`;
+    document.getElementById('welcome-user').innerText = `Olá, ${user.name}! Gerencie seus atendimentos e fluxo de`;
 
     const basePath = window.location.href.substring(0, window.location.href.lastIndexOf('/'));
     document.getElementById('pro-share-link').innerText = `${basePath}/cliente.html?pro=${phone}`;
     document.getElementById('dash-address').value = user.address;
 
     renderSlots();
-    renderBookingsPro();
+    await renderBookingsPro();
     calculateFinances();
 }
 
@@ -627,22 +627,37 @@ function calculateFinances() {
 }
 
 async function renderBookingsPro() {
-  const proPhone = localStorage.getItem('loggedProPhone');
-  const container = document.getElementById('admin-appointments-list'); // ou o ID da sua div de lista
+    const proPhone = localStorage.getItem('active_pro_user'); // Chave corrigida aqui
+    const container = document.getElementById('admin-appointments-list'); // Verifique se o ID bate com sua DIV HTML
 
-  if (!container) return;
+    if (!container) return;
 
-  // Busca os agendamentos direto do Supabase filtrados pelo pro_id
-  const { data: bookings, error } = await _supabase
-    .from('agendamentos')
-    .select('*')
-    .eq('pro_id', proPhone);
+    const { data: bookings, error } = await _supabase
+        .from('agendamentos')
+        .select('*')
+        .eq('pro_id', proPhone);
 
-  if (error) {
-    console.error('Erro ao buscar agendamentos:', error);
-    container.innerHTML = '<p class="text-danger">Erro ao carregar agendamentos.</p>';
-    return;
-  }
+    if (error) {
+        console.error('Erro ao buscar agendamentos:', error);
+        return;
+    }
+
+    if (!bookings || bookings.length === 0) {
+        container.innerHTML = '<p class="text-muted">Nenhum agendamento encontrado.</p>';
+        return;
+    }
+
+    container.innerHTML = bookings.map(b => `
+        <div class="card mb-2 p-3 border-start border-4 border-pink shadow-sm">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-1 text-pink">${b.nome}</h5>
+                <span class="badge bg-secondary">${b.horario}</span>
+            </div>
+            <p class="mb-1"><strong>Telefone:</strong> ${b.telefone}</p>
+            <p class="mb-0"><strong>Serviço:</strong> ${b.servico}</p>
+        </div>
+    `).join('');
+}
 
   if (!bookings || bookings.length === 0) {
     container.innerHTML = '<p class="text-muted">Nenhum agendamento encontrado.</p>';
