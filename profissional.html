@@ -445,7 +445,7 @@ async function renderBookingsPro() {
 
     // Se não houver telefone ativo, limpa o container com segurança
     if (!proPhone) {
-        container.innerHTML = '<p class="text-muted">Faça login para ver os agendamentos.</p>';
+        container.innerHTML = '<p class="text-muted">Faça login para ver os agendamentos.</p>';//
         return;
     }
 
@@ -651,7 +651,7 @@ async function renderBookingsPro() {
     `).join('');
 }
   // Renderiza cada agendamento retornado pelo banco
-  container.innerHTML = bookings.map(b => `
+  
     <div class="card mb-2 p-3 border-start border-4 border-pink shadow-sm">
       <div class="d-flex justify-content-between align-items-center">
         <h5 class="mb-1 text-pink">${b.nome}</h5>
