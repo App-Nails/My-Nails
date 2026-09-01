@@ -350,109 +350,23 @@
 </div>
 
 <script>
-    const SUPABASE_URL = 'https://zvxcakqpbrpfdsvhuhbh.supabase.co';
-  const SUPABASE_KEY = 'sb_publishable_41upAZ0wW1NC4i3zTnkU9Q_gF8Tc4Ry';
-  const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    
-const DEFAULT_SERVICES = [
-    "Aplicação de Alongamento", "Manutenção de Alongamento", "Remoção de Alongamento",
-    "Esmaltação em Gel", "Manicure Tradicional", "Esmaltação Francesa",
-    "Nail Art", "Decoração Encapsulada", "Pedicure Tradicional",
-    "Esmaltação em Gel nos Pés", "Spa dos Pés", "Plástica dos Pés"
-];
+// 1. Inicialização do Supabase
+const SUPABASE_URL = 'https://zvxcakqpbrpfdsvhuhbh.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_41upAZ0wW1NC4i3zTnkU9Q_gF8Tc4Ry';
+const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-function getDB(key) { return JSON.parse(localStorage.getItem(key)) || []; }
-function setDB(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
-
-function hashString(str) {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-        hash = (hash << 5) - hash + str.charCodeAt(i);
-        hash |= 0;
-    }
-    return hash.toString();
-}
-
-window.onload = function() {
-    renderServiceInputs();
-    setupSecurityProtections();
-    startNotificationLoop();
-
-    const activeUser = localStorage.getItem('active_pro_user');
-    if (activeUser) {
-        navigate('dashboard');
-    } else {
-        navigate('login');
-    }
-};
-
+// 2. Navegação entre as telas
 function navigate(viewId) {
-    // Lista de todas as telas (views) do seu HTML
-    const views = ['pro-login-view', 'pro-dashboard-view', 'pro-register-view'];
-    
+    const views = ['pro-login-view', 'pro-dashboard-view', 'pro-register-view', 'pro-forgot-view'];
     views.forEach(id => {
         const el = document.getElementById(id);
         if (el) {
             el.style.display = (id === viewId) ? 'block' : 'none';
-            el.classList.toggle('d-none', id !== viewId);
         }
     });
 }
 
-function renderServiceInputs() {
-    const container = document.getElementById('services-setup');
-    container.innerHTML = DEFAULT_SERVICES.map((s, idx) => `
-        <div class="col-md-6">
-            <div class="service-item-input">
-                <div class="form-check form-switch mb-1">
-                    <input class="form-check-input s-check" type="checkbox" value="${s}" id="s-${idx}" checked>
-                    <label class="form-check-label fw-bold" for="s-${idx}">${s}</label>
-                </div>
-                <div class="input-group input-group-sm">
-                    <span class="input-group-text">R$</span>
-                    <input type="number" step="0.01" class="form-control s-price" placeholder="Preço" value="50.00">
-                </div>
-            </div>
-        </div>
-    `).join('');
-}
-
-function proRegister(e) {
-    e.preventDefault();
-    const phone = document.getElementById('reg-phone').value.trim();
-    const users = getDB('pro_users');
-
-    if (users.some(u => u.phone === phone)) {
-        return alert("Erro: Este número de telefone já está cadastrado!");
-    }
-
-    const services = [];
-    const checks = document.querySelectorAll('.s-check');
-    const prices = document.querySelectorAll('.s-price');
-
-    checks.forEach((chk, i) => {
-        if (chk.checked) {
-            services.push({ name: chk.value, price: parseFloat(prices[i].value) || 0 });
-        }
-    });
-
-    const newUser = {
-        name: document.getElementById('reg-name').value,
-        phone: phone,
-        address: document.getElementById('reg-address').value,
-        passHash: hashString(document.getElementById('reg-pass').value),
-        question: document.getElementById('reg-q').value,
-        answerHash: hashString(document.getElementById('reg-a').value.toLowerCase().trim()),
-        services: services
-    };
-
-    users.push(newUser);
-    setDB('pro_users', users);
-    localStorage.setItem('active_pro_user', phone);
-    alert("Cadastro realizado com sucesso!");
-    navigate('dashboard');
-}
-
+// 3. Login do Profissional
 async function proLogin() {
     const phoneInput = document.getElementById('login-phone');
     const passInput = document.getElementById('login-pass');
@@ -476,56 +390,70 @@ async function proLogin() {
     }
 }
 
+// 4. Logout
 function proLogout() {
     localStorage.removeItem('active_pro_user');
-    navigate('pro-login-view'); // Garanta que 'pro-login-view' é o ID da sua tela de login
+    navigate('pro-login-view');
 }
 
-function fetchSecurityQuestion() {
-    const phone = document.getElementById('reset-phone').value.trim();
-    const user = getDB('pro_users').find(u => u.phone === phone);
+// 5. Renderizar Agendamentos do Supabase
+async function renderBookingsPro() {
+    const proPhone = localStorage.getItem('active_pro_user');
+    const container = document.getElementById('admin-appointments-list') || 
+                      document.getElementById('pro-bookings-list') || 
+                      document.getElementById('appointments-list');
 
-    if (!user) return alert("Telefone não encontrado.");
+    if (!container) return;
 
-    document.getElementById('display-q').innerText = "Pergunta: " + user.question;
-    document.getElementById('reset-step-2').classList.remove('hidden');
-}
+    const { data: bookings, error } = await _supabase
+        .from('agendamentos')
+        .select('*')
+        .eq('pro_id', proPhone);
 
-function executePasswordReset() {
-    const phone = document.getElementById('reset-phone').value.trim();
-    const ans = hashString(document.getElementById('reset-a').value.toLowerCase().trim());
-    const newPass = document.getElementById('reset-new-pass').value;
-
-    let users = getDB('pro_users');
-    let idx = users.findIndex(u => u.phone === phone);
-
-    if (idx !== -1 && users[idx].answerHash === ans) {
-        users[idx].passHash = hashString(newPass);
-        setDB('pro_users', users);
-        alert("Senha redefinida com sucesso! Faça login novamente.");
-        navigate('login');
-    } else {
-        alert("Resposta de segurança incorreta.");
+    if (error) {
+        console.error('Erro ao buscar agendamentos:', error);
+        container.innerHTML = '<p class="text-danger">Erro ao carregar do Supabase.</p>';
+        return;
     }
+
+    if (!bookings || bookings.length === 0) {
+        container.innerHTML = '<p class="text-muted">Nenhum agendamento encontrado.</p>';
+        return;
+    }
+
+    container.innerHTML = bookings.map(b => `
+        <div class="card mb-2 p-3 border-start border-4 border-pink shadow-sm">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-1 text-pink">${b.nome}</h5>
+                <span class="badge bg-secondary">${b.horario}</span>
+            </div>
+            <p class="mb-1"><strong>Telefone:</strong> ${b.telefone}</p>
+            <p class="mb-0"><strong>Serviço:</strong> ${b.servico}</p>
+        </div>
+    `).join('');
 }
 
+// 6. Carregar Dashboard
 async function loadProDashboard() {
     const phone = localStorage.getItem('active_pro_user');
     const user = getDB('pro_users').find(u => u.phone === phone);
 
     if (!user) return;
 
-    document.getElementById('welcome-user').innerText = `Olá, ${user.name}! Gerencie seus atendimentos e fluxo de`;
+    const welcomeEl = document.getElementById('welcome-user');
+    if (welcomeEl) welcomeEl.innerText = `Olá, ${user.name}! Gerencie seus atendimentos e fluxo de`;
 
     const basePath = window.location.href.substring(0, window.location.href.lastIndexOf('/'));
-    document.getElementById('pro-share-link').innerText = `${basePath}/cliente.html?pro=${phone}`;
-    document.getElementById('dash-address').value = user.address;
+    const shareLinkEl = document.getElementById('pro-share-link');
+    if (shareLinkEl) shareLinkEl.innerText = `${basePath}/cliente.html?pro=${phone}`;
 
-    renderSlots();
+    const addressEl = document.getElementById('dash-address');
+    if (addressEl) addressEl.value = user.address || '';
+
+    if (typeof renderSlots === 'function') renderSlots();
     await renderBookingsPro();
-    calculateFinances();
+    if (typeof calculateFinances === 'function') calculateFinances();
 }
-
 function copyLink() {
     const linkText = document.getElementById('pro-share-link').innerText;
     navigator.clipboard.writeText(linkText);
