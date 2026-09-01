@@ -118,8 +118,8 @@
         <button onclick="proLogin()" class="btn btn-pink w-100 mb-3 shadow-sm">Entrar no Painel</button>
         
         <div class="d-flex justify-content-between fs-7">
-            <a href="#" onclick="navigate('pro-register-view')" class="text-decoration-none" style="color: var(--primary-pink);">Criar Nova Conta</a>
-            <a href="#" onclick="navigate('pro-forgot-view')" class="text-muted text-decoration-none">Esqueci a Senha</a>
+            <a href="#" onclick="navigate('pro-register-view'); return false;" class="text-decoration-none" style="color: var(--primary-pink);">Criar Nova Conta</a>
+            <a href="#" onclick="navigate('pro-forgot-view'); return false;" class="text-muted text-decoration-none">Esqueci a Senha</a>
         </div>
     </div>
 
@@ -127,7 +127,7 @@
     <div id="pro-register-view" class="card card-custom p-4 mx-auto" style="max-width: 680px; display: none;">
         <div class="text-center mb-4">
             <h3 class="fw-bold text-pink"><i class="fa-solid fa-user-plus me-2"></i>Cadastro de Profissional</h3>
-            <p class="text-muted">Configure sua conta e personalize sua tabela de preços</p>
+            <p class="text-muted">Configure sua conta e personalize seu atendimento</p>
         </div>
 
         <form onsubmit="proRegister(event)">
@@ -165,7 +165,7 @@
             <button type="submit" class="btn btn-pink w-100 py-2 fs-5 shadow-sm">Concluir Cadastro</button>
         </form>
         <div class="text-center mt-3">
-            <a href="#" onclick="navigate('pro-login-view')" class="text-muted text-decoration-none">Voltar ao Login</a>
+            <a href="#" onclick="navigate('pro-login-view'); return false;" class="text-muted text-decoration-none">Voltar ao Login</a>
         </div>
     </div>
 
@@ -196,7 +196,7 @@
         </div>
         
         <div class="text-center mt-3">
-            <a href="#" onclick="navigate('pro-login-view')" class="text-muted text-decoration-none">Voltar ao Login</a>
+            <a href="#" onclick="navigate('pro-login-view'); return false;" class="text-muted text-decoration-none">Voltar ao Login</a>
         </div>
     </div>
 
@@ -313,12 +313,12 @@
 </div>
 
 <script>
-// 1. Inicialização do Supabase
+// 1. Configuração Supabase
 const SUPABASE_URL = 'https://zvxcakqpbrpfdsvhuhbh.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_41upAZ0wW1NC4i3zTnkU9Q_gF8Tc4Ry';
 const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// Funções auxiliares do LocalStorage
+// Funções Utilitárias do LocalStorage
 function getDB(key) { return JSON.parse(localStorage.getItem(key)) || []; }
 function setDB(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
 
@@ -331,7 +331,7 @@ function hashString(str) {
     return hash.toString();
 }
 
-// 2. Navegação entre telas
+// 2. Navegação entre Visões
 function navigate(viewId) {
     const views = ['pro-login-view', 'pro-dashboard-view', 'pro-register-view', 'pro-forgot-view'];
     views.forEach(id => {
@@ -342,19 +342,18 @@ function navigate(viewId) {
     });
 }
 
-// 3. Login
+// 3. Autenticação e Cadastro
 async function proLogin() {
-    const phoneInput = document.getElementById('login-phone');
-    const passInput = document.getElementById('login-pass');
+    const phone = document.getElementById('login-phone').value.trim();
+    const pass = document.getElementById('login-pass').value.trim();
 
-    if (!phoneInput || !passInput) return;
-
-    const phone = phoneInput.value.trim();
-    const pass = passInput.value.trim();
+    if (!phone || !pass) {
+        alert('Por favor, preencha o telefone e a senha.');
+        return;
+    }
 
     const users = getDB('pro_users');
     const hashed = hashString(pass);
-
     const user = users.find(u => u.phone === phone && u.passHash === hashed);
 
     if (user) {
@@ -366,68 +365,92 @@ async function proLogin() {
     }
 }
 
-// 4. Logout
+function proRegister(event) {
+    event.preventDefault();
+    const name = document.getElementById('reg-name').value.trim();
+    const phone = document.getElementById('reg-phone').value.trim();
+    const address = document.getElementById('reg-address').value.trim();
+    const pass = document.getElementById('reg-pass').value.trim();
+    const question = document.getElementById('reg-q').value.trim();
+    const answer = document.getElementById('reg-a').value.trim();
+
+    let users = getDB('pro_users');
+    if (users.some(u => u.phone === phone)) {
+        alert('Este telefone já está cadastrado!');
+        return;
+    }
+
+    const newUser = {
+        name,
+        phone,
+        address,
+        passHash: hashString(pass),
+        question,
+        answerHash: hashString(answer.toLowerCase())
+    };
+
+    users.push(newUser);
+    setDB('pro_users', users);
+    alert('Cadastro realizado com sucesso! Faça login para continuar.');
+    navigate('pro-login-view');
+}
+
 function proLogout() {
     localStorage.removeItem('active_pro_user');
     navigate('pro-login-view');
 }
 
-// 5. Renderizar Agendamentos do Supabase
-async function renderBookingsPro() {
-    const proPhone = localStorage.getItem('active_pro_user');
-    const container = document.getElementById('pro-bookings-list');
+// 4. Recuperação de Senha
+let targetUserForReset = null;
 
-    if (!container) return;
+function fetchSecurityQuestion() {
+    const phone = document.getElementById('reset-phone').value.trim();
+    const users = getDB('pro_users');
+    targetUserForReset = users.find(u => u.phone === phone);
 
-    if (!proPhone) {
-        container.innerHTML = '<p class="text-muted">Faça login para ver os agendamentos.</p>';
-        return;
+    if (targetUserForReset) {
+        document.getElementById('display-q').innerText = `Pergunta: ${targetUserForReset.question}`;
+        document.getElementById('reset-step-2').style.display = 'block';
+    } else {
+        alert('Telefone não encontrado no cadastro.');
     }
-
-    const { data: bookings, error } = await _supabase
-        .from('agendamentos')
-        .select('*')
-        .eq('pro_id', proPhone);
-
-    if (error) {
-        console.error('Erro ao buscar agendamentos:', error);
-        container.innerHTML = '<p class="text-danger">Erro ao carregar dados do Supabase.</p>';
-        return;
-    }
-
-    if (!bookings || bookings.length === 0) {
-        container.innerHTML = '<p class="text-muted">Nenhum agendamento encontrado.</p>';
-        return;
-    }
-
-    container.innerHTML = bookings.map(b => `
-        <div class="card mb-2 p-3 border-start border-4 border-pink shadow-sm">
-            <div class="d-flex justify-content-between align-items-center">
-                <h5 class="mb-1 text-pink">${b.nome || 'Cliente'}</h5>
-                <span class="badge bg-secondary">${b.horario || ''}</span>
-            </div>
-            <p class="mb-1"><strong>Telefone:</strong> ${b.telefone || ''}</p>
-            <p class="mb-0"><strong>Serviço:</strong> ${b.servico || ''}</p>
-        </div>
-    `).join('');
 }
 
-// 6. Carregar Dashboard
+function executePasswordReset() {
+    const answer = document.getElementById('reset-a').value.trim().toLowerCase();
+    const newPass = document.getElementById('reset-new-pass').value.trim();
+
+    if (!answer || !newPass) {
+        alert('Preencha todos os campos!');
+        return;
+    }
+
+    if (hashString(answer) === targetUserForReset.answerHash) {
+        let users = getDB('pro_users');
+        let idx = users.findIndex(u => u.phone === targetUserForReset.phone);
+        if (idx !== -1) {
+            users[idx].passHash = hashString(newPass);
+            setDB('pro_users', users);
+            alert('Senha alterada com sucesso!');
+            navigate('pro-login-view');
+        }
+    } else {
+        alert('Resposta de segurança incorreta!');
+    }
+}
+
+// 5. Dashboard e Funcionalidades
 async function loadProDashboard() {
     const phone = localStorage.getItem('active_pro_user');
     const user = getDB('pro_users').find(u => u.phone === phone);
 
     if (!user) return;
 
-    const welcomeEl = document.getElementById('welcome-user');
-    if (welcomeEl) welcomeEl.innerText = `Olá, ${user.name}! Gerencie seus atendimentos e fluxo.`;
-
+    document.getElementById('welcome-user').innerText = `Olá, ${user.name}! Gerencie seus atendimentos e fluxo.`;
+    
     const basePath = window.location.href.substring(0, window.location.href.lastIndexOf('/'));
-    const shareLinkEl = document.getElementById('pro-share-link');
-    if (shareLinkEl) shareLinkEl.innerText = `${basePath}/cliente.html?pro=${phone}`;
-
-    const addressEl = document.getElementById('dash-address');
-    if (addressEl) addressEl.value = user.address || '';
+    document.getElementById('pro-share-link').innerText = `${basePath}/cliente.html?pro=${phone}`;
+    document.getElementById('dash-address').value = user.address || '';
 
     renderSlots();
     await renderBookingsPro();
@@ -437,7 +460,7 @@ async function loadProDashboard() {
 function copyLink() {
     const linkText = document.getElementById('pro-share-link').innerText;
     navigator.clipboard.writeText(linkText);
-    alert("Link copiado! Envie este link para suas clientes agendarem.");
+    alert("Link copiado para a área de transferência!");
 }
 
 function toggleEditAddress() {
@@ -459,7 +482,7 @@ function toggleEditAddress() {
         if (idx !== -1) {
             users[idx].address = field.value;
             setDB('pro_users', users);
-            alert("Endereço do studio atualizado!");
+            alert("Endereço atualizado com sucesso!");
         }
     }
 }
@@ -469,7 +492,10 @@ function addTimeSlot() {
     const time = document.getElementById('slot-time').value;
     const phone = localStorage.getItem('active_pro_user');
 
-    if (!date || !time) return alert("Selecione a data e o horário!");
+    if (!date || !time) {
+        alert("Selecione a data e o horário!");
+        return;
+    }
 
     let slots = getDB('slots');
     slots.push({ id: Date.now(), proPhone: phone, date, time, booked: false });
@@ -482,12 +508,12 @@ function addTimeSlot() {
 function renderSlots() {
     const phone = localStorage.getItem('active_pro_user');
     const slots = getDB('slots').filter(s => s.proPhone === phone && !s.booked);
-
     const list = document.getElementById('slots-list');
+
     if (!list) return;
 
     if (slots.length === 0) {
-        list.innerHTML = '<li class="list-group-item text-muted py-3">Nenhum horário em aberto no momento.</li>';
+        list.innerHTML = '<li class="list-group-item text-muted py-3">Nenhum horário aberto no momento.</li>';
         return;
     }
 
@@ -505,12 +531,48 @@ function removeSlot(id) {
     renderSlots();
 }
 
+async function renderBookingsPro() {
+    const proPhone = localStorage.getItem('active_pro_user');
+    const container = document.getElementById('pro-bookings-list');
+
+    if (!container || !proPhone) return;
+
+    const { data: bookings, error } = await _supabase
+        .from('agendamentos')
+        .select('*')
+        .eq('pro_id', proPhone);
+
+    if (error) {
+        container.innerHTML = '<p class="text-danger small">Erro ao carregar agendamentos do banco remoto.</p>';
+        return;
+    }
+
+    if (!bookings || bookings.length === 0) {
+        container.innerHTML = '<p class="text-muted">Nenhum agendamento confirmado no momento.</p>';
+        return;
+    }
+
+    container.innerHTML = bookings.map(b => `
+        <div class="card mb-2 p-3 border-start border-4 border-pink shadow-sm">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-1 text-pink">${b.nome || 'Cliente'}</h5>
+                <span class="badge bg-secondary">${b.horario || ''}</span>
+            </div>
+            <p class="mb-1"><strong>Telefone:</strong> ${b.telefone || ''}</p>
+            <p class="mb-0"><strong>Serviço:</strong> ${b.servico || ''}</p>
+        </div>
+    `).join('');
+}
+
 function addExpense() {
-    const desc = document.getElementById('expense-desc').value;
+    const desc = document.getElementById('expense-desc').value.trim();
     const val = parseFloat(document.getElementById('expense-val').value);
     const phone = localStorage.getItem('active_pro_user');
 
-    if (!desc || isNaN(val)) return alert("Preencha a descrição e o valor da despesa.");
+    if (!desc || isNaN(val)) {
+        alert("Preencha a descrição e o valor da despesa.");
+        return;
+    }
 
     let expenses = getDB('expenses');
     expenses.push({ proPhone: phone, desc, val, date: new Date().toISOString() });
@@ -551,7 +613,7 @@ function calculateFinances() {
     document.getElementById('fin-month-count').innerText = monthCount;
 }
 
-// Evento de inicialização ao carregar a página
+// 6. Inicialização DOM
 document.addEventListener('DOMContentLoaded', () => {
     const activeUser = localStorage.getItem('active_pro_user');
     if (activeUser) {
