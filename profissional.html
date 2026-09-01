@@ -632,9 +632,16 @@ function calculateFinances() {
 
 async function renderBookingsPro() {
     const proPhone = localStorage.getItem('active_pro_user');
-    const container = document.getElementById('pro-bookings-list') || document.getElementById('admin-appointments-list');
+    
+    // Procura o contêiner correto no seu HTML
+    const container = document.getElementById('admin-appointments-list') || 
+                      document.getElementById('pro-bookings-list') || 
+                      document.getElementById('appointments-list');
 
-    if (!container) return;
+    if (!container) {
+        console.warn('Contêiner da lista de agendamentos não encontrado no HTML.');
+        return;
+    }
 
     const { data: bookings, error } = await _supabase
         .from('agendamentos')
@@ -643,6 +650,7 @@ async function renderBookingsPro() {
 
     if (error) {
         console.error('Erro ao buscar agendamentos:', error);
+        container.innerHTML = '<p class="text-danger">Erro ao carregar do Supabase.</p>';
         return;
     }
 
