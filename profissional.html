@@ -435,12 +435,19 @@ function proLogout() {
 async function renderBookingsPro() {
     const proPhone = localStorage.getItem('active_pro_user');
 
-    // DECLARAÇÃO DO CONTAINER (Deve vir ANTES de usar container.innerHTML)
+    // Declaramos primeiro e buscamos o elemento no DOM
     const container = document.getElementById('admin-appointments-list') || 
                       document.getElementById('pro-bookings-list') || 
                       document.getElementById('appointments-list');
 
+    // Se o container não existir na tela atual, interrompe sem dar erro no console
     if (!container) return;
+
+    // Se não houver telefone ativo, limpa o container com segurança
+    if (!proPhone) {
+        container.innerHTML = '<p class="text-muted">Faça login para ver os agendamentos.</p>';
+        return;
+    }
 
     const { data: bookings, error } = await _supabase
         .from('agendamentos')
@@ -449,7 +456,7 @@ async function renderBookingsPro() {
 
     if (error) {
         console.error('Erro ao buscar agendamentos:', error);
-        container.innerHTML = '<p class="text-danger">Erro ao carregar do Supabase.</p>';
+        container.innerHTML = '<p class="text-danger">Erro ao carregar dados do Supabase.</p>';
         return;
     }
 
