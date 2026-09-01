@@ -434,8 +434,8 @@ function proLogout() {
 // 5. Renderizar Agendamentos do Supabase
 async function renderBookingsPro() {
     const proPhone = localStorage.getItem('active_pro_user');
-    
-    // Declaração explícita da variável 'container' antes de usá-la
+
+    // DECLARAÇÃO DO CONTAINER (Deve vir ANTES de usar container.innerHTML)
     const container = document.getElementById('admin-appointments-list') || 
                       document.getElementById('pro-bookings-list') || 
                       document.getElementById('appointments-list');
@@ -469,7 +469,6 @@ async function renderBookingsPro() {
         </div>
     `).join('');
 }
-
 // 6. Carregar Dashboard
 async function loadProDashboard() {
     const phone = localStorage.getItem('active_pro_user');
