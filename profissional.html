@@ -450,8 +450,13 @@ function proRegister(e) {
 }
 
 async function proLogin() {
-    const phone = document.getElementById('login-phone').value;
-    const pass = document.getElementById('login-pass').value;
+    const phoneInput = document.getElementById('login-phone');
+    const passInput = document.getElementById('login-pass');
+
+    if (!phoneInput || !passInput) return;
+
+    const phone = phoneInput.value;
+    const pass = passInput.value;
 
     const users = getDB('pro_users');
     const hashed = hashString(pass);
@@ -469,7 +474,7 @@ async function proLogin() {
 
 function proLogout() {
     localStorage.removeItem('active_pro_user');
-    navigate('login');
+    navigate('pro-login-view'); // Garanta que 'pro-login-view' é o ID da sua tela de login
 }
 
 function fetchSecurityQuestion() {
