@@ -387,13 +387,17 @@ window.onload = function() {
     }
 };
 
-function navigate(view) {
-    ['login', 'register', 'reset', 'dashboard'].forEach(v => {
-        document.getElementById(`view-${v}`)?.classList.add('hidden');
+function navigate(viewId) {
+    // Lista de todas as telas (views) do seu HTML
+    const views = ['pro-login-view', 'pro-dashboard-view', 'pro-register-view'];
+    
+    views.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.style.display = (id === viewId) ? 'block' : 'none';
+            el.classList.toggle('d-none', id !== viewId);
+        }
     });
-    document.getElementById(`view-${view}`).classList.remove('hidden');
-
-    if (view === 'dashboard') loadProDashboard();
 }
 
 function renderServiceInputs() {
