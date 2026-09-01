@@ -449,17 +449,21 @@ function proRegister(e) {
     navigate('dashboard');
 }
 
-function proLogin() {
-    const phone = document.getElementById('login-phone').value.trim();
-    const pass = hashString(document.getElementById('login-pass').value);
-    const users = getDB('pro_users');
+async function proLogin() {
+    const phone = document.getElementById('login-phone').value;
+    const pass = document.getElementById('login-pass').value;
 
-    const user = users.find(u => u.phone === phone && u.passHash === pass);
+    const users = getDB('pro_users');
+    const hashed = hashString(pass);
+
+    const user = users.find(u => u.phone === phone && u.passHash === hashed);
+
     if (user) {
         localStorage.setItem('active_pro_user', phone);
-        navigate('dashboard');
+        await loadProDashboard();
+        navigate('pro-dashboard-view');
     } else {
-        alert("Telefone ou senha inválidos.");
+        alert('Telefone ou senha incorretos!');
     }
 }
 
@@ -627,8 +631,10 @@ function calculateFinances() {
 }
 
 async function renderBookingsPro() {
-    const proPhone = localStorage.getItem('active_pro_user'); // Chave corrigida aqui
-    const container = document.getElementById('admin-appointments-list'); // Verifique se o ID bate com sua DIV HTML
+    const proPhone = localStorage.getItem('active_pro_user');
+    
+    // Altere 'pro-bookings-list' para o ID exato da sua div/tabela de agendamentos se for diferente
+    const container = document.getElementById('pro-bookings-list') || document.getElementById('admin-appointments-list');
 
     if (!container) return;
 
@@ -639,6 +645,7 @@ async function renderBookingsPro() {
 
     if (error) {
         console.error('Erro ao buscar agendamentos:', error);
+        container.innerHTML = '<p class="text-danger">Erro ao carregar dados do Supabase.</p>';
         return;
     }
 
