@@ -212,25 +212,25 @@ function formatHorario(rawHorario) {
 }
 
 function parsePriceValue(booking) {
-    const valRaw = booking.valor ?? booking.preco ?? booking.price ?? booking.val ?? 0;
+    // 1. Tenta pegar de campos numéricos diretos
+    const valRaw = booking.valor ?? booking.preco ?? booking.price ?? booking.val;
     if (typeof valRaw === 'number') return valRaw;
-    
-    const str = String(valRaw);
-    const match = str.match(/\d+([.,]\d+)?/);
-    if (match) {
-        return parseFloat(match[0].replace(',', '.'));
+    if (valRaw !== undefined && valRaw !== null && valRaw !== '') {
+        const matchDirect = String(valRaw).match(/\d+([.,]\d+)?/);
+        if (matchDirect) return parseFloat(matchDirect[0].replace(',', '.'));
     }
+
+    // 2. Se o valor estiver no texto da string "servico" (Ex: "Aplicação de Alongamento - R$ 50.00")
+    if (booking.servico) {
+        // Busca a parte numérica após "R$" ou o último número da string
+        const matchServico = booking.servico.match(/R\$\s*([\d.,]+)/i) || booking.servico.match(/\d+([.,]\d+)?(?=[^\d]*$)/);
+        if (matchServico) {
+            return parseFloat(matchServico[1].replace(',', '.'));
+        }
+    }
+
     return 0;
 }
-
-function navigate(viewId) {
-    const views = ['pro-login-view', 'pro-dashboard-view', 'pro-register-view', 'pro-forgot-view'];
-    views.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.style.display = (id === viewId) ? 'block' : 'none';
-    });
-}
-
 async function proLogin() {
     const phone = document.getElementById('login-phone')?.value.trim();
     const pass = document.getElementById('login-pass')?.value.trim();
