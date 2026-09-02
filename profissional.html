@@ -521,9 +521,23 @@ function renderSlots() {
     list.innerHTML = slots.map(s => `
         <li class="list-group-item d-flex justify-content-between align-items-center py-2">
             <span><i class="fa-regular fa-clock me-2 text-muted"></i><strong>${s.date.split('-').reverse().join('/')}</strong> às <strong>${s.time}</strong></span>
-            <button onclick="removeSlot(${s.id})" class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash"></i> Excluir</button>
+            <div>
+                <button onclick="confirmSlot(${s.id})" class="btn btn-sm btn-outline-success me-1"><i class="fa-solid fa-check"></i> Confirmar</button>
+                <button onclick="removeSlot(${s.id})" class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash"></i> Excluir</button>
+            </div>
         </li>
     `).join('');
+}
+
+function confirmSlot(id) {
+    let slots = getDB('slots');
+    let idx = slots.findIndex(s => s.id === id);
+    if (idx !== -1) {
+        slots[idx].booked = true;
+        setDB('slots', slots);
+        renderSlots();
+        calculateFinances();
+    }
 }
 
 function removeSlot(id) {
