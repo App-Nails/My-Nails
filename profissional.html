@@ -332,6 +332,14 @@ function hashString(str) {
     return hash.toString();
 }
 
+// Helper para obter a data no formato YYYY-MM-DD em fuso local
+function getLocalDateString(d = new Date()) {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
 // 2. Navegação entre Visões
 function navigate(viewId) {
     const views = ['pro-login-view', 'pro-dashboard-view', 'pro-register-view', 'pro-forgot-view'];
@@ -537,16 +545,21 @@ async function confirmSlot(id) {
         slot.booked = true;
         setDB('slots', slots);
 
-        // Atualização e sincronização com Supabase e tela financeira
-        await _supabase.from('agendamentos').insert([
+        // Insere o agendamento com valor e formato de data corretos no Supabase
+        const servicePrice = 40.00;
+        const { error } = await _supabase.from('agendamentos').insert([
             {
                 pro_id: slot.proPhone,
                 nome: 'Cliente Confirmado',
                 horario: `${slot.date} ${slot.time}`,
                 servico: 'Serviço Padrão',
-                preco: 40.00
+                preco: servicePrice
             }
         ]);
+
+        if (error) {
+            console.error("Erro ao salvar no Supabase:", error);
+        }
 
         renderSlots();
         await renderBookingsPro();
@@ -604,7 +617,7 @@ function addExpense() {
     }
 
     let expenses = getDB('expenses');
-    expenses.push({ proPhone: phone, desc, val, date: new Date().toISOString() });
+    expenses.push({ proPhone: phone, desc, val, date: getLocalDateString() });
     setDB('expenses', expenses);
 
     document.getElementById('expense-desc').value = '';
@@ -616,25 +629,26 @@ async function calculateFinances() {
     const phone = localStorage.getItem('active_pro_user');
     const expenses = getDB('expenses').filter(e => e.proPhone === phone);
 
-    // Busca agendamentos do banco remoto para garantir a consistência dos valores
     const { data: bookings } = await _supabase
         .from('agendamentos')
         .select('*')
         .eq('pro_id', phone);
 
-    const now = new Date();
-    const todayStr = now.toISOString().split('T')[0];
+    const todayStr = getLocalDateString();
     const monthStr = todayStr.substring(0, 7);
 
     let dayIn = 0, dayOut = 0, monthIn = 0, monthOut = 0, monthCount = 0;
 
     if (bookings) {
         bookings.forEach(b => {
-            const bDate = (b.horario || '').substring(0, 10);
+            if (!b.horario) return;
+            const bDate = b.horario.substring(0, 10);
             const price = parseFloat(b.preco) || 0;
 
-            if (bDate === todayStr) dayIn += price;
-            if (bDate && bDate.startsWith(monthStr)) {
+            if (bDate === todayStr) {
+                dayIn += price;
+            }
+            if (bDate.startsWith(monthStr)) {
                 monthIn += price;
                 monthCount++;
             }
@@ -642,6 +656,7 @@ async function calculateFinances() {
     }
 
     expenses.forEach(e => {
+        if (!e.date) return;
         if (e.date.startsWith(todayStr)) dayOut += e.val;
         if (e.date.startsWith(monthStr)) monthOut += e.val;
     });
