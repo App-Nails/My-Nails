@@ -91,6 +91,22 @@
             <button onclick="proLogout()" class="btn btn-outline-danger btn-sm">Sair</button>
         </div>
 
+        <!-- Finanças (Dashboard Posicionado na Parte Superior) -->
+        <div class="card p-3 shadow-sm mb-4">
+            <h5 class="mb-3">Fluxo de Caixa</h5>
+            <div class="row text-center mb-3">
+                <div class="col"><small class="text-muted">Entradas Hoje</small><h4 id="fin-day-in" class="text-success fw-bold">R$ 0.00</h4></div>
+                <div class="col"><small class="text-muted">Saídas Hoje</small><h4 id="fin-day-out" class="text-danger fw-bold">R$ 0.00</h4></div>
+                <div class="col"><small class="text-muted">Saldo Mês</small><h4 id="fin-month-total" class="text-primary fw-bold">R$ 0.00</h4></div>
+                <div class="col"><small class="text-muted">Atendimentos Mês</small><h4 id="fin-month-count" class="fw-bold">0</h4></div>
+            </div>
+            <div class="row g-2">
+                <div class="col-md-6"><input type="text" id="expense-desc" class="form-control" placeholder="Descrição da despesa"></div>
+                <div class="col-md-4"><input type="number" id="expense-val" class="form-control" placeholder="Valor (R$)"></div>
+                <div class="col-md-2"><button onclick="addExpense()" class="btn btn-danger w-100">Add Despesa</button></div>
+            </div>
+        </div>
+
         <!-- Endereço e Link -->
         <div class="row g-3 mb-4">
             <div class="col-md-6">
@@ -131,22 +147,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- Finanças -->
-        <div class="card p-3 shadow-sm mb-4">
-            <h5 class="mb-3">Fluxo de Caixa</h5>
-            <div class="row text-center mb-3">
-                <div class="col"><small class="text-muted">Entradas Hoje</small><h4 id="fin-day-in" class="text-success fw-bold">R$ 0.00</h4></div>
-                <div class="col"><small class="text-muted">Saídas Hoje</small><h4 id="fin-day-out" class="text-danger fw-bold">R$ 0.00</h4></div>
-                <div class="col"><small class="text-muted">Saldo Mês</small><h4 id="fin-month-total" class="text-primary fw-bold">R$ 0.00</h4></div>
-                <div class="col"><small class="text-muted">Atendimentos Mês</small><h4 id="fin-month-count" class="fw-bold">0</h4></div>
-            </div>
-            <div class="row g-2">
-                <div class="col-md-6"><input type="text" id="expense-desc" class="form-control" placeholder="Descrição da despesa"></div>
-                <div class="col-md-4"><input type="number" id="expense-val" class="form-control" placeholder="Valor (R$)"></div>
-                <div class="col-md-2"><button onclick="addExpense()" class="btn btn-danger w-100">Add Despesa</button></div>
-            </div>
-        </div>
     </div>
 
 </div>
@@ -173,16 +173,36 @@ function hashString(str) {
 }
 
 function getLocalDateString(d = new Date()) {
+    if (!d || isNaN(d.getTime())) d = new Date();
     const year = d.getFullYear();
     const month = String(d.getMonth() + 1).padStart(2, '0');
     const day = String(d.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
 }
 
+function parseBookingDate(horario) {
+    if (!horario) return null;
+    if (!isNaN(horario)) return new Date(Number(horario));
+    
+    let d = new Date(horario);
+    if (!isNaN(d.getTime())) return d;
+    
+    // Tratamento para data formato BR "DD/MM/YYYY HH:mm"
+    if (typeof horario === 'string' && horario.includes('/')) {
+        const parts = horario.split(' ');
+        const dateParts = parts[0].split('/');
+        if (dateParts.length === 3) {
+            const timeParts = parts[1] ? parts[1].split(':') : [0, 0];
+            return new Date(dateParts[2], dateParts[1] - 1, dateParts[0], timeParts[0] || 0, timeParts[1] || 0);
+        }
+    }
+    return null;
+}
+
 function formatHorario(rawHorario) {
     if (!rawHorario) return 'Horário não informado';
-    let dateObj = !isNaN(rawHorario) ? new Date(Number(rawHorario)) : new Date(rawHorario);
-    if (isNaN(dateObj.getTime())) return rawHorario;
+    let dateObj = parseBookingDate(rawHorario);
+    if (!dateObj) return rawHorario;
 
     const dia = String(dateObj.getDate()).padStart(2, '0');
     const mes = String(dateObj.getMonth() + 1).padStart(2, '0');
@@ -192,10 +212,15 @@ function formatHorario(rawHorario) {
 }
 
 function parsePriceValue(booking) {
-    const valRaw = booking.preco ?? booking.valor ?? booking.price ?? 0;
+    const valRaw = booking.valor ?? booking.preco ?? booking.price ?? booking.val ?? 0;
     if (typeof valRaw === 'number') return valRaw;
-    const cleanStr = String(valRaw).replace('R$', '').replace(',', '.').trim();
-    return parseFloat(cleanStr) || 0;
+    
+    const str = String(valRaw);
+    const match = str.match(/\d+([.,]\d+)?/);
+    if (match) {
+        return parseFloat(match[0].replace(',', '.'));
+    }
+    return 0;
 }
 
 function navigate(viewId) {
@@ -457,7 +482,9 @@ async function calculateFinances() {
     if (bookings) {
         bookings.forEach(b => {
             const price = parsePriceValue(b);
-            let bDate = b.horario ? getLocalDateString(new Date(Number(b.horario) || b.horario)) : "";
+            let bDateObj = parseBookingDate(b.horario);
+            let bDate = bDateObj ? getLocalDateString(bDateObj) : "";
+            
             if (bDate === todayStr) dayIn += price;
             if (bDate.startsWith(monthStr)) { monthIn += price; monthCount++; }
         });
