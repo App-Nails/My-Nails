@@ -1,3 +1,542 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+    
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Studio Nail Designer - Painel do Profissional</title>
+    
+    <!-- Scripts & Estilos Externos -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-pink: #d63384;
+            --primary-pink-hover: #b8256f;
+            --soft-pink: #fdf2f7;
+            --dark-card: #212529;
+            --border-radius: 16px;
+        }
+
+        body {
+            background-color: #f4f6f9;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            color: #333;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        .card-custom {
+            border: none;
+            border-radius: var(--border-radius);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            background: #ffffff;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .header-bg {
+            background: linear-gradient(135deg, #e83e8c 0%, #a10056 100%);
+            color: white;
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 20px rgba(232, 62, 140, 0.25);
+        }
+
+        .btn-pink {
+            background-color: var(--primary-pink);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            padding: 10px 20px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-pink:hover {
+            background-color: var(--primary-pink-hover);
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .stat-card {
+            border-radius: var(--border-radius);
+            border: none;
+            padding: 1.25rem;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card i {
+            position: absolute;
+            right: 15px;
+            bottom: 10px;
+            font-size: 3.5rem;
+            opacity: 0.15;
+        }
+
+        .stat-in { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
+        .stat-out { background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%); }
+        .stat-bal { background: linear-gradient(135deg, #4776e6 0%, #8e54e9 100%); }
+        .stat-cnt { background: linear-gradient(135deg, #232526 0%, #414345 100%); }
+    </style>
+</head>
+<body oncontextmenu="return false;">
+
+<div class="container py-4">
+
+    <!-- LOGIN PROFISSIONAL -->
+    <div id="pro-login-view" class="card card-custom p-4 mx-auto my-5" style="max-width: 420px;">
+        <div class="text-center mb-4">
+            <div class="bg-light d-inline-block p-3 rounded-circle mb-2" style="color: var(--primary-pink);">
+                <i class="fa-solid fa-gem fa-2x"></i>
+            </div>
+            <h3 class="fw-bold">Acesso Profissional</h3>
+            <p class="text-muted small">Gerencie sua agenda e finanças</p>
+        </div>
+        
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Telefone</label>
+            <div class="input-group">
+                <span class="input-group-text bg-white"><i class="fa-solid fa-phone text-muted"></i></span>
+                <input type="tel" id="login-phone" class="form-control" placeholder="DDD + Número (ex: 11999999999)">
+            </div>
+        </div>
+        
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Senha</label>
+            <div class="input-group">
+                <span class="input-group-text bg-white"><i class="fa-solid fa-lock text-muted"></i></span>
+                <input type="password" id="login-pass" class="form-control" placeholder="••••••••">
+            </div>
+        </div>
+
+        <button onclick="proLogin()" class="btn btn-pink w-100 mb-3 shadow-sm">Entrar no Painel</button>
+        
+        <div class="d-flex justify-content-between fs-7">
+            <a href="#" onclick="navigate('pro-register-view'); return false;" class="text-decoration-none" style="color: var(--primary-pink);">Criar Nova Conta</a>
+            <a href="#" onclick="navigate('pro-forgot-view'); return false;" class="text-muted text-decoration-none">Esqueci a Senha</a>
+        </div>
+    </div>
+
+    <!-- CADASTRO PROFISSIONAL -->
+    <div id="pro-register-view" class="card card-custom p-4 mx-auto" style="max-width: 680px; display: none;">
+        <div class="text-center mb-4">
+            <h3 class="fw-bold text-pink"><i class="fa-solid fa-user-plus me-2"></i>Cadastro de Profissional</h3>
+            <p class="text-muted">Configure sua conta e personalize seu atendimento</p>
+        </div>
+
+        <form onsubmit="proRegister(event)">
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Nome Completo</label>
+                    <input type="text" id="reg-name" class="form-control" placeholder="Ex: Ana Silva" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Telefone (Apenas números)</label>
+                    <input type="tel" id="reg-phone" class="form-control" placeholder="11999999999" required>
+                </div>
+                <div class="col-12">
+                    <label class="form-label fw-semibold">Endereço Completo do Studio</label>
+                    <input type="text" id="reg-address" class="form-control" placeholder="Rua, Número, Bairro, Cidade" required>
+                </div>
+                <div class="col-12">
+                    <label class="form-label fw-semibold">Senha de Acesso</label>
+                    <input type="password" id="reg-pass" class="form-control" placeholder="Digite uma senha forte" required>
+                </div>
+            </div>
+
+            <div class="card p-3 mb-4 bg-light border-0">
+                <h6 class="fw-bold text-dark mb-2"><i class="fa-solid fa-shield-halved me-2"></i>Pergunta de Segurança (Para Reset de Senha)</h6>
+                <div class="row g-2">
+                    <div class="col-md-6">
+                        <input type="text" id="reg-q" class="form-control" placeholder="Ex: Nome do seu primeiro pet?" required>
+                    </div>
+                    <div class="col-md-6">
+                        <input type="text" id="reg-a" class="form-control" placeholder="Resposta secreta" required>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-pink w-100 py-2 fs-5 shadow-sm">Concluir Cadastro</button>
+        </form>
+        <div class="text-center mt-3">
+            <a href="#" onclick="navigate('pro-login-view'); return false;" class="text-muted text-decoration-none">Voltar ao Login</a>
+        </div>
+    </div>
+
+    <!-- RESET DE SENHA -->
+    <div id="pro-forgot-view" class="card card-custom p-4 mx-auto" style="max-width: 450px; display: none;">
+        <h3 class="fw-bold text-center mb-3">Redefinição de Senha</h3>
+        <p class="text-muted small text-center mb-4">Responda sua pergunta de segurança para cadastrar uma nova senha.</p>
+        
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Telefone Cadastrado</label>
+            <div class="input-group">
+                <input type="tel" id="reset-phone" class="form-control" placeholder="Seu telefone">
+                <button onclick="fetchSecurityQuestion()" class="btn btn-outline-secondary" type="button">Buscar</button>
+            </div>
+        </div>
+
+        <div id="reset-step-2" style="display: none;" class="border-top pt-3 mt-3">
+            <div class="alert alert-info py-2" id="display-q"></div>
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Sua Resposta</label>
+                <input type="text" id="reset-a" class="form-control">
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Nova Senha</label>
+                <input type="password" id="reset-new-pass" class="form-control" placeholder="Digite a nova senha">
+            </div>
+            <button onclick="executePasswordReset()" class="btn btn-pink w-100">Redefinir Senha</button>
+        </div>
+        
+        <div class="text-center mt-3">
+            <a href="#" onclick="navigate('pro-login-view'); return false;" class="text-muted text-decoration-none">Voltar ao Login</a>
+        </div>
+    </div>
+
+    <!-- PAINEL PRINCIPAL (DASHBOARD) -->
+    <div id="pro-dashboard-view" style="display: none;">
+        
+        <!-- HEADER -->
+        <div class="header-bg d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h1 class="h2 fw-bold mb-1">Painel Nail Designer</h1>
+                <p class="mb-0 text-white-50" id="welcome-user">Gerencie seus atendimentos e fluxo de caixa</p>
+            </div>
+            <button onclick="proLogout()" class="btn btn-light text-danger fw-bold shadow-sm">
+                <i class="fa-solid fa-right-from-bracket me-2"></i>Sair / Bloquear
+            </button>
+        </div>
+
+        <!-- LINK DE COMPARTILHAMENTO -->
+        <div class="card card-custom p-3 mb-4 border-start border-4 border-pink">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                <div>
+                    <span class="fw-bold"><i class="fa-solid fa-link me-2" style="color: var(--primary-pink);"></i>Seu Link Exclusivo para Clientes:</span>
+                    <br><span id="pro-share-link" class="text-muted font-monospace small"></span>
+                </div>
+                <button onclick="copyLink()" class="btn btn-pink btn-sm"><i class="fa-solid fa-copy me-1"></i>Copiar Link</button>
+            </div>
+        </div>
+
+        <!-- ENDEREÇO DO STUDIO -->
+        <div class="card card-custom p-4 mb-4">
+            <h5 class="fw-bold mb-3"><i class="fa-solid fa-location-dot me-2 text-danger"></i>Endereço do Studio</h5>
+            <div class="input-group">
+                <input type="text" id="dash-address" class="form-control" readonly>
+                <button id="btn-edit-addr" onclick="toggleEditAddress()" class="btn btn-outline-secondary">
+                    <i class="fa-solid fa-pen-to-square me-1"></i>Editar
+                </button>
+            </div>
+        </div>
+
+        <!-- DASHBOARD FINANCEIRO -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="stat-card stat-in shadow-sm">
+                    <span class="text-uppercase small fw-bold">Entradas (Hoje)</span>
+                    <h2 class="fw-bold mb-0 mt-1" id="fin-day-in">R$ 0,00</h2>
+                    <i class="fa-solid fa-arrow-trend-up"></i>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card stat-out shadow-sm">
+                    <span class="text-uppercase small fw-bold">Despesas (Hoje)</span>
+                    <h2 class="fw-bold mb-0 mt-1" id="fin-day-out">R$ 0,00</h2>
+                    <i class="fa-solid fa-arrow-trend-down"></i>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card stat-bal shadow-sm">
+                    <span class="text-uppercase small fw-bold">Balanço do Mês</span>
+                    <h2 class="fw-bold mb-0 mt-1" id="fin-month-total">R$ 0,00</h2>
+                    <i class="fa-solid fa-wallet"></i>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card stat-cnt shadow-sm">
+                    <span class="text-uppercase small fw-bold">Atendimentos (Mês)</span>
+                    <h2 class="fw-bold mb-0 mt-1" id="fin-month-count">0</h2>
+                    <i class="fa-solid fa-calendar-check"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- CADASTRO DE HORÁRIOS DISPONÍVEIS -->
+        <div class="card card-custom p-4 mb-4">
+            <h5 class="fw-bold mb-3"><i class="fa-solid fa-clock me-2 text-warning"></i>Cadastrar Horários Disponíveis</h5>
+            <div class="row g-2 mb-3">
+                <div class="col-md-5">
+                    <input type="date" id="slot-date" class="form-control">
+                </div>
+                <div class="col-md-5">
+                    <input type="time" id="slot-time" class="form-control">
+                </div>
+                <div class="col-md-2">
+                    <button onclick="addTimeSlot()" class="btn btn-pink w-100"><i class="fa-solid fa-plus me-1"></i>Adicionar</button>
+                </div>
+            </div>
+            <h6 class="fw-bold text-muted mt-3 mb-2">Horários Abertos Atualmente:</h6>
+            <ul id="slots-list" class="list-group list-group-flush"></ul>
+        </div>
+
+        <!-- REGISTRO DE DESPESAS -->
+        <div class="card card-custom p-4 mb-4">
+            <h5 class="fw-bold mb-3"><i class="fa-solid fa-receipt me-2 text-danger"></i>Registrar Nova Despesa</h5>
+            <div class="row g-2">
+                <div class="col-md-6">
+                    <input type="text" id="expense-desc" class="form-control" placeholder="Descrição (Ex: Compra de Gel, Lixas)">
+                </div>
+                <div class="col-md-4">
+                    <input type="number" step="0.01" id="expense-val" class="form-control" placeholder="Valor (R$)">
+                </div>
+                <div class="col-md-2">
+                    <button onclick="addExpense()" class="btn btn-danger w-100"><i class="fa-solid fa-minus me-1"></i>Lançar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- LISTA DE AGENDAMENTOS RECEBIDOS -->
+        <div class="card card-custom p-4 mb-4">
+            <h5 class="fw-bold mb-3"><i class="fa-solid fa-calendar-days me-2 text-primary"></i>Agendamentos Confirmados</h5>
+            <div id="pro-bookings-list"></div>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+// 1. Configuração Supabase
+const SUPABASE_URL = 'https://zvxcakqpbrpfdsvhuhbh.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_41upAZ0wW1NC4i3zTnkU9Q_gF8Tc4Ry';
+const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// Funções Utilitárias do LocalStorage
+function getDB(key) { return JSON.parse(localStorage.getItem(key)) || []; }
+function setDB(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
+
+function hashString(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        hash = (hash << 5) - hash + str.charCodeAt(i);
+        hash |= 0;
+    }
+    return hash.toString();
+}
+
+// Helper para obter a data no formato YYYY-MM-DD em fuso local
+function getLocalDateString(d = new Date()) {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+// 2. Navegação entre Visões
+function navigate(viewId) {
+    const views = ['pro-login-view', 'pro-dashboard-view', 'pro-register-view', 'pro-forgot-view'];
+    views.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.style.display = (id === viewId) ? 'block' : 'none';
+        }
+    });
+}
+
+// 3. Autenticação e Cadastro
+async function proLogin() {
+    const phone = document.getElementById('login-phone').value.trim();
+    const pass = document.getElementById('login-pass').value.trim();
+
+    if (!phone || !pass) {
+        alert('Por favor, preencha o telefone e a senha.');
+        return;
+    }
+
+    const users = getDB('pro_users');
+    const hashed = hashString(pass);
+    const user = users.find(u => u.phone === phone && u.passHash === hashed);
+
+    if (user) {
+        localStorage.setItem('active_pro_user', phone);
+        await loadProDashboard();
+        navigate('pro-dashboard-view');
+    } else {
+        alert('Telefone ou senha incorretos!');
+    }
+}
+
+function proRegister(event) {
+    event.preventDefault();
+    const name = document.getElementById('reg-name').value.trim();
+    const phone = document.getElementById('reg-phone').value.trim();
+    const address = document.getElementById('reg-address').value.trim();
+    const pass = document.getElementById('reg-pass').value.trim();
+    const question = document.getElementById('reg-q').value.trim();
+    const answer = document.getElementById('reg-a').value.trim();
+
+    let users = getDB('pro_users');
+    if (users.some(u => u.phone === phone)) {
+        alert('Este telefone já está cadastrado!');
+        return;
+    }
+
+    const newUser = {
+        name,
+        phone,
+        address,
+        passHash: hashString(pass),
+        question,
+        answerHash: hashString(answer.toLowerCase())
+    };
+
+    users.push(newUser);
+    setDB('pro_users', users);
+    alert('Cadastro realizado com sucesso! Faça login para continuar.');
+    navigate('pro-login-view');
+}
+
+function proLogout() {
+    localStorage.removeItem('active_pro_user');
+    navigate('pro-login-view');
+}
+
+// 4. Recuperação de Senha
+let targetUserForReset = null;
+
+function fetchSecurityQuestion() {
+    const phone = document.getElementById('reset-phone').value.trim();
+    const users = getDB('pro_users');
+    targetUserForReset = users.find(u => u.phone === phone);
+
+    if (targetUserForReset) {
+        document.getElementById('display-q').innerText = `Pergunta: ${targetUserForReset.question}`;
+        document.getElementById('reset-step-2').style.display = 'block';
+    } else {
+        alert('Telefone não encontrado no cadastro.');
+    }
+}
+
+function executePasswordReset() {
+    const answer = document.getElementById('reset-a').value.trim().toLowerCase();
+    const newPass = document.getElementById('reset-new-pass').value.trim();
+
+    if (!answer || !newPass) {
+        alert('Preencha todos os campos!');
+        return;
+    }
+
+    if (hashString(answer) === targetUserForReset.answerHash) {
+        let users = getDB('pro_users');
+        let idx = users.findIndex(u => u.phone === targetUserForReset.phone);
+        if (idx !== -1) {
+            users[idx].passHash = hashString(newPass);
+            setDB('pro_users', users);
+            alert('Senha alterada com sucesso!');
+            navigate('pro-login-view');
+        }
+    } else {
+        alert('Resposta de segurança incorreta!');
+    }
+}
+
+// 5. Dashboard e Funcionalidades
+async function loadProDashboard() {
+    const phone = localStorage.getItem('active_pro_user');
+    const user = getDB('pro_users').find(u => u.phone === phone);
+
+    if (!user) return;
+
+    document.getElementById('welcome-user').innerText = `Olá, ${user.name}! Gerencie seus atendimentos e fluxo.`;
+    
+    const basePath = window.location.href.substring(0, window.location.href.lastIndexOf('/'));
+    document.getElementById('pro-share-link').innerText = `${basePath}/cliente.html?pro=${phone}`;
+    document.getElementById('dash-address').value = user.address || '';
+
+    renderSlots();
+    await renderBookingsPro();
+    await calculateFinances();
+}
+
+function copyLink() {
+    const linkText = document.getElementById('pro-share-link').innerText;
+    navigator.clipboard.writeText(linkText);
+    alert("Link copiado para a área de transferência!");
+}
+
+function toggleEditAddress() {
+    const field = document.getElementById('dash-address');
+    const btn = document.getElementById('btn-edit-addr');
+    const phone = localStorage.getItem('active_pro_user');
+
+    if (field.hasAttribute('readonly')) {
+        field.removeAttribute('readonly');
+        btn.innerHTML = '<i class="fa-solid fa-floppy-disk me-1"></i>Salvar';
+        btn.className = "btn btn-success";
+    } else {
+        field.setAttribute('readonly', 'true');
+        btn.innerHTML = '<i class="fa-solid fa-pen-to-square me-1"></i>Editar';
+        btn.className = "btn btn-outline-secondary";
+
+        let users = getDB('pro_users');
+        let idx = users.findIndex(u => u.phone === phone);
+        if (idx !== -1) {
+            users[idx].address = field.value;
+            setDB('pro_users', users);
+            alert("Endereço atualizado com sucesso!");
+        }
+    }
+}
+
+function addTimeSlot() {
+    const date = document.getElementById('slot-date').value;
+    const time = document.getElementById('slot-time').value;
+    const phone = localStorage.getItem('active_pro_user');
+
+    if (!date || !time) {
+        alert("Selecione a data e o horário!");
+        return;
+    }
+
+    let slots = getDB('slots');
+    slots.push({ id: Date.now(), proPhone: phone, date, time, booked: false });
+    setDB('slots', slots);
+
+    document.getElementById('slot-time').value = '';
+    renderSlots();
+}
+
+function renderSlots() {
+    const phone = localStorage.getItem('active_pro_user');
+    const slots = getDB('slots').filter(s => s.proPhone === phone && !s.booked);
+    const list = document.getElementById('slots-list');
+
+    if (!list) return;
+
+    if (slots.length === 0) {
+        list.innerHTML = '<li class="list-group-item text-muted py-3">Nenhum horário aberto no momento.</li>';
+        return;
+    }
+
+    list.innerHTML = slots.map(s => `
+        <li class="list-group-item d-flex justify-content-between align-items-center py-2">
+            <span><i class="fa-regular fa-clock me-2 text-muted"></i><strong>${s.date.split('-').reverse().join('/')}</strong> às <strong>${s.time}</strong></span>
+            <div>
+                <button onclick="confirmSlot(${s.id})" class="btn btn-sm btn-outline-success me-1"><i class="fa-solid fa-check"></i> Confirmar</button>
+                <button onclick="removeSlot(${s.id})" class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash"></i> Excluir</button>
+            </div>
+        </li>
+    `).join('');
+}
+
 async function confirmSlot(id) {
     let slots = getDB('slots');
     let idx = slots.findIndex(s => s.id === id);
@@ -6,29 +545,14 @@ async function confirmSlot(id) {
         slot.booked = true;
         setDB('slots', slots);
 
-        // Busca o agendamento no Supabase pelo horário e pro_id para pegar os dados do serviço e preço corretos
-        const { data: existingBookings } = await _supabase
-            .from('agendamentos')
-            .select('*')
-            .eq('pro_id', slot.proPhone)
-            .like('horario', `%${slot.time}%`);
-
-        let serviceName = 'Serviço Padrão';
-        let servicePrice = 50.00; // Valor padrão de fallback
-
-        if (existingBookings && existingBookings.length > 0) {
-            const booking = existingBookings[0];
-            if (booking.servico) serviceName = booking.servico;
-            if (booking.preco) servicePrice = parseFloat(booking.preco);
-        }
-
+        // Insere o agendamento com valor e formato de data corretos no Supabase
+        const servicePrice = 40.00;
         const { error } = await _supabase.from('agendamentos').insert([
             {
                 pro_id: slot.proPhone,
-                nome: existingBookings?.[0]?.nome || 'Cliente Confirmado',
-                telefone: existingBookings?.[0]?.telefone || '',
+                nome: 'Cliente Confirmado',
                 horario: `${slot.date} ${slot.time}`,
-                servico: serviceName,
+                servico: 'Serviço Padrão',
                 preco: servicePrice
             }
         ]);
@@ -42,3 +566,117 @@ async function confirmSlot(id) {
         await calculateFinances();
     }
 }
+
+function removeSlot(id) {
+    let slots = getDB('slots').filter(s => s.id !== id);
+    setDB('slots', slots);
+    renderSlots();
+}
+
+async function renderBookingsPro() {
+    const proPhone = localStorage.getItem('active_pro_user');
+    const container = document.getElementById('pro-bookings-list');
+
+    if (!container || !proPhone) return;
+
+    const { data: bookings, error } = await _supabase
+        .from('agendamentos')
+        .select('*')
+        .eq('pro_id', proPhone);
+
+    if (error) {
+        container.innerHTML = '<p class="text-danger small">Erro ao carregar agendamentos do banco remoto.</p>';
+        return;
+    }
+
+    if (!bookings || bookings.length === 0) {
+        container.innerHTML = '<p class="text-muted">Nenhum agendamento confirmado no momento.</p>';
+        return;
+    }
+
+    container.innerHTML = bookings.map(b => `
+        <div class="card mb-2 p-3 border-start border-4 border-pink shadow-sm">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-1 text-pink">${b.nome || 'Cliente'}</h5>
+                <span class="badge bg-secondary">${b.horario || ''}</span>
+            </div>
+            <p class="mb-1"><strong>Telefone:</strong> ${b.telefone || ''}</p>
+            <p class="mb-0"><strong>Serviço:</strong> ${b.servico || ''} - R$ ${parseFloat(b.preco || 0).toFixed(2)}</p>
+        </div>
+    `).join('');
+}
+
+function addExpense() {
+    const desc = document.getElementById('expense-desc').value.trim();
+    const val = parseFloat(document.getElementById('expense-val').value);
+    const phone = localStorage.getItem('active_pro_user');
+
+    if (!desc || isNaN(val)) {
+        alert("Preencha a descrição e o valor da despesa.");
+        return;
+    }
+
+    let expenses = getDB('expenses');
+    expenses.push({ proPhone: phone, desc, val, date: getLocalDateString() });
+    setDB('expenses', expenses);
+
+    document.getElementById('expense-desc').value = '';
+    document.getElementById('expense-val').value = '';
+    calculateFinances();
+}
+
+async function calculateFinances() {
+    const phone = localStorage.getItem('active_pro_user');
+    const expenses = getDB('expenses').filter(e => e.proPhone === phone);
+
+    const { data: bookings } = await _supabase
+        .from('agendamentos')
+        .select('*')
+        .eq('pro_id', phone);
+
+    const todayStr = getLocalDateString();
+    const monthStr = todayStr.substring(0, 7);
+
+    let dayIn = 0, dayOut = 0, monthIn = 0, monthOut = 0, monthCount = 0;
+
+    if (bookings) {
+        bookings.forEach(b => {
+            if (!b.horario) return;
+            const bDate = b.horario.substring(0, 10);
+            const price = parseFloat(b.preco) || 0;
+
+            if (bDate === todayStr) {
+                dayIn += price;
+            }
+            if (bDate.startsWith(monthStr)) {
+                monthIn += price;
+                monthCount++;
+            }
+        });
+    }
+
+    expenses.forEach(e => {
+        if (!e.date) return;
+        if (e.date.startsWith(todayStr)) dayOut += e.val;
+        if (e.date.startsWith(monthStr)) monthOut += e.val;
+    });
+
+    document.getElementById('fin-day-in').innerText = `R$ ${dayIn.toFixed(2)}`;
+    document.getElementById('fin-day-out').innerText = `R$ ${dayOut.toFixed(2)}`;
+    document.getElementById('fin-month-total').innerText = `R$ ${(monthIn - monthOut).toFixed(2)}`;
+    document.getElementById('fin-month-count').innerText = monthCount;
+}
+
+// 6. Inicialização DOM
+document.addEventListener('DOMContentLoaded', () => {
+    const activeUser = localStorage.getItem('active_pro_user');
+    if (activeUser) {
+        loadProDashboard();
+        navigate('pro-dashboard-view');
+    } else {
+        navigate('pro-login-view');
+    }
+});
+</script>
+</body>
+</html>
