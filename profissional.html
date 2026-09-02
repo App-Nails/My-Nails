@@ -166,50 +166,31 @@ function executePasswordReset() {
 
 // Dashboard
 async function loadProDashboard() {
-    const phone = localStorage.getItem('active_pro_user');
-    const user = getDB('pro_users').find(u => u.phone === phone);
+    try {
+        const phone = localStorage.getItem('active_pro_user');
+        const user = getDB('pro_users').find(u => u.phone === phone);
 
-    if (!user) return;
+        if (!user) return;
 
-    document.getElementById('welcome-user').innerText = `Olá, ${user.name}! Gerencie seus atendimentos e fluxo.`;
-    
-    const basePath = window.location.href.substring(0, window.location.href.lastIndexOf('/'));
-    document.getElementById('pro-share-link').innerText = `${basePath}/cliente.html?pro=${phone}`;
-    document.getElementById('dash-address').value = user.address || '';
-
-    renderSlots();
-    await renderBookingsPro();
-    await calculateFinances();
-}
-
-function copyLink() {
-    const linkText = document.getElementById('pro-share-link').innerText;
-    navigator.clipboard.writeText(linkText);
-    alert("Link copiado para a área de transferência!");
-}
-
-function toggleEditAddress() {
-    const field = document.getElementById('dash-address');
-    const btn = document.getElementById('btn-edit-addr');
-    const phone = localStorage.getItem('active_pro_user');
-
-    if (field.hasAttribute('readonly')) {
-        field.removeAttribute('readonly');
-        btn.innerHTML = '<i class="fa-solid fa-floppy-disk me-1"></i>Salvar';
-        btn.className = "btn btn-success";
-    } else {
-        field.setAttribute('readonly', 'true');
-        btn.innerHTML = '<i class="fa-solid fa-pen-to-square me-1"></i>Editar';
-        btn.className = "btn btn-outline-secondary";
-
-        let users = getDB('pro_users');
-        let idx = users.findIndex(u => u.phone === phone);
-        if (idx !== -1) {
-            users[idx].address = field.value;
-            setDB('pro_users', users);
-            alert("Endereço atualizado com sucesso!");
+        const welcomeEl = document.getElementById('welcome-user');
+        if (welcomeEl) welcomeEl.innerText = `Olá, ${user.name}! Gerencie seus atendimentos e fluxo.`;
+        
+        const shareLinkEl = document.getElementById('pro-share-link');
+        if (shareLinkEl) {
+            const basePath = window.location.href.substring(0, window.location.href.lastIndexOf('/'));
+            shareLinkEl.innerText = `${basePath}/cliente.html?pro=${phone}`;
         }
+
+        const addrEl = document.getElementById('dash-address');
+        if (addrEl) addrEl.value = user.address || '';
+
+        renderSlots();
+        await renderBookingsPro();
+        await calculateFinances();
+    } catch (err) {
+        console.warn('Aviso ao carregar dashboard:', err);
     }
+}
 }
 
 function addTimeSlot() {
