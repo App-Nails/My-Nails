@@ -1,5 +1,9 @@
+<!-- 1. Biblioteca CDN do Supabase (OBRIGATÓRIO ESTAR ANTES DO SEU CÓDIGO) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<!-- 2. Seu código de lógica -->
 <script>
-// 1. Configuração Supabase
+// Configuração Supabase
 const SUPABASE_URL = 'https://zvxcakqpbrpfdsvhuhbh.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_41upAZ0wW1NC4i3zTnkU9Q_gF8Tc4Ry';
 const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -24,7 +28,7 @@ function getLocalDateString(d = new Date()) {
     return `${year}-${month}-${day}`;
 }
 
-// Formata timestamps numéricos ou strings ISO para HH:MM - DD/MM
+// Formata timestamps numéricos ou strings ISO para HH:MM (DD/MM)
 function formatHorario(rawHorario) {
     if (!rawHorario) return 'Horário não informado';
     
@@ -36,7 +40,7 @@ function formatHorario(rawHorario) {
     }
 
     if (isNaN(dateObj.getTime())) {
-        return rawHorario; // Retorna o texto original se não for uma data válida
+        return rawHorario;
     }
 
     const dia = String(dateObj.getDate()).padStart(2, '0');
@@ -55,7 +59,7 @@ function parsePriceValue(booking) {
     return parseFloat(cleanStr) || 0;
 }
 
-// 2. Navegação
+// Navegação
 function navigate(viewId) {
     const views = ['pro-login-view', 'pro-dashboard-view', 'pro-register-view', 'pro-forgot-view'];
     views.forEach(id => {
@@ -64,7 +68,7 @@ function navigate(viewId) {
     });
 }
 
-// 3. Autenticação
+// Autenticação
 async function proLogin() {
     const phone = document.getElementById('login-phone').value.trim();
     const pass = document.getElementById('login-pass').value.trim();
@@ -121,7 +125,7 @@ function proLogout() {
     navigate('pro-login-view');
 }
 
-// 4. Recuperação de Senha
+// Recuperação de Senha
 let targetUserForReset = null;
 
 function fetchSecurityQuestion() {
@@ -160,7 +164,7 @@ function executePasswordReset() {
     }
 }
 
-// 5. Dashboard
+// Dashboard
 async function loadProDashboard() {
     const phone = localStorage.getItem('active_pro_user');
     const user = getDB('pro_users').find(u => u.phone === phone);
@@ -377,7 +381,7 @@ async function calculateFinances() {
     document.getElementById('fin-month-count').innerText = monthCount;
 }
 
-// 6. Inicialização
+// Inicialização
 document.addEventListener('DOMContentLoaded', () => {
     const activeUser = localStorage.getItem('active_pro_user');
     if (activeUser) {
