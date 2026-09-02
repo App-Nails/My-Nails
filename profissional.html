@@ -1,14 +1,165 @@
-<!-- 1. Biblioteca CDN do Supabase (Carregada antes do script) -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel do Profissional</title>
+    <!-- Bootstrap & FontAwesome CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .border-pink { border-color: #e83e8c !important; }
+        .text-pink { color: #e83e8c !important; }
+    </style>
+</head>
+<body class="bg-light">
+
+<div class="container py-4">
+
+    <!-- VIEW 1: LOGIN -->
+    <div id="pro-login-view" style="display: block;">
+        <div class="row justify-content-center">
+            <div class="col-md-5">
+                <div class="card shadow-sm p-4">
+                    <h3 class="text-center mb-4 text-pink fw-bold">Login do Profissional</h3>
+                    <div class="mb-3">
+                        <label class="form-label">Telefone</label>
+                        <input type="text" id="login-phone" class="form-control" placeholder="Apenas números">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Senha</label>
+                        <input type="password" id="login-pass" class="form-control">
+                    </div>
+                    <button onclick="proLogin()" class="btn btn-danger w-100 mb-2">Entrar</button>
+                    <div class="d-flex justify-content-between">
+                        <a href="#" onclick="navigate('pro-register-view')" class="small text-muted">Criar conta</a>
+                        <a href="#" onclick="navigate('pro-forgot-view')" class="small text-muted">Esqueci a senha</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- VIEW 2: CADASTRO -->
+    <div id="pro-register-view" style="display: none;">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card shadow-sm p-4">
+                    <h3 class="text-center mb-4 text-pink fw-bold">Novo Cadastro</h3>
+                    <form onsubmit="proRegister(event)">
+                        <div class="mb-2"><label>Nome</label><input type="text" id="reg-name" class="form-control" required></div>
+                        <div class="mb-2"><label>Telefone</label><input type="text" id="reg-phone" class="form-control" required></div>
+                        <div class="mb-2"><label>Endereço</label><input type="text" id="reg-address" class="form-control" required></div>
+                        <div class="mb-2"><label>Senha</label><input type="password" id="reg-pass" class="form-control" required></div>
+                        <div class="mb-2"><label>Pergunta de Segurança</label><input type="text" id="reg-q" class="form-control" placeholder="Ex: Nome do seu pet?" required></div>
+                        <div class="mb-3"><label>Resposta de Segurança</label><input type="text" id="reg-a" class="form-control" required></div>
+                        <button type="submit" class="btn btn-success w-100 mb-2">Cadastrar</button>
+                        <button type="button" onclick="navigate('pro-login-view')" class="btn btn-link w-100 text-secondary">Voltar ao Login</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- VIEW 3: RECUPERAR SENHA -->
+    <div id="pro-forgot-view" style="display: none;">
+        <div class="row justify-content-center">
+            <div class="col-md-5">
+                <div class="card shadow-sm p-4">
+                    <h4 class="mb-3">Recuperar Senha</h4>
+                    <div class="mb-3">
+                        <label>Telefone Cadastrado</label>
+                        <input type="text" id="reset-phone" class="form-control">
+                        <button onclick="fetchSecurityQuestion()" class="btn btn-sm btn-secondary mt-2 w-100">Buscar Pergunta</button>
+                    </div>
+                    <div id="reset-step-2" style="display: none;">
+                        <p id="display-q" class="fw-bold text-primary mb-2"></p>
+                        <div class="mb-2"><label>Sua Resposta</label><input type="text" id="reset-a" class="form-control"></div>
+                        <div class="mb-3"><label>Nova Senha</label><input type="password" id="reset-new-pass" class="form-control"></div>
+                        <button onclick="executePasswordReset()" class="btn btn-primary w-100">Redefinir Senha</button>
+                    </div>
+                    <button onclick="navigate('pro-login-view')" class="btn btn-link w-100 text-secondary mt-2">Voltar ao Login</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- VIEW 4: DASHBOARD -->
+    <div id="pro-dashboard-view" style="display: none;">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 id="welcome-user" class="fw-bold text-pink mb-0">Olá!</h3>
+            <button onclick="proLogout()" class="btn btn-outline-danger btn-sm">Sair</button>
+        </div>
+
+        <!-- Endereço e Link -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-6">
+                <div class="card p-3 shadow-sm">
+                    <h6>Seu Link de Agendamento:</h6>
+                    <small id="pro-share-link" class="text-primary fw-bold d-block mb-2"></small>
+                    <button onclick="copyLink()" class="btn btn-sm btn-outline-primary">Copiar Link</button>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card p-3 shadow-sm">
+                    <h6>Endereço de Atendimento:</h6>
+                    <div class="input-group">
+                        <input type="text" id="dash-address" class="form-control" readonly>
+                        <button id="btn-edit-addr" onclick="toggleEditAddress()" class="btn btn-outline-secondary">Editar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Horários & Agendamentos -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-6">
+                <div class="card p-3 shadow-sm">
+                    <h5 class="mb-3">Abrir Horários</h5>
+                    <div class="row g-2 mb-3">
+                        <div class="col"><input type="date" id="slot-date" class="form-control"></div>
+                        <div class="col"><input type="time" id="slot-time" class="form-control"></div>
+                        <div class="col-auto"><button onclick="addTimeSlot()" class="btn btn-success"><i class="fa-solid fa-plus"></i></button></div>
+                    </div>
+                    <ul id="slots-list" class="list-group list-group-flush"></ul>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card p-3 shadow-sm">
+                    <h5 class="mb-3">Agendamentos Confirmados</h5>
+                    <div id="pro-bookings-list"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Finanças -->
+        <div class="card p-3 shadow-sm mb-4">
+            <h5 class="mb-3">Fluxo de Caixa</h5>
+            <div class="row text-center mb-3">
+                <div class="col"><small class="text-muted">Entradas Hoje</small><h4 id="fin-day-in" class="text-success fw-bold">R$ 0.00</h4></div>
+                <div class="col"><small class="text-muted">Saídas Hoje</small><h4 id="fin-day-out" class="text-danger fw-bold">R$ 0.00</h4></div>
+                <div class="col"><small class="text-muted">Saldo Mês</small><h4 id="fin-month-total" class="text-primary fw-bold">R$ 0.00</h4></div>
+                <div class="col"><small class="text-muted">Atendimentos Mês</small><h4 id="fin-month-count" class="fw-bold">0</h4></div>
+            </div>
+            <div class="row g-2">
+                <div class="col-md-6"><input type="text" id="expense-desc" class="form-control" placeholder="Descrição da despesa"></div>
+                <div class="col-md-4"><input type="number" id="expense-val" class="form-control" placeholder="Valor (R$)"></div>
+                <div class="col-md-2"><button onclick="addExpense()" class="btn btn-danger w-100">Add Despesa</button></div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- 1. Biblioteca CDN do Supabase -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<!-- 2. Código Corrigido sem Erros de Sintaxe -->
+<!-- 2. Código Lógico -->
 <script>
-// Configuração Supabase
 const SUPABASE_URL = 'https://zvxcakqpbrpfdsvhuhbh.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_41upAZ0wW1NC4i3zTnkU9Q_gF8Tc4Ry';
 const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// Funções Utilitárias
 function getDB(key) { return JSON.parse(localStorage.getItem(key)) || []; }
 function setDB(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
 
@@ -28,30 +179,18 @@ function getLocalDateString(d = new Date()) {
     return `${year}-${month}-${day}`;
 }
 
-// Formata timestamps numéricos ou strings ISO para HH:MM (DD/MM)
 function formatHorario(rawHorario) {
     if (!rawHorario) return 'Horário não informado';
-    
-    let dateObj;
-    if (!isNaN(rawHorario)) {
-        dateObj = new Date(Number(rawHorario));
-    } else {
-        dateObj = new Date(rawHorario);
-    }
-
-    if (isNaN(dateObj.getTime())) {
-        return rawHorario;
-    }
+    let dateObj = !isNaN(rawHorario) ? new Date(Number(rawHorario)) : new Date(rawHorario);
+    if (isNaN(dateObj.getTime())) return rawHorario;
 
     const dia = String(dateObj.getDate()).padStart(2, '0');
     const mes = String(dateObj.getMonth() + 1).padStart(2, '0');
     const horas = String(dateObj.getHours()).padStart(2, '0');
     const minutos = String(dateObj.getMinutes()).padStart(2, '0');
-
     return `${horas}:${minutos} (${dia}/${mes})`;
 }
 
-// Extrai valor numérico seguro de vários formatos possíveis
 function parsePriceValue(booking) {
     const valRaw = booking.preco ?? booking.valor ?? booking.price ?? 0;
     if (typeof valRaw === 'number') return valRaw;
@@ -59,7 +198,6 @@ function parsePriceValue(booking) {
     return parseFloat(cleanStr) || 0;
 }
 
-// Navegação Segura
 function navigate(viewId) {
     const views = ['pro-login-view', 'pro-dashboard-view', 'pro-register-view', 'pro-forgot-view'];
     views.forEach(id => {
@@ -68,12 +206,9 @@ function navigate(viewId) {
     });
 }
 
-// Autenticação
 async function proLogin() {
-    const phoneEl = document.getElementById('login-phone');
-    const passEl = document.getElementById('login-pass');
-    const phone = phoneEl ? phoneEl.value.trim() : '';
-    const pass = passEl ? passEl.value.trim() : '';
+    const phone = document.getElementById('login-phone')?.value.trim();
+    const pass = document.getElementById('login-pass')?.value.trim();
 
     if (!phone || !pass) {
         alert('Por favor, preencha o telefone e a senha.');
@@ -81,8 +216,7 @@ async function proLogin() {
     }
 
     const users = getDB('pro_users');
-    const hashed = hashString(pass);
-    const user = users.find(u => u.phone === phone && u.passHash === hashed);
+    const user = users.find(u => u.phone === phone && u.passHash === hashString(pass));
 
     if (user) {
         localStorage.setItem('active_pro_user', phone);
@@ -95,12 +229,12 @@ async function proLogin() {
 
 function proRegister(event) {
     if (event) event.preventDefault();
-    const name = document.getElementById('reg-name')?.value.trim() || '';
-    const phone = document.getElementById('reg-phone')?.value.trim() || '';
-    const address = document.getElementById('reg-address')?.value.trim() || '';
-    const pass = document.getElementById('reg-pass')?.value.trim() || '';
-    const question = document.getElementById('reg-q')?.value.trim() || '';
-    const answer = document.getElementById('reg-a')?.value.trim() || '';
+    const name = document.getElementById('reg-name')?.value.trim();
+    const phone = document.getElementById('reg-phone')?.value.trim();
+    const address = document.getElementById('reg-address')?.value.trim();
+    const pass = document.getElementById('reg-pass')?.value.trim();
+    const question = document.getElementById('reg-q')?.value.trim();
+    const answer = document.getElementById('reg-a')?.value.trim();
 
     let users = getDB('pro_users');
     if (users.some(u => u.phone === phone)) {
@@ -109,16 +243,14 @@ function proRegister(event) {
     }
 
     users.push({
-        name,
-        phone,
-        address,
+        name, phone, address,
         passHash: hashString(pass),
         question,
         answerHash: hashString(answer.toLowerCase())
     });
 
     setDB('pro_users', users);
-    alert('Cadastro realizado com sucesso! Faça login para continuar.');
+    alert('Cadastro realizado com sucesso!');
     navigate('pro-login-view');
 }
 
@@ -127,33 +259,25 @@ function proLogout() {
     navigate('pro-login-view');
 }
 
-// Recuperação de Senha
 let targetUserForReset = null;
 
 function fetchSecurityQuestion() {
-    const phone = document.getElementById('reset-phone')?.value.trim() || '';
-    const users = getDB('pro_users');
-    targetUserForReset = users.find(u => u.phone === phone);
+    const phone = document.getElementById('reset-phone')?.value.trim();
+    targetUserForReset = getDB('pro_users').find(u => u.phone === phone);
 
     if (targetUserForReset) {
         const qEl = document.getElementById('display-q');
         if (qEl) qEl.innerText = `Pergunta: ${targetUserForReset.question}`;
-        
         const step2 = document.getElementById('reset-step-2');
         if (step2) step2.style.display = 'block';
     } else {
-        alert('Telefone não encontrado no cadastro.');
+        alert('Telefone não encontrado.');
     }
 }
 
 function executePasswordReset() {
-    const answer = document.getElementById('reset-a')?.value.trim().toLowerCase() || '';
-    const newPass = document.getElementById('reset-new-pass')?.value.trim() || '';
-
-    if (!answer || !newPass) {
-        alert('Preencha todos os campos!');
-        return;
-    }
+    const answer = document.getElementById('reset-a')?.value.trim().toLowerCase();
+    const newPass = document.getElementById('reset-new-pass')?.value.trim();
 
     if (targetUserForReset && hashString(answer) === targetUserForReset.answerHash) {
         let users = getDB('pro_users');
@@ -165,21 +289,19 @@ function executePasswordReset() {
             navigate('pro-login-view');
         }
     } else {
-        alert('Resposta de segurança incorreta!');
+        alert('Resposta incorreta!');
     }
 }
 
-// Dashboard
 async function loadProDashboard() {
     try {
         const phone = localStorage.getItem('active_pro_user');
         const user = getDB('pro_users').find(u => u.phone === phone);
-
         if (!user) return;
 
         const welcomeEl = document.getElementById('welcome-user');
-        if (welcomeEl) welcomeEl.innerText = `Olá, ${user.name}! Gerencie seus atendimentos e fluxo.`;
-        
+        if (welcomeEl) welcomeEl.innerText = `Olá, ${user.name}!`;
+
         const shareLinkEl = document.getElementById('pro-share-link');
         if (shareLinkEl) {
             const basePath = window.location.href.substring(0, window.location.href.lastIndexOf('/'));
@@ -192,8 +314,39 @@ async function loadProDashboard() {
         renderSlots();
         await renderBookingsPro();
         await calculateFinances();
-    } catch (err) {
-        console.warn('Aviso ao carregar dashboard:', err);
+    } catch (e) {
+        console.warn(e);
+    }
+}
+
+function copyLink() {
+    const linkEl = document.getElementById('pro-share-link');
+    if (linkEl) {
+        navigator.clipboard.writeText(linkEl.innerText);
+        alert("Link copiado!");
+    }
+}
+
+function toggleEditAddress() {
+    const field = document.getElementById('dash-address');
+    const btn = document.getElementById('btn-edit-addr');
+    const phone = localStorage.getItem('active_pro_user');
+
+    if (field.hasAttribute('readonly')) {
+        field.removeAttribute('readonly');
+        btn.innerText = 'Salvar';
+        btn.className = "btn btn-success";
+    } else {
+        field.setAttribute('readonly', 'true');
+        btn.innerText = 'Editar';
+        btn.className = "btn btn-outline-secondary";
+
+        let users = getDB('pro_users');
+        let idx = users.findIndex(u => u.phone === phone);
+        if (idx !== -1) {
+            users[idx].address = field.value;
+            setDB('pro_users', users);
+        }
     }
 }
 
@@ -202,17 +355,13 @@ function addTimeSlot() {
     const time = document.getElementById('slot-time')?.value;
     const phone = localStorage.getItem('active_pro_user');
 
-    if (!date || !time) {
-        alert("Selecione a data e o horário!");
-        return;
-    }
+    if (!date || !time) return alert("Selecione data e horário!");
 
     let slots = getDB('slots');
     slots.push({ id: Date.now(), proPhone: phone, date, time, booked: false });
     setDB('slots', slots);
 
-    const timeEl = document.getElementById('slot-time');
-    if (timeEl) timeEl.value = '';
+    document.getElementById('slot-time').value = '';
     renderSlots();
 }
 
@@ -220,20 +369,19 @@ function renderSlots() {
     const phone = localStorage.getItem('active_pro_user');
     const slots = getDB('slots').filter(s => s.proPhone === phone && !s.booked);
     const list = document.getElementById('slots-list');
-
     if (!list) return;
 
     if (slots.length === 0) {
-        list.innerHTML = '<li class="list-group-item text-muted py-3">Nenhum horário aberto no momento.</li>';
+        list.innerHTML = '<li class="list-group-item text-muted">Nenhum horário aberto.</li>';
         return;
     }
 
     list.innerHTML = slots.map(s => `
-        <li class="list-group-item d-flex justify-content-between align-items-center py-2">
-            <span><i class="fa-regular fa-clock me-2 text-muted"></i><strong>${s.date.split('-').reverse().join('/')}</strong> às <strong>${s.time}</strong></span>
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <span>${s.date.split('-').reverse().join('/')} às ${s.time}</span>
             <div>
-                <button onclick="confirmSlot(${s.id})" class="btn btn-sm btn-outline-success me-1"><i class="fa-solid fa-check"></i> Confirmar</button>
-                <button onclick="removeSlot(${s.id})" class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash"></i> Excluir</button>
+                <button onclick="confirmSlot(${s.id})" class="btn btn-sm btn-outline-success">Confirmar</button>
+                <button onclick="removeSlot(${s.id})" class="btn btn-sm btn-outline-danger">Excluir</button>
             </div>
         </li>
     `).join('');
@@ -245,7 +393,6 @@ async function confirmSlot(id) {
     if (idx !== -1) {
         slots[idx].booked = true;
         setDB('slots', slots);
-
         renderSlots();
         await renderBookingsPro();
         await calculateFinances();
@@ -253,92 +400,54 @@ async function confirmSlot(id) {
 }
 
 function removeSlot(id) {
-    let slots = getDB('slots').filter(s => s.id !== id);
-    setDB('slots', slots);
+    setDB('slots', getDB('slots').filter(s => s.id !== id));
     renderSlots();
 }
 
 async function renderBookingsPro() {
     const proPhone = localStorage.getItem('active_pro_user');
     const container = document.getElementById('pro-bookings-list');
-
     if (!container || !proPhone) return;
 
-    try {
-        const { data: bookings, error } = await _supabase
-            .from('agendamentos')
-            .select('*')
-            .eq('pro_id', proPhone);
+    const { data: bookings } = await _supabase.from('agendamentos').select('*').eq('pro_id', proPhone);
 
-        if (error) {
-            container.innerHTML = '<p class="text-danger small">Erro ao carregar agendamentos do banco remoto.</p>';
-            return;
-        }
-
-        if (!bookings || bookings.length === 0) {
-            container.innerHTML = '<p class="text-muted">Nenhum agendamento confirmado no momento.</p>';
-            return;
-        }
-
-        container.innerHTML = bookings.map(b => {
-            const val = parsePriceValue(b);
-            const horarioFormatado = formatHorario(b.horario);
-            const clienteNome = b.nome || b.cliente_nome || 'Cliente sem nome';
-            const clienteTel = b.telefone || b.cliente_telefone || 'Não informado';
-            const servicoNome = b.servico || b.servico_nome || 'Atendimento';
-
-            return `
-                <div class="card mb-2 p-3 border-start border-4 border-pink shadow-sm">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="mb-1 text-pink fw-bold">${clienteNome}</h5>
-                        <span class="badge bg-primary fs-6"><i class="fa-regular fa-clock me-1"></i>${horarioFormatado}</span>
-                    </div>
-                    <p class="mb-1"><strong>Telefone:</strong> ${clienteTel}</p>
-                    <p class="mb-0"><strong>Serviço:</strong> ${servicoNome} - <span class="text-success fw-bold">R$ ${val.toFixed(2)}</span></p>
-                </div>
-            `;
-        }).join('');
-    } catch (e) {
-        console.warn('Erro na consulta do Supabase:', e);
+    if (!bookings || bookings.length === 0) {
+        container.innerHTML = '<p class="text-muted">Nenhum agendamento confirmado.</p>';
+        return;
     }
+
+    container.innerHTML = bookings.map(b => `
+        <div class="card mb-2 p-3 border-start border-4 border-pink shadow-sm">
+            <div class="d-flex justify-content-between">
+                <h5 class="mb-1 text-pink fw-bold">${b.nome || b.cliente_nome || 'Cliente'}</h5>
+                <span class="badge bg-primary">${formatHorario(b.horario)}</span>
+            </div>
+            <p class="mb-1"><strong>Tel:</strong> ${b.telefone || b.cliente_telefone || 'N/I'}</p>
+            <p class="mb-0"><strong>Serviço:</strong> ${b.servico || 'Atendimento'} - <span class="text-success fw-bold">R$ ${parsePriceValue(b).toFixed(2)}</span></p>
+        </div>
+    `).join('');
 }
 
 function addExpense() {
-    const desc = document.getElementById('expense-desc')?.value.trim() || '';
+    const desc = document.getElementById('expense-desc')?.value.trim();
     const val = parseFloat(document.getElementById('expense-val')?.value || 0);
     const phone = localStorage.getItem('active_pro_user');
 
-    if (!desc || isNaN(val)) {
-        alert("Preencha a descrição e o valor da despesa.");
-        return;
-    }
+    if (!desc || isNaN(val)) return alert("Preencha descrição e valor.");
 
     let expenses = getDB('expenses');
     expenses.push({ proPhone: phone, desc, val, date: getLocalDateString() });
     setDB('expenses', expenses);
 
-    const descEl = document.getElementById('expense-desc');
-    const valEl = document.getElementById('expense-val');
-    if (descEl) descEl.value = '';
-    if (valEl) valEl.value = '';
-    
+    document.getElementById('expense-desc').value = '';
+    document.getElementById('expense-val').value = '';
     calculateFinances();
 }
 
 async function calculateFinances() {
     const phone = localStorage.getItem('active_pro_user');
     const expenses = getDB('expenses').filter(e => e.proPhone === phone);
-
-    let bookings = [];
-    try {
-        const res = await _supabase
-            .from('agendamentos')
-            .select('*')
-            .eq('pro_id', phone);
-        if (res.data) bookings = res.data;
-    } catch (e) {
-        console.warn('Erro ao consultar finanças no Supabase:', e);
-    }
+    const { data: bookings } = await _supabase.from('agendamentos').select('*').eq('pro_id', phone);
 
     const todayStr = getLocalDateString();
     const monthStr = todayStr.substring(0, 7);
@@ -348,44 +457,23 @@ async function calculateFinances() {
     if (bookings) {
         bookings.forEach(b => {
             const price = parsePriceValue(b);
-            let bDate = "";
-            
-            if (b.horario) {
-                let d = !isNaN(b.horario) ? new Date(Number(b.horario)) : new Date(b.horario);
-                if (!isNaN(d.getTime())) {
-                    bDate = getLocalDateString(d);
-                }
-            }
-
-            if (bDate === todayStr) {
-                dayIn += price;
-            }
-            if (bDate.startsWith(monthStr)) {
-                monthIn += price;
-                monthCount++;
-            }
+            let bDate = b.horario ? getLocalDateString(new Date(Number(b.horario) || b.horario)) : "";
+            if (bDate === todayStr) dayIn += price;
+            if (bDate.startsWith(monthStr)) { monthIn += price; monthCount++; }
         });
     }
 
     expenses.forEach(e => {
-        if (!e.date) return;
-        const eVal = parseFloat(String(e.val || 0).replace(',', '.')) || 0;
-        if (e.date.startsWith(todayStr)) dayOut += eVal;
-        if (e.date.startsWith(monthStr)) monthOut += eVal;
+        if (e.date?.startsWith(todayStr)) dayOut += e.val;
+        if (e.date?.startsWith(monthStr)) monthOut += e.val;
     });
 
-    const dayInEl = document.getElementById('fin-day-in');
-    const dayOutEl = document.getElementById('fin-day-out');
-    const monthTotalEl = document.getElementById('fin-month-total');
-    const monthCountEl = document.getElementById('fin-month-count');
-
-    if (dayInEl) dayInEl.innerText = `R$ ${dayIn.toFixed(2)}`;
-    if (dayOutEl) dayOutEl.innerText = `R$ ${dayOut.toFixed(2)}`;
-    if (monthTotalEl) monthTotalEl.innerText = `R$ ${(monthIn - monthOut).toFixed(2)}`;
-    if (monthCountEl) monthCountEl.innerText = monthCount;
+    if (document.getElementById('fin-day-in')) document.getElementById('fin-day-in').innerText = `R$ ${dayIn.toFixed(2)}`;
+    if (document.getElementById('fin-day-out')) document.getElementById('fin-day-out').innerText = `R$ ${dayOut.toFixed(2)}`;
+    if (document.getElementById('fin-month-total')) document.getElementById('fin-month-total').innerText = `R$ ${(monthIn - monthOut).toFixed(2)}`;
+    if (document.getElementById('fin-month-count')) document.getElementById('fin-month-count').innerText = monthCount;
 }
 
-// Inicialização
 document.addEventListener('DOMContentLoaded', () => {
     const activeUser = localStorage.getItem('active_pro_user');
     if (activeUser) {
@@ -396,3 +484,5 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 </script>
+</body>
+</html>
