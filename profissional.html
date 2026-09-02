@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-    
+ 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -541,45 +541,55 @@ async function confirmSlot(id) {
     let slots = getDB('slots');
     let idx = slots.findIndex(s => s.id === id);
     if (idx !== -1) {
-        const slot = slots[idx];
-        slot.booked = true;
+        slots[idx].booked = true;
         setDB('slots', slots);
-
-        // Busca o agendamento no Supabase pelo horário e pro_id para pegar os dados do serviço e preço corretos
-        const { data: existingBookings } = await _supabase
-            .from('agendamentos')
-            .select('*')
-            .eq('pro_id', slot.proPhone)
-            .like('horario', `%${slot.time}%`);
-
-        let serviceName = 'Serviço Padrão';
-        let servicePrice = 50.00; // Valor padrão de fallback
-
-        if (existingBookings && existingBookings.length > 0) {
-            const booking = existingBookings[0];
-            if (booking.servico) serviceName = booking.servico;
-            if (booking.preco) servicePrice = parseFloat(booking.preco);
-        }
-
-        const { error } = await _supabase.from('agendamentos').insert([
-            {
-                pro_id: slot.proPhone,
-                nome: existingBookings?.[0]?.nome || 'Cliente Confirmado',
-                telefone: existingBookings?.[0]?.telefone || '',
-                horario: `${slot.date} ${slot.time}`,
-                servico: serviceName,
-                preco: servicePrice
-            }
-        ]);
-
-        if (error) {
-            console.error("Erro ao salvar no Supabase:", error);
-        }
 
         renderSlots();
         await renderBookingsPro();
         await calculateFinances();
     }
+}
+
+function removeSlot(id) {
+    let slots = getDB('slots').filter(s => s.id !== id);
+    setDB('slots', slots);
+    renderSlots();
+}
+
+async function renderBookingsPro() {
+    const proPhone = localStorage.getItem('active_pro_user');
+    const container = document.getElementById('pro-bookings-list');
+
+    if (!container || !proPhone) return;
+
+    const { data: bookings, error } = await _supabase
+        .from('agendamentos')
+        .select('*')
+        .eq('pro_id', proPhone);
+
+    if (error) {
+        container.innerHTML = '<p class="text-danger small">Erro ao carregar agendamentos do banco remoto.</p>';
+        return;
+    }
+
+    if (!bookings || bookings.length === 0) {
+        container.innerHTML = '<p class="text-muted">Nenhum agendamento confirmado no momento.</p>';
+        return;
+    }
+
+    container.innerHTML = bookings.map(b => {
+        const val = parseFloat(String(b.preco || 0).replace(',', '.'));
+        return `
+            <div class="card mb-2 p-3 border-start border-4 border-pink shadow-sm">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-1 text-pink">${b.nome || 'Cliente'}</h5>
+                    <span class="badge bg-secondary">${b.horario || ''}</span>
+                </div>
+                <p class="mb-1"><strong>Telefone:</strong> ${b.telefone || 'Não informado'}</p>
+                <p class="mb-0"><strong>Serviço:</strong> ${b.servico || 'Serviço'} - R$ ${val.toFixed(2)}</p>
+            </div>
+        `;
+    }).join('');
 }
 
 function addExpense() {
@@ -619,7 +629,7 @@ async function calculateFinances() {
         bookings.forEach(b => {
             if (!b.horario) return;
             const bDate = b.horario.substring(0, 10);
-            const price = parseFloat(b.preco) || 0;
+            const price = parseFloat(String(b.preco || 0).replace(',', '.')) || 0;
 
             if (bDate === todayStr) {
                 dayIn += price;
@@ -633,8 +643,9 @@ async function calculateFinances() {
 
     expenses.forEach(e => {
         if (!e.date) return;
-        if (e.date.startsWith(todayStr)) dayOut += e.val;
-        if (e.date.startsWith(monthStr)) monthOut += e.val;
+        const eVal = parseFloat(String(e.val || 0).replace(',', '.')) || 0;
+        if (e.date.startsWith(todayStr)) dayOut += eVal;
+        if (e.date.startsWith(monthStr)) monthOut += eVal;
     });
 
     document.getElementById('fin-day-in').innerText = `R$ ${dayIn.toFixed(2)}`;
