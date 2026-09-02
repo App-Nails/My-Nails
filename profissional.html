@@ -545,14 +545,29 @@ async function confirmSlot(id) {
         slot.booked = true;
         setDB('slots', slots);
 
-        // Insere o agendamento com valor e formato de data corretos no Supabase
-        const servicePrice = 40.00;
+        // Busca o agendamento no Supabase pelo horário e pro_id para pegar os dados do serviço e preço corretos
+        const { data: existingBookings } = await _supabase
+            .from('agendamentos')
+            .select('*')
+            .eq('pro_id', slot.proPhone)
+            .like('horario', `%${slot.time}%`);
+
+        let serviceName = 'Serviço Padrão';
+        let servicePrice = 50.00; // Valor padrão de fallback
+
+        if (existingBookings && existingBookings.length > 0) {
+            const booking = existingBookings[0];
+            if (booking.servico) serviceName = booking.servico;
+            if (booking.preco) servicePrice = parseFloat(booking.preco);
+        }
+
         const { error } = await _supabase.from('agendamentos').insert([
             {
                 pro_id: slot.proPhone,
-                nome: 'Cliente Confirmado',
+                nome: existingBookings?.[0]?.nome || 'Cliente Confirmado',
+                telefone: existingBookings?.[0]?.telefone || '',
                 horario: `${slot.date} ${slot.time}`,
-                servico: 'Serviço Padrão',
+                servico: serviceName,
                 preco: servicePrice
             }
         ]);
@@ -565,45 +580,6 @@ async function confirmSlot(id) {
         await renderBookingsPro();
         await calculateFinances();
     }
-}
-
-function removeSlot(id) {
-    let slots = getDB('slots').filter(s => s.id !== id);
-    setDB('slots', slots);
-    renderSlots();
-}
-
-async function renderBookingsPro() {
-    const proPhone = localStorage.getItem('active_pro_user');
-    const container = document.getElementById('pro-bookings-list');
-
-    if (!container || !proPhone) return;
-
-    const { data: bookings, error } = await _supabase
-        .from('agendamentos')
-        .select('*')
-        .eq('pro_id', proPhone);
-
-    if (error) {
-        container.innerHTML = '<p class="text-danger small">Erro ao carregar agendamentos do banco remoto.</p>';
-        return;
-    }
-
-    if (!bookings || bookings.length === 0) {
-        container.innerHTML = '<p class="text-muted">Nenhum agendamento confirmado no momento.</p>';
-        return;
-    }
-
-    container.innerHTML = bookings.map(b => `
-        <div class="card mb-2 p-3 border-start border-4 border-pink shadow-sm">
-            <div class="d-flex justify-content-between align-items-center">
-                <h5 class="mb-1 text-pink">${b.nome || 'Cliente'}</h5>
-                <span class="badge bg-secondary">${b.horario || ''}</span>
-            </div>
-            <p class="mb-1"><strong>Telefone:</strong> ${b.telefone || ''}</p>
-            <p class="mb-0"><strong>Serviço:</strong> ${b.servico || ''} - R$ ${parseFloat(b.preco || 0).toFixed(2)}</p>
-        </div>
-    `).join('');
 }
 
 function addExpense() {
