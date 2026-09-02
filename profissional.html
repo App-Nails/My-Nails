@@ -455,7 +455,7 @@ async function loadProDashboard() {
 
     renderSlots();
     await renderBookingsPro();
-    calculateFinances();
+    await calculateFinances();
 }
 
 function copyLink() {
@@ -529,14 +529,28 @@ function renderSlots() {
     `).join('');
 }
 
-function confirmSlot(id) {
+async function confirmSlot(id) {
     let slots = getDB('slots');
     let idx = slots.findIndex(s => s.id === id);
     if (idx !== -1) {
-        slots[idx].booked = true;
+        const slot = slots[idx];
+        slot.booked = true;
         setDB('slots', slots);
+
+        // Atualização e sincronização com Supabase e tela financeira
+        await _supabase.from('agendamentos').insert([
+            {
+                pro_id: slot.proPhone,
+                nome: 'Cliente Confirmado',
+                horario: `${slot.date} ${slot.time}`,
+                servico: 'Serviço Padrão',
+                preco: 40.00
+            }
+        ]);
+
         renderSlots();
-        calculateFinances();
+        await renderBookingsPro();
+        await calculateFinances();
     }
 }
 
@@ -574,7 +588,7 @@ async function renderBookingsPro() {
                 <span class="badge bg-secondary">${b.horario || ''}</span>
             </div>
             <p class="mb-1"><strong>Telefone:</strong> ${b.telefone || ''}</p>
-            <p class="mb-0"><strong>Serviço:</strong> ${b.servico || ''}</p>
+            <p class="mb-0"><strong>Serviço:</strong> ${b.servico || ''} - R$ ${parseFloat(b.preco || 0).toFixed(2)}</p>
         </div>
     `).join('');
 }
@@ -598,10 +612,15 @@ function addExpense() {
     calculateFinances();
 }
 
-function calculateFinances() {
+async function calculateFinances() {
     const phone = localStorage.getItem('active_pro_user');
-    const bookings = getDB('bookings').filter(b => b.proPhone === phone);
     const expenses = getDB('expenses').filter(e => e.proPhone === phone);
+
+    // Busca agendamentos do banco remoto para garantir a consistência dos valores
+    const { data: bookings } = await _supabase
+        .from('agendamentos')
+        .select('*')
+        .eq('pro_id', phone);
 
     const now = new Date();
     const todayStr = now.toISOString().split('T')[0];
@@ -609,13 +628,18 @@ function calculateFinances() {
 
     let dayIn = 0, dayOut = 0, monthIn = 0, monthOut = 0, monthCount = 0;
 
-    bookings.forEach(b => {
-        if (b.slotDate === todayStr) dayIn += (b.price || 0);
-        if (b.slotDate && b.slotDate.startsWith(monthStr)) {
-            monthIn += (b.price || 0);
-            monthCount++;
-        }
-    });
+    if (bookings) {
+        bookings.forEach(b => {
+            const bDate = (b.horario || '').substring(0, 10);
+            const price = parseFloat(b.preco) || 0;
+
+            if (bDate === todayStr) dayIn += price;
+            if (bDate && bDate.startsWith(monthStr)) {
+                monthIn += price;
+                monthCount++;
+            }
+        });
+    }
 
     expenses.forEach(e => {
         if (e.date.startsWith(todayStr)) dayOut += e.val;
