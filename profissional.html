@@ -32,8 +32,8 @@
                     </div>
                     <button onclick="proLogin()" class="btn btn-danger w-100 mb-2">Entrar</button>
                     <div class="d-flex justify-content-between">
-                        <a href="#" onclick="navigate('pro-register-view')" class="small text-muted">Criar conta</a>
-                        <a href="#" onclick="navigate('pro-forgot-view')" class="small text-muted">Esqueci a senha</a>
+                        <a href="#" onclick="navigate('pro-register-view', event)" class="small text-muted">Criar conta</a>
+                        <a href="#" onclick="navigate('pro-forgot-view', event)" class="small text-muted">Esqueci a senha</a>
                     </div>
                 </div>
             </div>
@@ -91,7 +91,7 @@
             <button onclick="proLogout()" class="btn btn-outline-danger btn-sm">Sair</button>
         </div>
 
-        <!-- Finanças (Dashboard Posicionado na Parte Superior) -->
+        <!-- Finanças -->
         <div class="card p-3 shadow-sm mb-4">
             <h5 class="mb-3">Fluxo de Caixa</h5>
             <div class="row text-center mb-3">
@@ -160,6 +160,16 @@ const SUPABASE_URL = 'https://zvxcakqpbrpfdsvhuhbh.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_41upAZ0wW1NC4i3zTnkU9Q_gF8Tc4Ry';
 const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+// FUNÇÃO DE NAVEGAÇÃO ENTRE AS VIEWS
+function navigate(viewId, event) {
+    if (event) event.preventDefault();
+    const views = ['pro-login-view', 'pro-register-view', 'pro-forgot-view', 'pro-dashboard-view'];
+    views.forEach(v => {
+        const el = document.getElementById(v);
+        if (el) el.style.display = (v === viewId) ? 'block' : 'none';
+    });
+}
+
 function getDB(key) { return JSON.parse(localStorage.getItem(key)) || []; }
 function setDB(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
 
@@ -183,11 +193,10 @@ function getLocalDateString(d = new Date()) {
 function parseBookingDate(horario) {
     if (!horario) return null;
     if (!isNaN(horario)) return new Date(Number(horario));
-    
+
     let d = new Date(horario);
     if (!isNaN(d.getTime())) return d;
-    
-    // Tratamento para data formato BR "DD/MM/YYYY HH:mm"
+
     if (typeof horario === 'string' && horario.includes('/')) {
         const parts = horario.split(' ');
         const dateParts = parts[0].split('/');
@@ -212,7 +221,6 @@ function formatHorario(rawHorario) {
 }
 
 function parsePriceValue(booking) {
-    // 1. Tenta pegar de campos numéricos diretos
     const valRaw = booking.valor ?? booking.preco ?? booking.price ?? booking.val;
     if (typeof valRaw === 'number') return valRaw;
     if (valRaw !== undefined && valRaw !== null && valRaw !== '') {
@@ -220,9 +228,7 @@ function parsePriceValue(booking) {
         if (matchDirect) return parseFloat(matchDirect[0].replace(',', '.'));
     }
 
-    // 2. Se o valor estiver no texto da string "servico" (Ex: "Aplicação de Alongamento - R$ 50.00")
     if (booking.servico) {
-        // Busca a parte numérica após "R$" ou o último número da string
         const matchServico = booking.servico.match(/R\$\s*([\d.,]+)/i) || booking.servico.match(/\d+([.,]\d+)?(?=[^\d]*$)/);
         if (matchServico) {
             return parseFloat(matchServico[1].replace(',', '.'));
@@ -231,6 +237,7 @@ function parsePriceValue(booking) {
 
     return 0;
 }
+
 async function proLogin() {
     const phone = document.getElementById('login-phone')?.value.trim();
     const pass = document.getElementById('login-pass')?.value.trim();
@@ -484,7 +491,7 @@ async function calculateFinances() {
             const price = parsePriceValue(b);
             let bDateObj = parseBookingDate(b.horario);
             let bDate = bDateObj ? getLocalDateString(bDateObj) : "";
-            
+
             if (bDate === todayStr) dayIn += price;
             if (bDate.startsWith(monthStr)) { monthIn += price; monthCount++; }
         });
