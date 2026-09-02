@@ -1,7 +1,7 @@
-<!-- 1. Biblioteca CDN do Supabase (OBRIGATÓRIO ESTAR ANTES DO SEU CÓDIGO) -->
+<!-- 1. Biblioteca CDN do Supabase (Carregada antes do script) -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<!-- 2. Seu código de lógica -->
+<!-- 2. Código Corrigido sem Erros de Sintaxe -->
 <script>
 // Configuração Supabase
 const SUPABASE_URL = 'https://zvxcakqpbrpfdsvhuhbh.supabase.co';
@@ -59,7 +59,7 @@ function parsePriceValue(booking) {
     return parseFloat(cleanStr) || 0;
 }
 
-// Navegação
+// Navegação Segura
 function navigate(viewId) {
     const views = ['pro-login-view', 'pro-dashboard-view', 'pro-register-view', 'pro-forgot-view'];
     views.forEach(id => {
@@ -70,8 +70,10 @@ function navigate(viewId) {
 
 // Autenticação
 async function proLogin() {
-    const phone = document.getElementById('login-phone').value.trim();
-    const pass = document.getElementById('login-pass').value.trim();
+    const phoneEl = document.getElementById('login-phone');
+    const passEl = document.getElementById('login-pass');
+    const phone = phoneEl ? phoneEl.value.trim() : '';
+    const pass = passEl ? passEl.value.trim() : '';
 
     if (!phone || !pass) {
         alert('Por favor, preencha o telefone e a senha.');
@@ -92,13 +94,13 @@ async function proLogin() {
 }
 
 function proRegister(event) {
-    event.preventDefault();
-    const name = document.getElementById('reg-name').value.trim();
-    const phone = document.getElementById('reg-phone').value.trim();
-    const address = document.getElementById('reg-address').value.trim();
-    const pass = document.getElementById('reg-pass').value.trim();
-    const question = document.getElementById('reg-q').value.trim();
-    const answer = document.getElementById('reg-a').value.trim();
+    if (event) event.preventDefault();
+    const name = document.getElementById('reg-name')?.value.trim() || '';
+    const phone = document.getElementById('reg-phone')?.value.trim() || '';
+    const address = document.getElementById('reg-address')?.value.trim() || '';
+    const pass = document.getElementById('reg-pass')?.value.trim() || '';
+    const question = document.getElementById('reg-q')?.value.trim() || '';
+    const answer = document.getElementById('reg-a')?.value.trim() || '';
 
     let users = getDB('pro_users');
     if (users.some(u => u.phone === phone)) {
@@ -129,28 +131,31 @@ function proLogout() {
 let targetUserForReset = null;
 
 function fetchSecurityQuestion() {
-    const phone = document.getElementById('reset-phone').value.trim();
+    const phone = document.getElementById('reset-phone')?.value.trim() || '';
     const users = getDB('pro_users');
     targetUserForReset = users.find(u => u.phone === phone);
 
     if (targetUserForReset) {
-        document.getElementById('display-q').innerText = `Pergunta: ${targetUserForReset.question}`;
-        document.getElementById('reset-step-2').style.display = 'block';
+        const qEl = document.getElementById('display-q');
+        if (qEl) qEl.innerText = `Pergunta: ${targetUserForReset.question}`;
+        
+        const step2 = document.getElementById('reset-step-2');
+        if (step2) step2.style.display = 'block';
     } else {
         alert('Telefone não encontrado no cadastro.');
     }
 }
 
 function executePasswordReset() {
-    const answer = document.getElementById('reset-a').value.trim().toLowerCase();
-    const newPass = document.getElementById('reset-new-pass').value.trim();
+    const answer = document.getElementById('reset-a')?.value.trim().toLowerCase() || '';
+    const newPass = document.getElementById('reset-new-pass')?.value.trim() || '';
 
     if (!answer || !newPass) {
         alert('Preencha todos os campos!');
         return;
     }
 
-    if (hashString(answer) === targetUserForReset.answerHash) {
+    if (targetUserForReset && hashString(answer) === targetUserForReset.answerHash) {
         let users = getDB('pro_users');
         let idx = users.findIndex(u => u.phone === targetUserForReset.phone);
         if (idx !== -1) {
@@ -191,11 +196,10 @@ async function loadProDashboard() {
         console.warn('Aviso ao carregar dashboard:', err);
     }
 }
-}
 
 function addTimeSlot() {
-    const date = document.getElementById('slot-date').value;
-    const time = document.getElementById('slot-time').value;
+    const date = document.getElementById('slot-date')?.value;
+    const time = document.getElementById('slot-time')?.value;
     const phone = localStorage.getItem('active_pro_user');
 
     if (!date || !time) {
@@ -207,7 +211,8 @@ function addTimeSlot() {
     slots.push({ id: Date.now(), proPhone: phone, date, time, booked: false });
     setDB('slots', slots);
 
-    document.getElementById('slot-time').value = '';
+    const timeEl = document.getElementById('slot-time');
+    if (timeEl) timeEl.value = '';
     renderSlots();
 }
 
@@ -259,44 +264,48 @@ async function renderBookingsPro() {
 
     if (!container || !proPhone) return;
 
-    const { data: bookings, error } = await _supabase
-        .from('agendamentos')
-        .select('*')
-        .eq('pro_id', proPhone);
+    try {
+        const { data: bookings, error } = await _supabase
+            .from('agendamentos')
+            .select('*')
+            .eq('pro_id', proPhone);
 
-    if (error) {
-        container.innerHTML = '<p class="text-danger small">Erro ao carregar agendamentos do banco remoto.</p>';
-        return;
-    }
+        if (error) {
+            container.innerHTML = '<p class="text-danger small">Erro ao carregar agendamentos do banco remoto.</p>';
+            return;
+        }
 
-    if (!bookings || bookings.length === 0) {
-        container.innerHTML = '<p class="text-muted">Nenhum agendamento confirmado no momento.</p>';
-        return;
-    }
+        if (!bookings || bookings.length === 0) {
+            container.innerHTML = '<p class="text-muted">Nenhum agendamento confirmado no momento.</p>';
+            return;
+        }
 
-    container.innerHTML = bookings.map(b => {
-        const val = parsePriceValue(b);
-        const horarioFormatado = formatHorario(b.horario);
-        const clienteNome = b.nome || b.cliente_nome || 'Cliente sem nome';
-        const clienteTel = b.telefone || b.cliente_telefone || 'Não informado';
-        const servicoNome = b.servico || b.servico_nome || 'Atendimento';
+        container.innerHTML = bookings.map(b => {
+            const val = parsePriceValue(b);
+            const horarioFormatado = formatHorario(b.horario);
+            const clienteNome = b.nome || b.cliente_nome || 'Cliente sem nome';
+            const clienteTel = b.telefone || b.cliente_telefone || 'Não informado';
+            const servicoNome = b.servico || b.servico_nome || 'Atendimento';
 
-        return `
-            <div class="card mb-2 p-3 border-start border-4 border-pink shadow-sm">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h5 class="mb-1 text-pink fw-bold">${clienteNome}</h5>
-                    <span class="badge bg-primary fs-6"><i class="fa-regular fa-clock me-1"></i>${horarioFormatado}</span>
+            return `
+                <div class="card mb-2 p-3 border-start border-4 border-pink shadow-sm">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-1 text-pink fw-bold">${clienteNome}</h5>
+                        <span class="badge bg-primary fs-6"><i class="fa-regular fa-clock me-1"></i>${horarioFormatado}</span>
+                    </div>
+                    <p class="mb-1"><strong>Telefone:</strong> ${clienteTel}</p>
+                    <p class="mb-0"><strong>Serviço:</strong> ${servicoNome} - <span class="text-success fw-bold">R$ ${val.toFixed(2)}</span></p>
                 </div>
-                <p class="mb-1"><strong>Telefone:</strong> ${clienteTel}</p>
-                <p class="mb-0"><strong>Serviço:</strong> ${servicoNome} - <span class="text-success fw-bold">R$ ${val.toFixed(2)}</span></p>
-            </div>
-        `;
-    }).join('');
+            `;
+        }).join('');
+    } catch (e) {
+        console.warn('Erro na consulta do Supabase:', e);
+    }
 }
 
 function addExpense() {
-    const desc = document.getElementById('expense-desc').value.trim();
-    const val = parseFloat(document.getElementById('expense-val').value);
+    const desc = document.getElementById('expense-desc')?.value.trim() || '';
+    const val = parseFloat(document.getElementById('expense-val')?.value || 0);
     const phone = localStorage.getItem('active_pro_user');
 
     if (!desc || isNaN(val)) {
@@ -308,8 +317,11 @@ function addExpense() {
     expenses.push({ proPhone: phone, desc, val, date: getLocalDateString() });
     setDB('expenses', expenses);
 
-    document.getElementById('expense-desc').value = '';
-    document.getElementById('expense-val').value = '';
+    const descEl = document.getElementById('expense-desc');
+    const valEl = document.getElementById('expense-val');
+    if (descEl) descEl.value = '';
+    if (valEl) valEl.value = '';
+    
     calculateFinances();
 }
 
@@ -317,10 +329,16 @@ async function calculateFinances() {
     const phone = localStorage.getItem('active_pro_user');
     const expenses = getDB('expenses').filter(e => e.proPhone === phone);
 
-    const { data: bookings } = await _supabase
-        .from('agendamentos')
-        .select('*')
-        .eq('pro_id', phone);
+    let bookings = [];
+    try {
+        const res = await _supabase
+            .from('agendamentos')
+            .select('*')
+            .eq('pro_id', phone);
+        if (res.data) bookings = res.data;
+    } catch (e) {
+        console.warn('Erro ao consultar finanças no Supabase:', e);
+    }
 
     const todayStr = getLocalDateString();
     const monthStr = todayStr.substring(0, 7);
@@ -356,10 +374,15 @@ async function calculateFinances() {
         if (e.date.startsWith(monthStr)) monthOut += eVal;
     });
 
-    document.getElementById('fin-day-in').innerText = `R$ ${dayIn.toFixed(2)}`;
-    document.getElementById('fin-day-out').innerText = `R$ ${dayOut.toFixed(2)}`;
-    document.getElementById('fin-month-total').innerText = `R$ ${(monthIn - monthOut).toFixed(2)}`;
-    document.getElementById('fin-month-count').innerText = monthCount;
+    const dayInEl = document.getElementById('fin-day-in');
+    const dayOutEl = document.getElementById('fin-day-out');
+    const monthTotalEl = document.getElementById('fin-month-total');
+    const monthCountEl = document.getElementById('fin-month-count');
+
+    if (dayInEl) dayInEl.innerText = `R$ ${dayIn.toFixed(2)}`;
+    if (dayOutEl) dayOutEl.innerText = `R$ ${dayOut.toFixed(2)}`;
+    if (monthTotalEl) monthTotalEl.innerText = `R$ ${(monthIn - monthOut).toFixed(2)}`;
+    if (monthCountEl) monthCountEl.innerText = monthCount;
 }
 
 // Inicialização
