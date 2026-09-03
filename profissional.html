@@ -392,7 +392,22 @@ function toggleEditAddress() {
     }
 }
 
-// --- GERENCIAMENTO DE SERVIÇOS INTEGRADOS AO SUPABASE ---
+// --- GERENCIAMENTO DE SERVIÇOS INTEGRADOS AO SUPABASE E LOCALSTORAGE ---
+const DEFAULT_SERVICES = [
+    "Aplicação de Alongamento",
+    "Manutenção de Alongamento",
+    "Remoção de Alongamento",
+    "Esmaltação em Gel",
+    "Manicure Tradicional",
+    "Esmaltação Francesa",
+    "Nail Art",
+    "Decoração Encapsulada",
+    "Pedicure Tradicional",
+    "Esmaltação em Gel nos Pés",
+    "Spa dos Pés",
+    "Plástica dos Pés"
+];
+
 async function addService() {
     const name = document.getElementById('service-name')?.value.trim();
     const price = parseFloat(document.getElementById('service-price')?.value || 0);
@@ -400,14 +415,15 @@ async function addService() {
 
     if (!name || isNaN(price) || price <= 0) return alert("Informe um nome e um valor válido!");
 
-    // Salva no Supabase para o cliente conseguir visualizar
-    const { error } = await _supabase.from('servicos').insert([{ pro_id: phone, nome: name, preco: price }]);
-    if (error) {
-        // Fallback local se a tabela não existir no Supabase
-        let services = getDB('pro_services');
-        services.push({ id: Date.now(), proPhone: phone, name, price });
-        setDB('pro_services', services);
-    }
+    const newServ = { id: Date.now(), proPhone: phone, name, price, active: true };
+    
+    // Tenta salvar no Supabase
+    const { error } = await _supabase.from('servicos').insert([{ pro_id: phone, nome: name, preco: price, active: true }]);
+    
+    // Salva/Atualiza localmente
+    let localServices = getDB('pro_services');
+    localServices.push(newServ);
+    setDB('pro_services', localServices);
 
     document.getElementById('service-name').value = '';
     document.getElementById('service-price').value = '';
@@ -419,33 +435,99 @@ async function renderServices() {
     const list = document.getElementById('services-list');
     if (!list) return;
 
-    // Busca do Supabase e do LocalStorage
-    const { data: dbServices } = await _supabase.from('servicos').select('*').eq('pro_id', phone);
-    const localServices = getDB('pro_services').filter(s => s.proPhone === phone);
-    
-    let services = dbServices && dbServices.length > 0 
-        ? dbServices.map(s => ({ id: s.id, name: s.nome, price: s.preco, isSupabase: true }))
-        : localServices.map(s => ({ id: s.id, name: s.name, price: s.price, isSupabase: false }));
+    let { data: dbServices } = await _supabase.from('servicos').select('*').eq('pro_id', phone);
+    let localServices = getDB('pro_services').filter(s => s.proPhone === phone);
 
-    if (services.length === 0) {
-        list.innerHTML = '<li class="list-group-item text-muted">Nenhum serviço cadastrado.</li>';
-        return;
+    let services = [];
+
+    if (dbServices && dbServices.length > 0) {
+        services = dbServices.map(s => ({ 
+            id: s.id, 
+            name: s.nome || s.name, 
+            price: s.preco ?? s.price, 
+            active: s.active !== false,
+            isSupabase: true 
+        }));
+    } else if (localServices.length > 0) {
+        services = localServices.map(s => ({ 
+            id: s.id, 
+            name: s.name, 
+            price: s.price, 
+            active: s.active !== false,
+            isSupabase: false 
+        }));
+    } else {
+        // Se não houver nada salvo ainda, inicializa os serviços padrões
+        services = DEFAULT_SERVICES.map((name, index) => ({
+            id: Date.now() + index,
+            proPhone: phone,
+            name: name,
+            price: 50.00,
+            active: true,
+            isSupabase: false
+        }));
+        setDB('pro_services', services);
     }
 
     list.innerHTML = services.map(s => `
-        <li class="list-group-item d-flex justify-content-between align-items-center">
-            <span><strong>${s.name}</strong> - <span class="text-success fw-bold">R$ ${parseFloat(s.price).toFixed(2)}</span></span>
-            <button onclick="removeService('${s.id}', ${s.isSupabase})" class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash"></i> Excluir</button>
+        <li class="list-group-item d-flex justify-content-between align-items-center ${!s.active ? 'bg-light text-muted' : ''}">
+            <div>
+                <strong>${s.name}</strong> 
+                <span class="${s.active ? 'text-success' : 'text-muted'} fw-bold ms-2">R$ ${parseFloat(s.price).toFixed(2)}</span>
+                ${!s.active ? '<span class="badge bg-secondary ms-2">Inativo</span>' : ''}
+            </div>
+            <div>
+                <button onclick="editServicePrice('${s.id}', ${s.price}, ${s.isSupabase})" class="btn btn-sm btn-outline-primary me-1"><i class="fa-solid fa-pen"></i> Editar Valor</button>
+                <button onclick="toggleServiceActive('${s.id}', ${s.active}, ${s.isSupabase})" class="btn btn-sm ${s.active ? 'btn-outline-warning' : 'btn-outline-success'} me-1">
+                    <i class="fa-solid ${s.active ? 'fa-eye-slash' : 'fa-eye'}"></i> ${s.active ? 'Desativar' : 'Ativar'}
+                </button>
+                <button onclick="removeService('${s.id}', ${s.isSupabase})" class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash"></i> Excluir</button>
+            </div>
         </li>
     `).join('');
+}
+
+async function editServicePrice(id, currentPrice, isSupabase) {
+    const newPriceStr = prompt("Informe o novo valor para este serviço (R$):", parseFloat(currentPrice).toFixed(2));
+    if (!newPriceStr) return;
+    
+    const newPrice = parseFloat(newPriceStr.replace(',', '.'));
+    if (isNaN(newPrice) || newPrice <= 0) return alert("Valor inválido.");
+
+    if (isSupabase) {
+        await _supabase.from('servicos').update({ preco: newPrice }).eq('id', id);
+    }
+    
+    let localServices = getDB('pro_services');
+    let idx = localServices.findIndex(s => s.id == id);
+    if (idx !== -1) {
+        localServices[idx].price = newPrice;
+        setDB('pro_services', localServices);
+    }
+    renderServices();
+}
+
+async function toggleServiceActive(id, currentActive, isSupabase) {
+    const newActiveState = !currentActive;
+
+    if (isSupabase) {
+        await _supabase.from('servicos').update({ active: newActiveState }).eq('id', id);
+    }
+
+    let localServices = getDB('pro_services');
+    let idx = localServices.findIndex(s => s.id == id);
+    if (idx !== -1) {
+        localServices[idx].active = newActiveState;
+        setDB('pro_services', localServices);
+    }
+    renderServices();
 }
 
 async function removeService(id, isSupabase) {
     if (isSupabase) {
         await _supabase.from('servicos').delete().eq('id', id);
-    } else {
-        setDB('pro_services', getDB('pro_services').filter(s => s.id != id));
     }
+    setDB('pro_services', getDB('pro_services').filter(s => s.id != id));
     renderServices();
 }
 
