@@ -415,12 +415,22 @@ async function addService() {
 
     if (!name || isNaN(price) || price <= 0) return alert("Informe um nome e um valor válido!");
 
-    const newServ = { id: Date.now(), proPhone: phone, name, price, active: true };
-    
-    // Salva no Supabase
-    await _supabase.from('servicos').insert([{ pro_id: phone, nome: name, preco: price, active: true }]);
-    
-    // Salva/Atualiza localmente
+    // Salva no Supabase e recupera o objeto gerado para pegar o ID correto
+    const { data, error } = await _supabase.from('servicos').insert([{ pro_id: phone, nome: name, preco: price, active: true }]).select();
+
+    if (error) {
+        console.error("Erro ao adicionar no Supabase:", error);
+    }
+
+    const insertedService = (data && data.length > 0) ? data[0] : null;
+    const newServ = { 
+        id: insertedService ? insertedService.id : Date.now(), 
+        proPhone: phone, 
+        name, 
+        price, 
+        active: true 
+    };
+
     let localServices = getDB('pro_services');
     localServices.push(newServ);
     setDB('pro_services', localServices);
@@ -435,7 +445,7 @@ async function renderServices() {
     const list = document.getElementById('services-list');
     if (!list) return;
 
-    let { data: dbServices } = await _supabase.from('servicos').select('*').eq('pro_id', phone);
+    let { data: dbServices, error } = await _supabase.from('servicos').select('*').eq('pro_id', phone);
     let localServices = getDB('pro_services').filter(s => s.proPhone === phone);
 
     let services = [];
@@ -447,6 +457,8 @@ async function renderServices() {
             price: s.preco ?? s.price, 
             active: s.active !== false
         }));
+        // Atualiza cache local com os dados vindos do Supabase
+        setDB('pro_services', services.map(s => ({ ...s, proPhone: phone })));
     } else {
         const initialServices = DEFAULT_SERVICES.map(name => ({
             pro_id: phone,
@@ -464,6 +476,7 @@ async function renderServices() {
                 price: s.preco,
                 active: s.active
             }));
+            setDB('pro_services', services.map(s => ({ ...s, proPhone: phone })));
         } else if (localServices.length > 0) {
             services = localServices.map(s => ({ 
                 id: s.id, 
@@ -485,6 +498,7 @@ async function renderServices() {
 
     list.innerHTML = services.map(s => {
         const idParam = typeof s.id === 'string' ? `'${s.id}'` : s.id;
+        const nameEscaped = s.name.replace(/'/g, "\\'");
         return `
         <li class="list-group-item d-flex justify-content-between align-items-center ${!s.active ? 'bg-light text-muted' : ''}">
             <div>
@@ -493,17 +507,17 @@ async function renderServices() {
                 ${!s.active ? '<span class="badge bg-secondary ms-2">Inativo</span>' : ''}
             </div>
             <div>
-                <button onclick="editServicePrice(${idParam}, ${s.price})" class="btn btn-sm btn-outline-primary me-1"><i class="fa-solid fa-pen"></i> Editar Valor</button>
-                <button onclick="toggleServiceActive(${idParam}, ${s.active})" class="btn btn-sm ${s.active ? 'btn-outline-warning' : 'btn-outline-success'} me-1">
+                <button onclick="editServicePrice(${idParam}, ${s.price}, '${nameEscaped}')" class="btn btn-sm btn-outline-primary me-1"><i class="fa-solid fa-pen"></i> Editar Valor</button>
+                <button onclick="toggleServiceActive(${idParam}, ${s.active}, '${nameEscaped}')" class="btn btn-sm ${s.active ? 'btn-outline-warning' : 'btn-outline-success'} me-1">
                     <i class="fa-solid ${s.active ? 'fa-eye-slash' : 'fa-eye'}"></i> ${s.active ? 'Desativar' : 'Ativar'}
                 </button>
-                <button onclick="removeService(${idParam})" class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash"></i> Excluir</button>
+                <button onclick="removeService(${idParam}, '${nameEscaped}')" class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash"></i> Excluir</button>
             </div>
         </li>
     `}).join('');
 }
 
-async function editServicePrice(id, currentPrice) {
+async function editServicePrice(id, currentPrice, serviceName) {
     const newPriceStr = prompt("Informe o novo valor para este serviço (R$):", parseFloat(currentPrice).toFixed(2));
     if (!newPriceStr) return;
     
@@ -512,16 +526,17 @@ async function editServicePrice(id, currentPrice) {
 
     const phone = localStorage.getItem('active_pro_user');
 
-    // Atualiza no Supabase garantindo filtro por pro_id ou id
-    const { error } = await _supabase.from('servicos').update({ preco: newPrice }).eq('id', id);
+    // Tenta atualizar pelo ID e também garante pelo pro_id e nome caso o ID local seja divergente
+    let { error } = await _supabase.from('servicos').update({ preco: newPrice }).eq('id', id);
 
     if (error) {
-        console.error("Erro ao atualizar preço no Supabase:", error);
+        console.warn("Erro ao atualizar por ID, tentando atualizar por pro_id e nome:", error);
+        await _supabase.from('servicos').update({ preco: newPrice }).eq('pro_id', phone).eq('nome', serviceName);
     }
     
     // Atualiza localmente
     let localServices = getDB('pro_services');
-    let idx = localServices.findIndex(s => s.id == id);
+    let idx = localServices.findIndex(s => s.id == id || (s.name === serviceName && s.proPhone === phone));
     if (idx !== -1) {
         localServices[idx].price = newPrice;
         setDB('pro_services', localServices);
@@ -529,13 +544,17 @@ async function editServicePrice(id, currentPrice) {
     await renderServices();
 }
 
-async function toggleServiceActive(id, currentActive) {
+async function toggleServiceActive(id, currentActive, serviceName) {
     const newActiveState = !currentActive;
+    const phone = localStorage.getItem('active_pro_user');
 
-    await _supabase.from('servicos').update({ active: newActiveState }).eq('id', id);
+    let { error } = await _supabase.from('servicos').update({ active: newActiveState }).eq('id', id);
+    if (error) {
+        await _supabase.from('servicos').update({ active: newActiveState }).eq('pro_id', phone).eq('nome', serviceName);
+    }
 
     let localServices = getDB('pro_services');
-    let idx = localServices.findIndex(s => s.id == id);
+    let idx = localServices.findIndex(s => s.id == id || (s.name === serviceName && s.proPhone === phone));
     if (idx !== -1) {
         localServices[idx].active = newActiveState;
         setDB('pro_services', localServices);
@@ -543,9 +562,15 @@ async function toggleServiceActive(id, currentActive) {
     await renderServices();
 }
 
-async function removeService(id) {
-    await _supabase.from('servicos').delete().eq('id', id);
-    setDB('pro_services', getDB('pro_services').filter(s => s.id != id));
+async function removeService(id, serviceName) {
+    const phone = localStorage.getItem('active_pro_user');
+    
+    let { error } = await _supabase.from('servicos').delete().eq('id', id);
+    if (error) {
+        await _supabase.from('servicos').delete().eq('pro_id', phone).eq('nome', serviceName);
+    }
+    
+    setDB('pro_services', getDB('pro_services').filter(s => s.id != id && s.name !== serviceName));
     await renderServices();
 }
 
