@@ -567,6 +567,10 @@ async function calculateFinances() {
     const expenses = getDB('expenses').filter(e => e.proPhone === phone);
     const { data: bookings } = await _supabase.from('agendamentos').select('*').eq('pro_id', phone);
 
+    // Busca serviços para cruzar os valores caso o registro do agendamento não traga o preço explicitamente
+    const { data: dbServices } = await _supabase.from('servicos').select('*').eq('pro_id', phone);
+    const localServices = getDB('pro_services').filter(s => s.proPhone === phone);
+
     const todayStr = getLocalDateString();
     const monthStr = todayStr.substring(0, 7);
 
@@ -574,7 +578,19 @@ async function calculateFinances() {
 
     if (bookings) {
         bookings.forEach(b => {
-            const price = parsePriceValue(b);
+            let price = parsePriceValue(b);
+
+            // Caso parsePriceValue retorne 0, tenta relacionar o nome do serviço cadastrado com o agendamento
+            if (price === 0 && b.servico) {
+                const foundDb = dbServices?.find(s => s.nome && b.servico.toLowerCase().includes(s.nome.toLowerCase()));
+                if (foundDb) {
+                    price = parseFloat(foundDb.preco || 0);
+                } else {
+                    const foundLocal = localServices.find(s => s.name && b.servico.toLowerCase().includes(s.name.toLowerCase()));
+                    if (foundLocal) price = parseFloat(foundLocal.price || 0);
+                }
+            }
+
             let bDateObj = parseBookingDate(b.horario);
             let bDate = bDateObj ? getLocalDateString(bDateObj) : "";
             
