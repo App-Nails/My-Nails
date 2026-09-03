@@ -127,6 +127,23 @@
             </div>
         </div>
 
+        <!-- Meus Serviços & Valores -->
+        <div class="card p-3 shadow-sm mb-4">
+            <h5 class="mb-3">Meus Serviços e Valores</h5>
+            <div class="row g-2 mb-3">
+                <div class="col-md-6">
+                    <input type="text" id="service-name" class="form-control" placeholder="Nome do Serviço (ex: Escova, Corte)">
+                </div>
+                <div class="col-md-4">
+                    <input type="number" id="service-price" class="form-control" placeholder="Valor (R$)">
+                </div>
+                <div class="col-md-2">
+                    <button onclick="addService()" class="btn btn-success w-100"><i class="fa-solid fa-plus me-1"></i>Adicionar</button>
+                </div>
+            </div>
+            <ul id="services-list" class="list-group list-group-flush"></ul>
+        </div>
+
         <!-- Horários & Agendamentos -->
         <div class="row g-3 mb-4">
             <div class="col-md-6">
@@ -343,6 +360,7 @@ async function loadProDashboard() {
         const addrEl = document.getElementById('dash-address');
         if (addrEl) addrEl.value = user.address || '';
 
+        renderServices();
         renderSlots();
         await renderBookingsPro();
         await calculateFinances();
@@ -380,6 +398,47 @@ function toggleEditAddress() {
             setDB('pro_users', users);
         }
     }
+}
+
+// GESTÃO DE SERVIÇOS
+function addService() {
+    const name = document.getElementById('service-name')?.value.trim();
+    const price = parseFloat(document.getElementById('service-price')?.value || 0);
+    const phone = localStorage.getItem('active_pro_user');
+
+    if (!name || isNaN(price) || price <= 0) return alert("Informe um nome e um valor válido para o serviço!");
+
+    let services = getDB('pro_services');
+    services.push({ id: Date.now(), proPhone: phone, name, price });
+    setDB('pro_services', services);
+
+    document.getElementById('service-name').value = '';
+    document.getElementById('service-price').value = '';
+    renderServices();
+}
+
+function renderServices() {
+    const phone = localStorage.getItem('active_pro_user');
+    const services = getDB('pro_services').filter(s => s.proPhone === phone);
+    const list = document.getElementById('services-list');
+    if (!list) return;
+
+    if (services.length === 0) {
+        list.innerHTML = '<li class="list-group-item text-muted">Nenhum serviço cadastrado.</li>';
+        return;
+    }
+
+    list.innerHTML = services.map(s => `
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <span><strong>${s.name}</strong> - <span class="text-success fw-bold">R$ ${parseFloat(s.price).toFixed(2)}</span></span>
+            <button onclick="removeService(${s.id})" class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash"></i> Excluir</button>
+        </li>
+    `).join('');
+}
+
+function removeService(id) {
+    setDB('pro_services', getDB('pro_services').filter(s => s.id !== id));
+    renderServices();
 }
 
 function addTimeSlot() {
