@@ -417,8 +417,8 @@ async function addService() {
 
     const newServ = { id: Date.now(), proPhone: phone, name, price, active: true };
     
-    // Tenta salvar no Supabase
-    const { error } = await _supabase.from('servicos').insert([{ pro_id: phone, nome: name, preco: price, active: true }]);
+    // Salva no Supabase
+    await _supabase.from('servicos').insert([{ pro_id: phone, nome: name, preco: price, active: true }]);
     
     // Salva/Atualiza localmente
     let localServices = getDB('pro_services');
@@ -427,7 +427,7 @@ async function addService() {
 
     document.getElementById('service-name').value = '';
     document.getElementById('service-price').value = '';
-    renderServices();
+    await renderServices();
 }
 
 async function renderServices() {
@@ -448,25 +448,44 @@ async function renderServices() {
             active: s.active !== false,
             isSupabase: true 
         }));
-    } else if (localServices.length > 0) {
-        services = localServices.map(s => ({ 
-            id: s.id, 
-            name: s.name, 
-            price: s.price, 
-            active: s.active !== false,
-            isSupabase: false 
-        }));
     } else {
-        // Se não houver nada salvo ainda, inicializa os serviços padrões
-        services = DEFAULT_SERVICES.map((name, index) => ({
-            id: Date.now() + index,
-            proPhone: phone,
-            name: name,
-            price: 50.00,
-            active: true,
-            isSupabase: false
+        // Se não houver no banco de dados, insere os padrões no Supabase para sincronizar com o cliente
+        const initialServices = DEFAULT_SERVICES.map(name => ({
+            pro_id: phone,
+            nome: name,
+            preco: 50.00,
+            active: true
         }));
-        setDB('pro_services', services);
+        
+        const { data: createdDbServices } = await _supabase.from('servicos').insert(initialServices).select();
+
+        if (createdDbServices && createdDbServices.length > 0) {
+            services = createdDbServices.map(s => ({
+                id: s.id,
+                name: s.nome,
+                price: s.preco,
+                active: s.active,
+                isSupabase: true
+            }));
+        } else if (localServices.length > 0) {
+            services = localServices.map(s => ({ 
+                id: s.id, 
+                name: s.name, 
+                price: s.price, 
+                active: s.active !== false,
+                isSupabase: false 
+            }));
+        } else {
+            services = DEFAULT_SERVICES.map((name, index) => ({
+                id: Date.now() + index,
+                proPhone: phone,
+                name: name,
+                price: 50.00,
+                active: true,
+                isSupabase: false
+            }));
+            setDB('pro_services', services);
+        }
     }
 
     list.innerHTML = services.map(s => `
@@ -494,7 +513,8 @@ async function editServicePrice(id, currentPrice, isSupabase) {
     const newPrice = parseFloat(newPriceStr.replace(',', '.'));
     if (isNaN(newPrice) || newPrice <= 0) return alert("Valor inválido.");
 
-    if (isSupabase) {
+    // Atualiza no Supabase garantindo que a alteração reflita no cliente
+    if (isSupabase || isNaN(id) === false) {
         await _supabase.from('servicos').update({ preco: newPrice }).eq('id', id);
     }
     
@@ -504,7 +524,7 @@ async function editServicePrice(id, currentPrice, isSupabase) {
         localServices[idx].price = newPrice;
         setDB('pro_services', localServices);
     }
-    renderServices();
+    await renderServices();
 }
 
 async function toggleServiceActive(id, currentActive, isSupabase) {
@@ -520,7 +540,7 @@ async function toggleServiceActive(id, currentActive, isSupabase) {
         localServices[idx].active = newActiveState;
         setDB('pro_services', localServices);
     }
-    renderServices();
+    await renderServices();
 }
 
 async function removeService(id, isSupabase) {
@@ -528,7 +548,7 @@ async function removeService(id, isSupabase) {
         await _supabase.from('servicos').delete().eq('id', id);
     }
     setDB('pro_services', getDB('pro_services').filter(s => s.id != id));
-    renderServices();
+    await renderServices();
 }
 
 // --- GERENCIAMENTO DE HORÁRIOS INTEGRADOS AO SUPABASE ---
