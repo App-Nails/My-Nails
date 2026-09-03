@@ -32,8 +32,8 @@
                     </div>
                     <button onclick="proLogin()" class="btn btn-danger w-100 mb-2">Entrar</button>
                     <div class="d-flex justify-content-between">
-                        <a href="#" onclick="navigate('pro-register-view', event)" class="small text-muted">Criar conta</a>
-                        <a href="#" onclick="navigate('pro-forgot-view', event)" class="small text-muted">Esqueci a senha</a>
+                        <a href="#" onclick="navigate('pro-register-view')" class="small text-muted">Criar conta</a>
+                        <a href="#" onclick="navigate('pro-forgot-view')" class="small text-muted">Esqueci a senha</a>
                     </div>
                 </div>
             </div>
@@ -127,19 +127,13 @@
             </div>
         </div>
 
-        <!-- Meus Serviços & Valores -->
+        <!-- Cadastrar Serviços -->
         <div class="card p-3 shadow-sm mb-4">
             <h5 class="mb-3">Meus Serviços e Valores</h5>
             <div class="row g-2 mb-3">
-                <div class="col-md-6">
-                    <input type="text" id="service-name" class="form-control" placeholder="Nome do Serviço (ex: Escova, Corte)">
-                </div>
-                <div class="col-md-4">
-                    <input type="number" id="service-price" class="form-control" placeholder="Valor (R$)">
-                </div>
-                <div class="col-md-2">
-                    <button onclick="addService()" class="btn btn-success w-100"><i class="fa-solid fa-plus me-1"></i>Adicionar</button>
-                </div>
+                <div class="col-md-6"><input type="text" id="service-name" class="form-control" placeholder="Nome do Serviço (ex: Escova, Corte)"></div>
+                <div class="col-md-4"><input type="number" id="service-price" class="form-control" placeholder="Valor (R$)"></div>
+                <div class="col-md-2"><button onclick="addService()" class="btn btn-success w-100"><i class="fa-solid fa-plus me-1"></i>Adicionar</button></div>
             </div>
             <ul id="services-list" class="list-group list-group-flush"></ul>
         </div>
@@ -177,16 +171,6 @@ const SUPABASE_URL = 'https://zvxcakqpbrpfdsvhuhbh.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_41upAZ0wW1NC4i3zTnkU9Q_gF8Tc4Ry';
 const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// FUNÇÃO DE NAVEGAÇÃO ENTRE AS VIEWS
-function navigate(viewId, event) {
-    if (event) event.preventDefault();
-    const views = ['pro-login-view', 'pro-register-view', 'pro-forgot-view', 'pro-dashboard-view'];
-    views.forEach(v => {
-        const el = document.getElementById(v);
-        if (el) el.style.display = (v === viewId) ? 'block' : 'none';
-    });
-}
-
 function getDB(key) { return JSON.parse(localStorage.getItem(key)) || []; }
 function setDB(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
 
@@ -210,10 +194,10 @@ function getLocalDateString(d = new Date()) {
 function parseBookingDate(horario) {
     if (!horario) return null;
     if (!isNaN(horario)) return new Date(Number(horario));
-
+    
     let d = new Date(horario);
     if (!isNaN(d.getTime())) return d;
-
+    
     if (typeof horario === 'string' && horario.includes('/')) {
         const parts = horario.split(' ');
         const dateParts = parts[0].split('/');
@@ -253,6 +237,14 @@ function parsePriceValue(booking) {
     }
 
     return 0;
+}
+
+function navigate(viewId) {
+    const views = ['pro-login-view', 'pro-register-view', 'pro-forgot-view', 'pro-dashboard-view'];
+    views.forEach(v => {
+        const el = document.getElementById(v);
+        if (el) el.style.display = (v === viewId) ? 'block' : 'none';
+    });
 }
 
 async function proLogin() {
@@ -360,8 +352,8 @@ async function loadProDashboard() {
         const addrEl = document.getElementById('dash-address');
         if (addrEl) addrEl.value = user.address || '';
 
-        renderServices();
-        renderSlots();
+        await renderServices();
+        await renderSlots();
         await renderBookingsPro();
         await calculateFinances();
     } catch (e) {
@@ -400,28 +392,40 @@ function toggleEditAddress() {
     }
 }
 
-// GESTÃO DE SERVIÇOS
-function addService() {
+// --- GERENCIAMENTO DE SERVIÇOS INTEGRADOS AO SUPABASE ---
+async function addService() {
     const name = document.getElementById('service-name')?.value.trim();
     const price = parseFloat(document.getElementById('service-price')?.value || 0);
     const phone = localStorage.getItem('active_pro_user');
 
-    if (!name || isNaN(price) || price <= 0) return alert("Informe um nome e um valor válido para o serviço!");
+    if (!name || isNaN(price) || price <= 0) return alert("Informe um nome e um valor válido!");
 
-    let services = getDB('pro_services');
-    services.push({ id: Date.now(), proPhone: phone, name, price });
-    setDB('pro_services', services);
+    // Salva no Supabase para o cliente conseguir visualizar
+    const { error } = await _supabase.from('servicos').insert([{ pro_id: phone, nome: name, preco: price }]);
+    if (error) {
+        // Fallback local se a tabela não existir no Supabase
+        let services = getDB('pro_services');
+        services.push({ id: Date.now(), proPhone: phone, name, price });
+        setDB('pro_services', services);
+    }
 
     document.getElementById('service-name').value = '';
     document.getElementById('service-price').value = '';
     renderServices();
 }
 
-function renderServices() {
+async function renderServices() {
     const phone = localStorage.getItem('active_pro_user');
-    const services = getDB('pro_services').filter(s => s.proPhone === phone);
     const list = document.getElementById('services-list');
     if (!list) return;
+
+    // Busca do Supabase e do LocalStorage
+    const { data: dbServices } = await _supabase.from('servicos').select('*').eq('pro_id', phone);
+    const localServices = getDB('pro_services').filter(s => s.proPhone === phone);
+    
+    let services = dbServices && dbServices.length > 0 
+        ? dbServices.map(s => ({ id: s.id, name: s.nome, price: s.preco, isSupabase: true }))
+        : localServices.map(s => ({ id: s.id, name: s.name, price: s.price, isSupabase: false }));
 
     if (services.length === 0) {
         list.innerHTML = '<li class="list-group-item text-muted">Nenhum serviço cadastrado.</li>';
@@ -431,23 +435,34 @@ function renderServices() {
     list.innerHTML = services.map(s => `
         <li class="list-group-item d-flex justify-content-between align-items-center">
             <span><strong>${s.name}</strong> - <span class="text-success fw-bold">R$ ${parseFloat(s.price).toFixed(2)}</span></span>
-            <button onclick="removeService(${s.id})" class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash"></i> Excluir</button>
+            <button onclick="removeService('${s.id}', ${s.isSupabase})" class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash"></i> Excluir</button>
         </li>
     `).join('');
 }
 
-function removeService(id) {
-    setDB('pro_services', getDB('pro_services').filter(s => s.id !== id));
+async function removeService(id, isSupabase) {
+    if (isSupabase) {
+        await _supabase.from('servicos').delete().eq('id', id);
+    } else {
+        setDB('pro_services', getDB('pro_services').filter(s => s.id != id));
+    }
     renderServices();
 }
 
-function addTimeSlot() {
+// --- GERENCIAMENTO DE HORÁRIOS INTEGRADOS AO SUPABASE ---
+async function addTimeSlot() {
     const date = document.getElementById('slot-date')?.value;
     const time = document.getElementById('slot-time')?.value;
     const phone = localStorage.getItem('active_pro_user');
 
     if (!date || !time) return alert("Selecione data e horário!");
 
+    const formattedSlot = `${date.split('-').reverse().join('/')} às ${time}`;
+
+    // Salva no Supabase para o cliente ver no Select de horários
+    const { error } = await _supabase.from('horarios_disponiveis').insert([{ pro_id: phone, data: date, hora: time, texto: formattedSlot, booked: false }]);
+    
+    // Salva localmente como segurança
     let slots = getDB('slots');
     slots.push({ id: Date.now(), proPhone: phone, date, time, booked: false });
     setDB('slots', slots);
@@ -456,11 +471,17 @@ function addTimeSlot() {
     renderSlots();
 }
 
-function renderSlots() {
+async function renderSlots() {
     const phone = localStorage.getItem('active_pro_user');
-    const slots = getDB('slots').filter(s => s.proPhone === phone && !s.booked);
     const list = document.getElementById('slots-list');
     if (!list) return;
+
+    const { data: dbSlots } = await _supabase.from('horarios_disponiveis').select('*').eq('pro_id', phone).eq('booked', false);
+    const localSlots = getDB('slots').filter(s => s.proPhone === phone && !s.booked);
+
+    let slots = dbSlots && dbSlots.length > 0
+        ? dbSlots.map(s => ({ id: s.id, text: s.texto || `${s.data.split('-').reverse().join('/')} às ${s.hora}`, isSupabase: true }))
+        : localSlots.map(s => ({ id: s.id, text: `${s.date.split('-').reverse().join('/')} às ${s.time}`, isSupabase: false }));
 
     if (slots.length === 0) {
         list.innerHTML = '<li class="list-group-item text-muted">Nenhum horário aberto.</li>';
@@ -469,29 +490,35 @@ function renderSlots() {
 
     list.innerHTML = slots.map(s => `
         <li class="list-group-item d-flex justify-content-between align-items-center">
-            <span>${s.date.split('-').reverse().join('/')} às ${s.time}</span>
+            <span>${s.text}</span>
             <div>
-                <button onclick="confirmSlot(${s.id})" class="btn btn-sm btn-outline-success">Confirmar</button>
-                <button onclick="removeSlot(${s.id})" class="btn btn-sm btn-outline-danger">Excluir</button>
+                <button onclick="confirmSlot('${s.id}', ${s.isSupabase})" class="btn btn-sm btn-outline-success">Confirmar</button>
+                <button onclick="removeSlot('${s.id}', ${s.isSupabase})" class="btn btn-sm btn-outline-danger">Excluir</button>
             </div>
         </li>
     `).join('');
 }
 
-async function confirmSlot(id) {
+async function confirmSlot(id, isSupabase) {
+    if (isSupabase) {
+        await _supabase.from('horarios_disponiveis').update({ booked: true }).eq('id', id);
+    }
     let slots = getDB('slots');
-    let idx = slots.findIndex(s => s.id === id);
+    let idx = slots.findIndex(s => s.id == id);
     if (idx !== -1) {
         slots[idx].booked = true;
         setDB('slots', slots);
-        renderSlots();
-        await renderBookingsPro();
-        await calculateFinances();
     }
+    renderSlots();
+    await renderBookingsPro();
+    await calculateFinances();
 }
 
-function removeSlot(id) {
-    setDB('slots', getDB('slots').filter(s => s.id !== id));
+async function removeSlot(id, isSupabase) {
+    if (isSupabase) {
+        await _supabase.from('horarios_disponiveis').delete().eq('id', id);
+    }
+    setDB('slots', getDB('slots').filter(s => s.id != id));
     renderSlots();
 }
 
@@ -550,7 +577,7 @@ async function calculateFinances() {
             const price = parsePriceValue(b);
             let bDateObj = parseBookingDate(b.horario);
             let bDate = bDateObj ? getLocalDateString(bDateObj) : "";
-
+            
             if (bDate === todayStr) dayIn += price;
             if (bDate.startsWith(monthStr)) { monthIn += price; monthCount++; }
         });
