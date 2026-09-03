@@ -445,8 +445,7 @@ async function renderServices() {
             id: s.id, 
             name: s.nome || s.name, 
             price: s.preco ?? s.price, 
-            active: s.active !== false,
-            isSupabase: true 
+            active: s.active !== false
         }));
     } else {
         const initialServices = DEFAULT_SERVICES.map(name => ({
@@ -463,16 +462,14 @@ async function renderServices() {
                 id: s.id,
                 name: s.nome,
                 price: s.preco,
-                active: s.active,
-                isSupabase: true
+                active: s.active
             }));
         } else if (localServices.length > 0) {
             services = localServices.map(s => ({ 
                 id: s.id, 
                 name: s.name, 
                 price: s.price, 
-                active: s.active !== false,
-                isSupabase: false 
+                active: s.active !== false
             }));
         } else {
             services = DEFAULT_SERVICES.map((name, index) => ({
@@ -480,14 +477,15 @@ async function renderServices() {
                 proPhone: phone,
                 name: name,
                 price: 50.00,
-                active: true,
-                isSupabase: false
+                active: true
             }));
             setDB('pro_services', services);
         }
     }
 
-    list.innerHTML = services.map(s => `
+    list.innerHTML = services.map(s => {
+        const idParam = typeof s.id === 'string' ? `'${s.id}'` : s.id;
+        return `
         <li class="list-group-item d-flex justify-content-between align-items-center ${!s.active ? 'bg-light text-muted' : ''}">
             <div>
                 <strong>${s.name}</strong> 
@@ -495,27 +493,33 @@ async function renderServices() {
                 ${!s.active ? '<span class="badge bg-secondary ms-2">Inativo</span>' : ''}
             </div>
             <div>
-                <button onclick="editServicePrice('${s.id}', ${s.price}, ${s.isSupabase})" class="btn btn-sm btn-outline-primary me-1"><i class="fa-solid fa-pen"></i> Editar Valor</button>
-                <button onclick="toggleServiceActive('${s.id}', ${s.active}, ${s.isSupabase})" class="btn btn-sm ${s.active ? 'btn-outline-warning' : 'btn-outline-success'} me-1">
+                <button onclick="editServicePrice(${idParam}, ${s.price})" class="btn btn-sm btn-outline-primary me-1"><i class="fa-solid fa-pen"></i> Editar Valor</button>
+                <button onclick="toggleServiceActive(${idParam}, ${s.active})" class="btn btn-sm ${s.active ? 'btn-outline-warning' : 'btn-outline-success'} me-1">
                     <i class="fa-solid ${s.active ? 'fa-eye-slash' : 'fa-eye'}"></i> ${s.active ? 'Desativar' : 'Ativar'}
                 </button>
-                <button onclick="removeService('${s.id}', ${s.isSupabase})" class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash"></i> Excluir</button>
+                <button onclick="removeService(${idParam})" class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash"></i> Excluir</button>
             </div>
         </li>
-    `).join('');
+    `}).join('');
 }
 
-async function editServicePrice(id, currentPrice, isSupabase) {
+async function editServicePrice(id, currentPrice) {
     const newPriceStr = prompt("Informe o novo valor para este serviço (R$):", parseFloat(currentPrice).toFixed(2));
     if (!newPriceStr) return;
     
     const newPrice = parseFloat(newPriceStr.replace(',', '.'));
     if (isNaN(newPrice) || newPrice <= 0) return alert("Valor inválido.");
 
-    if (isSupabase || !isNaN(id)) {
-        await _supabase.from('servicos').update({ preco: newPrice }).eq('id', id);
+    const phone = localStorage.getItem('active_pro_user');
+
+    // Atualiza no Supabase garantindo filtro por pro_id ou id
+    const { error } = await _supabase.from('servicos').update({ preco: newPrice }).eq('id', id);
+
+    if (error) {
+        console.error("Erro ao atualizar preço no Supabase:", error);
     }
     
+    // Atualiza localmente
     let localServices = getDB('pro_services');
     let idx = localServices.findIndex(s => s.id == id);
     if (idx !== -1) {
@@ -525,12 +529,10 @@ async function editServicePrice(id, currentPrice, isSupabase) {
     await renderServices();
 }
 
-async function toggleServiceActive(id, currentActive, isSupabase) {
+async function toggleServiceActive(id, currentActive) {
     const newActiveState = !currentActive;
 
-    if (isSupabase || !isNaN(id)) {
-        await _supabase.from('servicos').update({ active: newActiveState }).eq('id', id);
-    }
+    await _supabase.from('servicos').update({ active: newActiveState }).eq('id', id);
 
     let localServices = getDB('pro_services');
     let idx = localServices.findIndex(s => s.id == id);
@@ -541,10 +543,8 @@ async function toggleServiceActive(id, currentActive, isSupabase) {
     await renderServices();
 }
 
-async function removeService(id, isSupabase) {
-    if (isSupabase || !isNaN(id)) {
-        await _supabase.from('servicos').delete().eq('id', id);
-    }
+async function removeService(id) {
+    await _supabase.from('servicos').delete().eq('id', id);
     setDB('pro_services', getDB('pro_services').filter(s => s.id != id));
     await renderServices();
 }
@@ -578,29 +578,29 @@ async function renderSlots() {
     const localSlots = getDB('slots').filter(s => s.proPhone === phone && !s.booked);
 
     let slots = dbSlots && dbSlots.length > 0
-        ? dbSlots.map(s => ({ id: s.id, text: s.texto || `${s.data.split('-').reverse().join('/')} às ${s.hora}`, isSupabase: true }))
-        : localSlots.map(s => ({ id: s.id, text: `${s.date.split('-').reverse().join('/')} às ${s.time}`, isSupabase: false }));
+        ? dbSlots.map(s => ({ id: s.id, text: s.texto || `${s.data.split('-').reverse().join('/')} às ${s.hora}` }))
+        : localSlots.map(s => ({ id: s.id, text: `${s.date.split('-').reverse().join('/')} às ${s.time}` }));
 
     if (slots.length === 0) {
         slotsList.innerHTML = '<li class="list-group-item text-muted">Nenhum horário aberto.</li>';
         return;
     }
 
-    slotsList.innerHTML = slots.map(s => `
+    slotsList.innerHTML = slots.map(s => {
+        const idParam = typeof s.id === 'string' ? `'${s.id}'` : s.id;
+        return `
         <li class="list-group-item d-flex justify-content-between align-items-center">
             <span>${s.text}</span>
             <div>
-                <button onclick="confirmSlot('${s.id}', ${s.isSupabase})" class="btn btn-sm btn-outline-success">Confirmar</button>
-                <button onclick="removeSlot('${s.id}', ${s.isSupabase})" class="btn btn-sm btn-outline-danger">Excluir</button>
+                <button onclick="confirmSlot(${idParam})" class="btn btn-sm btn-outline-success">Confirmar</button>
+                <button onclick="removeSlot(${idParam})" class="btn btn-sm btn-outline-danger">Excluir</button>
             </div>
         </li>
-    `).join('');
+    `}).join('');
 }
 
-async function confirmSlot(id, isSupabase) {
-    if (isSupabase || !isNaN(id)) {
-        await _supabase.from('horarios_disponiveis').update({ booked: true }).eq('id', id);
-    }
+async function confirmSlot(id) {
+    await _supabase.from('horarios_disponiveis').update({ booked: true }).eq('id', id);
     let slots = getDB('slots');
     let idx = slots.findIndex(s => s.id == id);
     if (idx !== -1) {
@@ -612,10 +612,8 @@ async function confirmSlot(id, isSupabase) {
     await calculateFinances();
 }
 
-async function removeSlot(id, isSupabase) {
-    if (isSupabase || !isNaN(id)) {
-        await _supabase.from('horarios_disponiveis').delete().eq('id', id);
-    }
+async function removeSlot(id) {
+    await _supabase.from('horarios_disponiveis').delete().eq('id', id);
     setDB('slots', getDB('slots').filter(s => s.id != id));
     await renderSlots();
 }
