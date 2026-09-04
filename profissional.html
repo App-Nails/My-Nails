@@ -521,7 +521,7 @@ async function editServicePrice(id, currentPrice, serviceName) {
 
     const phone = localStorage.getItem('active_pro_user');
 
-    // Atualização completa garantindo compatibilidade das colunas 'preco' e 'price'
+    // Atualiza ambas as colunas (preco e price) no banco Supabase
     let { error } = await _supabase.from('servicos').update({ preco: newPrice, price: newPrice }).eq('id', id);
 
     if (error) {
