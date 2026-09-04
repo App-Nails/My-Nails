@@ -1,211 +1,140 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <!-- Colocar dentro da tag <head> -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agendamento - Nail Designer</title>
+    <title>Agendamento de Horário</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body { background-color: #f8f9fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; -webkit-user-select: none; user-select: none; }
-        .card-custom { border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        .btn-pink { background-color: #e83e8c; color: white; }
-        .btn-pink:hover { background-color: #d63384; color: white; }
-    </style>
 </head>
-<body oncontextmenu="return false;">
-
+<body class="bg-light">
 <div class="container py-4">
-    <div class="card card-custom p-4 mx-auto" style="max-width: 600px;">
-        <h3 class="text-center mb-3 text-pink">💅 Agende seu Horário</h3>
-        
-        <!-- FORMULÁRIO DE AGENDAMENTO -->
-        <div id="booking-form-area">
-            <div class="mb-3">
-                <label class="form-label">Seu Nome</label>
-                <input type="text" id="client-name" class="form-control" placeholder="Digite seu nome completo">
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Seu Telefone</label>
-                <input type="tel" id="client-phone" class="form-control" placeholder="Apenas números">
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Selecione o Serviço</label>
-                <select id="client-service-select" class="form-select"></select>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Horários Disponíveis</label>
-                <select id="client-slot-select" class="form-select"></select>
-            </div>
-            <button onclick="saveBooking()" class="btn btn-pink w-100">Salvar Agendamento</button>
-        </div>
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card p-4 shadow-sm">
+                <h3 class="text-center mb-4 text-danger fw-bold">Agende seu Horário</h3>
 
-        <hr class="my-4">
+                <form onsubmit="realizarAgendamento(event)">
+                    <div class="mb-3">
+                        <label class="form-label">Seu Nome</label>
+                        <input type="text" id="cli-nome" class="form-control" placeholder="Digite seu nome completo" required>
+                    </div>
 
-        <!-- MINHAS CONSULTAS -->
-        <div>
-            <h5>Consultar Meus Agendamentos</h5>
-            <div class="input-group mb-3">
-                <input type="tel" id="search-client-phone" class="form-control" placeholder="Digite seu telefone">
-                <button onclick="loadClientBookings()" class="btn btn-outline-secondary">Buscar</button>
+                    <div class="mb-3">
+                        <label class="form-label">Seu Telefone / WhatsApp</label>
+                        <input type="text" id="cli-telefone" class="form-control" placeholder="DDD + Número" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Selecione o Serviço</label>
+                        <select id="cli-servico" class="form-select" required>
+                            <option value="">Carregando serviços...</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Selecione o Horário Disponível</label>
+                        <select id="cli-horario" class="form-select" required>
+                            <option value="">Carregando horários...</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" id="btn-agendar" class="btn btn-danger w-100 fw-bold">Confirmar Agendamento</button>
+                </form>
             </div>
-            <ul id="client-bookings-list" class="list-group"></ul>
         </div>
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-    // Configuração da conexão com o Supabase
 const SUPABASE_URL = 'https://zvxcakqpbrpfdsvhuhbh.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_41upAZ0wW1NC4i3zTnkU9Q_gF8Tc4Ry';
 const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// Substitua a sua antiga função saveBooking por esta:
-async function saveBooking() {
-  const name = document.getElementById('client-name').value;
-  const phone = document.getElementById('client-phone').value;
-  const service = document.getElementById('client-service-select').value;
-  const slot = document.getElementById('client-slot-select').value;
+const urlParams = new URLSearchParams(window.location.search);
+const proPhone = urlParams.get('pro');
 
-  const urlParams = new URLSearchParams(window.location.search);
-  const proId = urlParams.get('pro');
-
-  if (!name || !phone || !service || !slot) {
-    alert('Por favor, preencha todos os campos!');
-    return;
-  }
-
-  const { data, error } = await _supabase
-    .from('agendamentos')
-    .insert([
-      { 
-        nome: name, 
-        telefone: phone, 
-        servico: service, 
-        horario: slot, 
-        pro_id: proId 
-      }
-    ]);
-
-  if (error) {
-    console.error('Erro no Supabase:', error);
-    alert('Erro ao realizar o agendamento: ' + error.message);
-  } else {
-    alert('Agendamento realizado com sucesso!');
-    document.getElementById('client-name').value = '';
-    document.getElementById('client-phone').value = '';
-  }
-}
-function getDB(key) { return JSON.parse(localStorage.getItem(key)) || []; }
-function setDB(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
-
-window.onload = function() {
-    setupSecurityProtections();
-    loadClientView();
-    startNotificationLoop();
-};
-
-function loadClientView() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const proPhone = urlParams.get('pro') || (getDB('pro_users')[0] ? getDB('pro_users')[0].phone : null);
-
-    if (!proPhone) {
-        alert("Nenhum profissional cadastrado no sistema.");
+async function carregarDados() {
+    if(!proPhone) {
+        alert("Link de agendamento inválido ou incompleto!");
         return;
     }
 
-    const pro = getDB('pro_users').find(u => u.phone === proPhone);
-    if (!pro) return;
+    // CARREGAR SERVIÇOS
+    const { data: servicos } = await _supabase.from('servicos').select('*').eq('pro_id', proPhone).eq('active', true);
+    const selectServico = document.getElementById('cli-servico');
+    
+    if(servicos && servicos.length > 0) {
+        selectServico.innerHTML = '<option value="">-- Escolha um Serviço --</option>' + 
+            servicos.map(s => `<option value="${s.nome}" data-preco="${s.preco}">${s.nome} - R$ ${parseFloat(s.preco).toFixed(2)}</option>`).join('');
+    } else {
+        selectServico.innerHTML = '<option value="">Nenhum serviço disponível</option>';
+    }
 
-    // Carrega serviços
-    const serviceSelect = document.getElementById('client-service-select');
-    serviceSelect.innerHTML = pro.services.map(s => `<option value="${s.name}" data-price="${s.price}">${s.name} - R$ ${s.price.toFixed(2)}</option>`).join('');
+    // CARREGAR HORÁRIOS DISPONÍVEIS
+    const { data: horarios } = await _supabase.from('horarios_disponiveis').select('*').eq('pro_id', proPhone).eq('booked', false);
+    const selectHorario = document.getElementById('cli-horario');
 
-    // Carrega horários disponíveis
-    const slotSelect = document.getElementById('client-slot-select');
-    const availableSlots = getDB('slots').filter(s => s.proPhone === proPhone && !s.booked);
-    slotSelect.innerHTML = availableSlots.length > 0 
-        ? availableSlots.map(s => `<option value="${s.id}">${s.date.split('-').reverse().join('/')} às ${s.time}</option>`).join('')
-        : '<option value="">Nenhum horário disponível</option>';
+    if(horarios && horarios.length > 0) {
+        selectHorario.innerHTML = '<option value="">-- Escolha um Horário --</option>' + 
+            horarios.map(h => `<option value="${h.texto || (h.data + ' às ' + h.hora)}" data-id="${h.id}">${h.texto || (h.data + ' às ' + h.hora)}</option>`).join('');
+    } else {
+        selectHorario.innerHTML = '<option value="">Nenhum horário livre no momento</option>';
+    }
 }
 
-async function saveBooking() {
-  const name = document.getElementById('client-name').value;
-  const phone = document.getElementById('client-phone').value;
-  const service = document.getElementById('client-service-select').value;
-  const slot = document.getElementById('client-slot-select').value;
+async function realizarAgendamento(event) {
+    event.preventDefault();
 
-  const urlParams = new URLSearchParams(window.location.search);
-  const proId = urlParams.get('pro');
+    const btn = document.getElementById('btn-agendar');
+    btn.disabled = true;
+    btn.innerText = "Agendando...";
 
-  if (!name || !phone || !service || !slot) {
-    alert('Por favor, preencha todos os campos!');
-    return;
-  }
+    const nome = document.getElementById('cli-nome').value.trim();
+    const telefone = document.getElementById('cli-telefone').value.trim();
+    const selectServico = document.getElementById('cli-servico');
+    const selectHorario = document.getElementById('cli-horario');
 
-  const { data, error } = await _supabase
-    .from('agendamentos')
-    .insert([
-      { 
-        nome: name, 
-        telefone: phone, 
-        servico: service, 
-        horario: slot, 
-        pro_id: proId 
-      }
-    ]);
+    const servicoNome = selectServico.value;
+    const servicoPreco = parseFloat(selectServico.options[selectServico.selectedIndex].getAttribute('data-preco') || 0);
+    
+    const horarioTexto = selectHorario.value;
+    const horarioId = selectHorario.options[selectHorario.selectedIndex].getAttribute('data-id');
 
-  if (error) {
-    console.error('Erro no Supabase:', error);
-    alert('Erro ao realizar o agendamento: ' + error.message);
-  } else {
-    alert('Agendamento realizado com sucesso!');
-    document.getElementById('client-name').value = '';
-    document.getElementById('client-phone').value = '';
-  }
+    if(!servicoNome || !horarioTexto) {
+        alert("Por favor selecione serviço e horário válidos.");
+        btn.disabled = false;
+        btn.innerText = "Confirmar Agendamento";
+        return;
+    }
+
+    // 1. GRAVAR O AGENDAMENTO NO SUPABASE
+    const { error: errAgendamento } = await _supabase.from('agendamentos').insert([{
+        pro_id: proPhone,
+        nome: nome,
+        telefone: telefone,
+        servico: servicoNome,
+        valor: servicoPreco,
+        horario: horarioTexto
+    }]);
+
+    if(errAgendamento) {
+        alert("Erro ao realizar o agendamento no sistema. Tente novamente.");
+        btn.disabled = false;
+        btn.innerText = "Confirmar Agendamento";
+        return;
+    }
+
+    // 2. MARCAR O HORÁRIO COMO OCUPADO
+    if(horarioId) {
+        await _supabase.from('horarios_disponiveis').update({ booked: true }).eq('id', horarioId);
+    }
+
+    alert("Agendamento realizado com sucesso!");
+    window.location.reload();
 }
 
-function loadClientBookings() {
-    const phone = document.getElementById('search-client-phone').value.trim();
-    const bookings = getDB('bookings').filter(b => b.clientPhone === phone);
-
-    document.getElementById('client-bookings-list').innerHTML = bookings.length > 0
-        ? bookings.map(b => `
-            <li class="list-group-item">
-                <strong>${b.serviceName}</strong> - ${b.slotDate.split('-').reverse().join('/')} às ${b.slotTime}
-                <br><small class="text-muted">Valor: R$ ${b.price.toFixed(2)}</small>
-            </li>
-        `).join('')
-        : '<li class="list-group-item text-muted">Nenhum agendamento encontrado.</li>';
-}
-
-function startNotificationLoop() {
-    setInterval(() => {
-        const bookings = getDB('bookings');
-        const now = new Date();
-
-        bookings.forEach(b => {
-            const bookingTime = new Date(`${b.slotDate}T${b.slotTime}`);
-            const diffMinutes = Math.floor((bookingTime - now) / 60000);
-
-            if (diffMinutes <= 30 && diffMinutes > 29 && !b.clientNotified) {
-                alert(`[NOTIFICAÇÃO] Faltam 30 minutos para o seu agendamento de ${b.serviceName}!`);
-                b.clientNotified = true;
-            }
-        });
-
-        setDB('bookings', bookings);
-    }, 10000);
-}
-
-function setupSecurityProtections() {
-    document.onkeydown = function(e) {
-        if (e.keyCode == 123 || (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74)) || (e.ctrlKey && e.keyCode == 85)) {
-            return false;
-        }
-    };
-}
+document.addEventListener('DOMContentLoaded', carregarDados);
 </script>
 </body>
 </html>
