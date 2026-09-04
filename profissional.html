@@ -4,89 +4,156 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel do Profissional</title>
+    <!-- Bootstrap & FontAwesome CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .border-pink { border-color: #e83e8c !important; }
+        .text-pink { color: #e83e8c !important; }
+    </style>
 </head>
 <body class="bg-light">
+
 <div class="container py-4">
 
-    <!-- LOGIN -->
-    <div id="pro-login-view">
+    <!-- VIEW 1: LOGIN -->
+    <div id="pro-login-view" style="display: block;">
         <div class="row justify-content-center">
             <div class="col-md-5">
-                <div class="card p-4 shadow-sm">
-                    <h3 class="text-center mb-4 text-danger fw-bold">Login Profissional</h3>
-                    <input type="text" id="login-phone" class="form-control mb-2" placeholder="Telefone (apenas números)">
-                    <input type="password" id="login-pass" class="form-control mb-3" placeholder="Senha">
+                <div class="card shadow-sm p-4">
+                    <h3 class="text-center mb-4 text-pink fw-bold">Login do Profissional</h3>
+                    <div class="mb-3">
+                        <label class="form-label">Telefone</label>
+                        <input type="text" id="login-phone" class="form-control" placeholder="Apenas números">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Senha</label>
+                        <input type="password" id="login-pass" class="form-control">
+                    </div>
                     <button onclick="proLogin()" class="btn btn-danger w-100 mb-2">Entrar</button>
-                    <button onclick="navigate('pro-register-view')" class="btn btn-link w-100 btn-sm text-secondary">Criar nova conta</button>
+                    <div class="d-flex justify-content-between">
+                        <a href="#" onclick="navigate('pro-register-view')" class="small text-muted">Criar conta</a>
+                        <a href="#" onclick="navigate('pro-forgot-view')" class="small text-muted">Esqueci a senha</a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- CADASTRO -->
-    <div id="pro-register-view" style="display:none;">
+    <!-- VIEW 2: CADASTRO -->
+    <div id="pro-register-view" style="display: none;">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card shadow-sm p-4">
+                    <h3 class="text-center mb-4 text-pink fw-bold">Novo Cadastro</h3>
+                    <form onsubmit="proRegister(event)">
+                        <div class="mb-2"><label>Nome</label><input type="text" id="reg-name" class="form-control" required></div>
+                        <div class="mb-2"><label>Telefone</label><input type="text" id="reg-phone" class="form-control" required></div>
+                        <div class="mb-2"><label>Endereço</label><input type="text" id="reg-address" class="form-control" required></div>
+                        <div class="mb-2"><label>Senha</label><input type="password" id="reg-pass" class="form-control" required></div>
+                        <div class="mb-2"><label>Pergunta de Segurança</label><input type="text" id="reg-q" class="form-control" placeholder="Ex: Nome do seu pet?" required></div>
+                        <div class="mb-3"><label>Resposta de Segurança</label><input type="text" id="reg-a" class="form-control" required></div>
+                        <button type="submit" class="btn btn-success w-100 mb-2">Cadastrar</button>
+                        <button type="button" onclick="navigate('pro-login-view')" class="btn btn-link w-100 text-secondary">Voltar ao Login</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- VIEW 3: RECUPERAR SENHA -->
+    <div id="pro-forgot-view" style="display: none;">
         <div class="row justify-content-center">
             <div class="col-md-5">
-                <div class="card p-4 shadow-sm">
-                    <h3 class="text-center mb-4 text-danger fw-bold">Novo Cadastro</h3>
-                    <input type="text" id="reg-name" class="form-control mb-2" placeholder="Nome Completo">
-                    <input type="text" id="reg-phone" class="form-control mb-2" placeholder="Telefone (apenas números)">
-                    <input type="text" id="reg-address" class="form-control mb-2" placeholder="Endereço de Atendimento">
-                    <input type="password" id="reg-pass" class="form-control mb-3" placeholder="Senha">
-                    <button onclick="proRegister()" class="btn btn-success w-100 mb-2">Cadastrar</button>
-                    <button onclick="navigate('pro-login-view')" class="btn btn-link w-100 btn-sm text-secondary">Voltar ao Login</button>
+                <div class="card shadow-sm p-4">
+                    <h4 class="mb-3">Recuperar Senha</h4>
+                    <div class="mb-3">
+                        <label>Telefone Cadastrado</label>
+                        <input type="text" id="reset-phone" class="form-control">
+                        <button onclick="fetchSecurityQuestion()" class="btn btn-sm btn-secondary mt-2 w-100">Buscar Pergunta</button>
+                    </div>
+                    <div id="reset-step-2" style="display: none;">
+                        <p id="display-q" class="fw-bold text-primary mb-2"></p>
+                        <div class="mb-2"><label>Sua Resposta</label><input type="text" id="reset-a" class="form-control"></div>
+                        <div class="mb-3"><label>Nova Senha</label><input type="password" id="reset-new-pass" class="form-control"></div>
+                        <button onclick="executePasswordReset()" class="btn btn-primary w-100">Redefinir Senha</button>
+                    </div>
+                    <button onclick="navigate('pro-login-view')" class="btn btn-link w-100 text-secondary mt-2">Voltar ao Login</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- DASHBOARD -->
-    <div id="pro-dashboard-view" style="display:none;">
+    <!-- VIEW 4: DASHBOARD COMPLETO -->
+    <div id="pro-dashboard-view" style="display: none;">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h3 id="welcome-user" class="fw-bold text-danger">Painel do Profissional</h3>
+            <h3 id="welcome-user" class="fw-bold text-pink mb-0">Olá!</h3>
             <button onclick="proLogout()" class="btn btn-outline-danger btn-sm">Sair</button>
         </div>
 
-        <!-- LINK PARA CLIENTE -->
-        <div class="card p-3 shadow-sm mb-4 bg-white">
-            <h6 class="fw-bold">Seu Link de Agendamento:</h6>
-            <small id="pro-share-link" class="text-primary fw-bold d-block mb-2"></small>
-            <div>
-                <button onclick="copyLink()" class="btn btn-sm btn-outline-primary">Copiar Link</button>
-            </div>
-        </div>
-
-        <!-- GERENCIAR SERVIÇOS -->
+        <!-- Finanças -->
         <div class="card p-3 shadow-sm mb-4">
-            <h5 class="fw-bold mb-3">Serviços e Preços</h5>
-            <div class="row g-2 mb-3">
-                <div class="col-md-6"><input type="text" id="service-name" class="form-control" placeholder="Nome do serviço"></div>
-                <div class="col-md-4"><input type="number" id="service-price" class="form-control" placeholder="Preço (R$)"></div>
-                <div class="col-md-2"><button onclick="addService()" class="btn btn-success w-100">Adicionar</button></div>
+            <h5 class="mb-3">Fluxo de Caixa</h5>
+            <div class="row text-center mb-3">
+                <div class="col"><small class="text-muted">Entradas Hoje</small><h4 id="fin-day-in" class="text-success fw-bold">R$ 0.00</h4></div>
+                <div class="col"><small class="text-muted">Saídas Hoje</small><h4 id="fin-day-out" class="text-danger fw-bold">R$ 0.00</h4></div>
+                <div class="col"><small class="text-muted">Saldo Mês</small><h4 id="fin-month-total" class="text-primary fw-bold">R$ 0.00</h4></div>
+                <div class="col"><small class="text-muted">Atendimentos Mês</small><h4 id="fin-month-count" class="fw-bold">0</h4></div>
             </div>
-            <ul id="services-list" class="list-group"></ul>
+            <div class="row g-2">
+                <div class="col-md-6"><input type="text" id="expense-desc" class="form-control" placeholder="Descrição da despesa"></div>
+                <div class="col-md-4"><input type="number" id="expense-val" class="form-control" placeholder="Valor (R$)"></div>
+                <div class="col-md-2"><button onclick="addExpense()" class="btn btn-danger w-100">Add Despesa</button></div>
+            </div>
         </div>
 
-        <!-- GERENCIAR HORÁRIOS -->
+        <!-- Endereço e Link -->
         <div class="row g-3 mb-4">
             <div class="col-md-6">
                 <div class="card p-3 shadow-sm">
-                    <h5 class="fw-bold mb-3">Abrir Horários</h5>
+                    <h6>Seu Link de Agendamento:</h6>
+                    <small id="pro-share-link" class="text-primary fw-bold d-block mb-2"></small>
+                    <button onclick="copyLink()" class="btn btn-sm btn-outline-primary">Copiar Link</button>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card p-3 shadow-sm">
+                    <h6>Endereço de Atendimento:</h6>
+                    <div class="input-group">
+                        <input type="text" id="dash-address" class="form-control" readonly>
+                        <button id="btn-edit-addr" onclick="toggleEditAddress()" class="btn btn-outline-secondary">Editar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cadastrar Serviços -->
+        <div class="card p-3 shadow-sm mb-4">
+            <h5 class="mb-3">Meus Serviços e Valores</h5>
+            <div class="row g-2 mb-3">
+                <div class="col-md-6"><input type="text" id="service-name" class="form-control" placeholder="Nome do Serviço (ex: Escova, Corte)"></div>
+                <div class="col-md-4"><input type="number" id="service-price" class="form-control" placeholder="Valor (R$)"></div>
+                <div class="col-md-2"><button onclick="addService()" class="btn btn-success w-100"><i class="fa-solid fa-plus me-1"></i>Adicionar</button></div>
+            </div>
+            <ul id="services-list" class="list-group list-group-flush"></ul>
+        </div>
+
+        <!-- Horários & Agendamentos -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-6">
+                <div class="card p-3 shadow-sm">
+                    <h5 class="mb-3">Abrir Horários</h5>
                     <div class="row g-2 mb-3">
                         <div class="col"><input type="date" id="slot-date" class="form-control"></div>
                         <div class="col"><input type="time" id="slot-time" class="form-control"></div>
                         <div class="col-auto"><button onclick="addTimeSlot()" class="btn btn-success"><i class="fa-solid fa-plus"></i></button></div>
                     </div>
-                    <ul id="slots-list" class="list-group"></ul>
+                    <ul id="slots-list" class="list-group list-group-flush"></ul>
                 </div>
             </div>
-
-            <!-- LISTA DE AGENDAMENTOS -->
             <div class="col-md-6">
                 <div class="card p-3 shadow-sm">
-                    <h5 class="fw-bold mb-3">Agendamentos Recebidos</h5>
+                    <h5 class="mb-3">Agendamentos Confirmados</h5>
                     <div id="pro-bookings-list"></div>
                 </div>
             </div>
@@ -95,48 +162,73 @@
 
 </div>
 
+<!-- Supabase JS -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script>
 const SUPABASE_URL = 'https://zvxcakqpbrpfdsvhuhbh.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_41upAZ0wW1NC4i3zTnkU9Q_gF8Tc4Ry';
 const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+function getDB(key) { return JSON.parse(localStorage.getItem(key)) || []; }
+function setDB(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
+
+function hashString(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        hash = (hash << 5) - hash + str.charCodeAt(i);
+        hash |= 0;
+    }
+    return hash.toString();
+}
+
 function navigate(viewId) {
-    ['pro-login-view', 'pro-register-view', 'pro-dashboard-view'].forEach(v => {
-        document.getElementById(v).style.display = (v === viewId) ? 'block' : 'none';
+    ['pro-login-view', 'pro-register-view', 'pro-forgot-view', 'pro-dashboard-view'].forEach(v => {
+        const el = document.getElementById(v);
+        if (el) el.style.display = (v === viewId) ? 'block' : 'none';
     });
 }
 
-function proRegister() {
-    const name = document.getElementById('reg-name').value.trim();
-    const phone = document.getElementById('reg-phone').value.trim();
-    const address = document.getElementById('reg-address').value.trim();
-    const pass = document.getElementById('reg-pass').value.trim();
+async function proLogin() {
+    const phone = document.getElementById('login-phone')?.value.trim();
+    const pass = document.getElementById('login-pass')?.value.trim();
 
-    if(!name || !phone || !pass) return alert("Preencha os campos obrigatórios!");
+    if (!phone || !pass) return alert('Por favor, preencha o telefone e a senha.');
 
-    let users = JSON.parse(localStorage.getItem('pro_users') || '[]');
-    if(users.some(u => u.phone === phone)) return alert("Telefone já cadastrado!");
+    const users = getDB('pro_users');
+    const user = users.find(u => u.phone === phone && u.passHash === hashString(pass));
 
-    users.push({ name, phone, address, pass });
-    localStorage.setItem('pro_users', JSON.stringify(users));
-    alert("Cadastrado com sucesso!");
-    navigate('pro-login-view');
-}
-
-function proLogin() {
-    const phone = document.getElementById('login-phone').value.trim();
-    const pass = document.getElementById('login-pass').value.trim();
-    const users = JSON.parse(localStorage.getItem('pro_users') || '[]');
-    
-    const user = users.find(u => u.phone === phone && u.pass === pass);
-    if(user) {
+    if (user) {
         localStorage.setItem('active_pro_user', phone);
-        loadDashboard();
+        await loadProDashboard();
         navigate('pro-dashboard-view');
     } else {
-        alert("Telefone ou senha incorretos!");
+        alert('Telefone ou senha incorretos!');
     }
+}
+
+function proRegister(event) {
+    if (event) event.preventDefault();
+    const name = document.getElementById('reg-name')?.value.trim();
+    const phone = document.getElementById('reg-phone')?.value.trim();
+    const address = document.getElementById('reg-address')?.value.trim();
+    const pass = document.getElementById('reg-pass')?.value.trim();
+    const question = document.getElementById('reg-q')?.value.trim();
+    const answer = document.getElementById('reg-a')?.value.trim();
+
+    let users = getDB('pro_users');
+    if (users.some(u => u.phone === phone)) return alert('Este telefone já está cadastrado!');
+
+    users.push({
+        name, phone, address,
+        passHash: hashString(pass),
+        question,
+        answerHash: hashString(answer.toLowerCase())
+    });
+
+    setDB('pro_users', users);
+    alert('Cadastro realizado com sucesso!');
+    navigate('pro-login-view');
 }
 
 function proLogout() {
@@ -144,126 +236,280 @@ function proLogout() {
     navigate('pro-login-view');
 }
 
-async function loadDashboard() {
-    const phone = localStorage.getItem('active_pro_user');
-    const users = JSON.parse(localStorage.getItem('pro_users') || '[]');
-    const user = users.find(u => u.phone === phone);
+let targetUserForReset = null;
 
-    if(!user) return;
-    document.getElementById('welcome-user').innerText = `Olá, ${user.name}`;
+function fetchSecurityQuestion() {
+    const phone = document.getElementById('reset-phone')?.value.trim();
+    targetUserForReset = getDB('pro_users').find(u => u.phone === phone);
+
+    if (targetUserForReset) {
+        document.getElementById('display-q').innerText = `Pergunta: ${targetUserForReset.question}`;
+        document.getElementById('reset-step-2').style.display = 'block';
+    } else {
+        alert('Telefone não encontrado.');
+    }
+}
+
+function executePasswordReset() {
+    const answer = document.getElementById('reset-a')?.value.trim().toLowerCase();
+    const newPass = document.getElementById('reset-new-pass')?.value.trim();
+
+    if (targetUserForReset && hashString(answer) === targetUserForReset.answerHash) {
+        let users = getDB('pro_users');
+        let idx = users.findIndex(u => u.phone === targetUserForReset.phone);
+        if (idx !== -1) {
+            users[idx].passHash = hashString(newPass);
+            setDB('pro_users', users);
+            alert('Senha alterada com sucesso!');
+            navigate('pro-login-view');
+        }
+    } else {
+        alert('Resposta incorreta!');
+    }
+}
+
+async function loadProDashboard() {
+    const phone = localStorage.getItem('active_pro_user');
+    const user = getDB('pro_users').find(u => u.phone === phone);
+    if (!user) return;
+
+    document.getElementById('welcome-user').innerText = `Olá, ${user.name}!`;
 
     const basePath = window.location.href.substring(0, window.location.href.lastIndexOf('/'));
     document.getElementById('pro-share-link').innerText = `${basePath}/cliente.html?pro=${phone}`;
+    document.getElementById('dash-address').value = user.address || '';
 
-    renderServices();
-    renderSlots();
-    renderBookings();
+    await renderServices();
+    await renderSlots();
+    await renderBookingsPro();
+    calculateFinances();
 }
 
 function copyLink() {
-    const linkText = document.getElementById('pro-share-link').innerText;
-    navigator.clipboard.writeText(linkText);
-    alert("Link copiado para a área de transferência!");
+    const linkEl = document.getElementById('pro-share-link');
+    if (linkEl) {
+        navigator.clipboard.writeText(linkEl.innerText);
+        alert("Link copiado!");
+    }
 }
 
-async function addService() {
+function toggleEditAddress() {
+    const field = document.getElementById('dash-address');
+    const btn = document.getElementById('btn-edit-addr');
     const phone = localStorage.getItem('active_pro_user');
-    const name = document.getElementById('service-name').value.trim();
-    const price = parseFloat(document.getElementById('service-price').value || 0);
 
-    if(!name || price <= 0) return alert("Insira um nome e preço válido!");
+    if (field.hasAttribute('readonly')) {
+        field.removeAttribute('readonly');
+        btn.innerText = 'Salvar';
+        btn.className = "btn btn-success";
+    } else {
+        field.setAttribute('readonly', 'true');
+        btn.innerText = 'Editar';
+        btn.className = "btn btn-outline-secondary";
 
-    await _supabase.from('servicos').insert([{ pro_id: phone, nome: name, preco: price, active: true }]);
+        let users = getDB('pro_users');
+        let idx = users.findIndex(u => u.phone === phone);
+        if (idx !== -1) {
+            users[idx].address = field.value;
+            setDB('pro_users', users);
+        }
+    }
+}
+
+// --- SERVIÇOS (SALVA EM DUPLO FORMATO PARA NÃO FALHAR NO SUPABASE) ---
+async function addService() {
+    const name = document.getElementById('service-name')?.value.trim();
+    const price = parseFloat(document.getElementById('service-price')?.value || 0);
+    const phone = localStorage.getItem('active_pro_user');
+
+    if (!name || isNaN(price) || price <= 0) return alert("Informe um nome e um valor válido!");
+
+    // Grava localmente imediatamente para não depender do Supabase destravar
+    let localServices = getDB('pro_services');
+    const newServ = { id: Date.now(), proPhone: phone, name, price, active: true };
+    localServices.push(newServ);
+    setDB('pro_services', localServices);
+
+    // Tenta salvar no Supabase enviando ambos os nomes de colunas
+    const payload = { pro_id: phone, nome: name, name: name, preco: price, price: price, active: true };
+    const { error } = await _supabase.from('servicos').insert([payload]);
+
+    if (error) {
+        console.warn("Aviso Supabase ao salvar serviço (salvo localmente):", error);
+    }
+
     document.getElementById('service-name').value = '';
     document.getElementById('service-price').value = '';
-    renderServices();
+    await renderServices();
 }
 
 async function renderServices() {
     const phone = localStorage.getItem('active_pro_user');
     const list = document.getElementById('services-list');
-    
-    let { data: servs } = await _supabase.from('servicos').select('*').eq('pro_id', phone);
-    
-    if(!servs || servs.length === 0) {
+    if (!list) return;
+
+    let services = [];
+
+    // Tenta carregar do Supabase
+    let { data: dbServices } = await _supabase.from('servicos').select('*').eq('pro_id', phone);
+
+    if (dbServices && dbServices.length > 0) {
+        services = dbServices.map(s => ({
+            id: s.id,
+            name: s.nome || s.name || 'Serviço',
+            price: s.preco ?? s.price ?? 0,
+            active: s.active !== false
+        }));
+    } else {
+        // Fallback para LocalStorage se a busca do Supabase vier vazia
+        services = getDB('pro_services').filter(s => s.proPhone === phone);
+    }
+
+    if (services.length === 0) {
         list.innerHTML = '<li class="list-group-item text-muted">Nenhum serviço cadastrado.</li>';
         return;
     }
 
-    list.innerHTML = servs.map(s => `
+    list.innerHTML = services.map(s => {
+        const idParam = typeof s.id === 'string' ? `'${s.id}'` : s.id;
+        const nameEscaped = s.name.replace(/'/g, "\\'");
+        return `
         <li class="list-group-item d-flex justify-content-between align-items-center">
-            <span><strong>${s.nome}</strong> - R$ ${parseFloat(s.preco).toFixed(2)}</span>
-            <button onclick="deleteService(${s.id})" class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash"></i></button>
+            <div>
+                <strong>${s.name}</strong> 
+                <span class="text-success fw-bold ms-2">R$ ${parseFloat(s.price).toFixed(2)}</span>
+            </div>
+            <div>
+                <button onclick="removeService(${idParam}, '${nameEscaped}')" class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash"></i> Excluir</button>
+            </div>
         </li>
-    `).join('');
+    `}).join('');
 }
 
-async function deleteService(id) {
-    await _supabase.from('servicos').delete().eq('id', id);
-    renderServices();
-}
-
-async function addTimeSlot() {
+async function removeService(id, serviceName) {
     const phone = localStorage.getItem('active_pro_user');
-    const date = document.getElementById('slot-date').value;
-    const time = document.getElementById('slot-time').value;
+    
+    // Deleta local
+    let localServices = getDB('pro_services').filter(s => s.id != id && s.name !== serviceName);
+    setDB('pro_services', localServices);
 
-    if(!date || !time) return alert("Selecione data e hora!");
+    // Deleta no Supabase
+    await _supabase.from('servicos').delete().eq('id', id);
 
-    const texto = `${date.split('-').reverse().join('/')} às ${time}`;
-    await _supabase.from('horarios_disponiveis').insert([{ pro_id: phone, data: date, hora: time, texto: texto, booked: false }]);
+    await renderServices();
+}
 
+// --- HORÁRIOS & AGENDAMENTOS ---
+async function addTimeSlot() {
+    const date = document.getElementById('slot-date')?.value;
+    const time = document.getElementById('slot-time')?.value;
+    const phone = localStorage.getItem('active_pro_user');
+
+    if (!date || !time) return alert("Selecione data e horário!");
+
+    const formattedSlot = `${date.split('-').reverse().join('/')} às ${time}`;
+
+    let slots = getDB('slots');
+    slots.push({ id: Date.now(), proPhone: phone, date, time, text: formattedSlot, booked: false });
+    setDB('slots', slots);
+
+    await _supabase.from('horarios_disponiveis').insert([{ pro_id: phone, data: date, hora: time, texto: formattedSlot, booked: false }]);
+
+    document.getElementById('slot-time').value = '';
     renderSlots();
 }
 
 async function renderSlots() {
     const phone = localStorage.getItem('active_pro_user');
-    const list = document.getElementById('slots-list');
+    const slotsList = document.getElementById('slots-list');
+    if (!slotsList) return;
 
-    let { data: slots } = await _supabase.from('horarios_disponiveis').select('*').eq('pro_id', phone).eq('booked', false);
+    let { data: dbSlots } = await _supabase.from('horarios_disponiveis').select('*').eq('pro_id', phone).eq('booked', false);
+    let localSlots = getDB('slots').filter(s => s.proPhone === phone && !s.booked);
 
-    if(!slots || slots.length === 0) {
-        list.innerHTML = '<li class="list-group-item text-muted">Nenhum horário aberto.</li>';
+    let slots = (dbSlots && dbSlots.length > 0)
+        ? dbSlots.map(s => ({ id: s.id, text: s.texto || `${s.data} às ${s.hora}` }))
+        : localSlots.map(s => ({ id: s.id, text: s.text || `${s.date} às ${s.time}` }));
+
+    if (slots.length === 0) {
+        slotsList.innerHTML = '<li class="list-group-item text-muted">Nenhum horário aberto.</li>';
         return;
     }
 
-    list.innerHTML = slots.map(s => `
+    slotsList.innerHTML = slots.map(s => `
         <li class="list-group-item d-flex justify-content-between align-items-center">
-            <span>${s.texto || s.data + ' às ' + s.hora}</span>
-            <button onclick="deleteSlot(${s.id})" class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash"></i></button>
+            <span>${s.text}</span>
+            <button onclick="removeSlot('${s.id}')" class="btn btn-sm btn-outline-danger">Excluir</button>
         </li>
     `).join('');
 }
 
-async function deleteSlot(id) {
+async function removeSlot(id) {
+    let slots = getDB('slots').filter(s => s.id != id);
+    setDB('slots', slots);
+
     await _supabase.from('horarios_disponiveis').delete().eq('id', id);
     renderSlots();
 }
 
-async function renderBookings() {
-    const phone = localStorage.getItem('active_pro_user');
+async function renderBookingsPro() {
+    const proPhone = localStorage.getItem('active_pro_user');
     const container = document.getElementById('pro-bookings-list');
+    if (!container || !proPhone) return;
 
-    let { data: bookings } = await _supabase.from('agendamentos').select('*').eq('pro_id', phone);
+    const { data: bookings } = await _supabase.from('agendamentos').select('*').eq('pro_id', proPhone);
 
-    if(!bookings || bookings.length === 0) {
-        container.innerHTML = '<p class="text-muted">Nenhum agendamento realizado ainda.</p>';
+    if (!bookings || bookings.length === 0) {
+        container.innerHTML = '<p class="text-muted">Nenhum agendamento confirmado.</p>';
         return;
     }
 
     container.innerHTML = bookings.map(b => `
-        <div class="card mb-2 p-3 border-start border-4 border-danger shadow-sm">
-            <h6 class="fw-bold text-danger mb-1">${b.nome || 'Cliente'}</h6>
-            <p class="mb-1"><strong>Tel:</strong> ${b.telefone || 'N/A'}</p>
-            <p class="mb-1"><strong>Serviço:</strong> ${b.servico} - <span class="text-success fw-bold">R$ ${parseFloat(b.valor || 0).toFixed(2)}</span></p>
-            <small class="text-primary fw-bold">Data/Hora: ${b.horario}</small>
+        <div class="card mb-2 p-3 border-start border-4 border-pink shadow-sm">
+            <h5 class="mb-1 text-pink fw-bold">${b.nome || b.cliente_nome || 'Cliente'}</h5>
+            <p class="mb-1"><strong>Tel:</strong> ${b.telefone || b.cliente_telefone || 'N/I'}</p>
+            <p class="mb-0"><strong>Serviço:</strong> ${b.servico || 'Atendimento'} - <span class="text-success fw-bold">R$ ${parseFloat(b.valor || b.preco || 0).toFixed(2)}</span></p>
+            <small class="text-primary fw-bold">Horário: ${b.horario || 'Data não informada'}</small>
         </div>
     `).join('');
 }
 
+function addExpense() {
+    const desc = document.getElementById('expense-desc')?.value.trim();
+    const val = parseFloat(document.getElementById('expense-val')?.value || 0);
+    const phone = localStorage.getItem('active_pro_user');
+
+    if (!desc || isNaN(val)) return alert("Preencha descrição e valor.");
+
+    let expenses = getDB('expenses');
+    expenses.push({ proPhone: phone, desc, val, date: new Date().toISOString().substring(0, 10) });
+    setDB('expenses', expenses);
+
+    document.getElementById('expense-desc').value = '';
+    document.getElementById('expense-val').value = '';
+    calculateFinances();
+}
+
+function calculateFinances() {
+    const phone = localStorage.getItem('active_pro_user');
+    const expenses = getDB('expenses').filter(e => e.proPhone === phone);
+    const todayStr = new Date().toISOString().substring(0, 10);
+    const monthStr = todayStr.substring(0, 7);
+
+    let dayOut = 0, monthOut = 0;
+    expenses.forEach(e => {
+        if (e.date === todayStr) dayOut += e.val;
+        if (e.date?.startsWith(monthStr)) monthOut += e.val;
+    });
+
+    if (document.getElementById('fin-day-out')) document.getElementById('fin-day-out').innerText = `R$ ${dayOut.toFixed(2)}`;
+    if (document.getElementById('fin-month-total')) document.getElementById('fin-month-total').innerText = `R$ -${monthOut.toFixed(2)}`;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-    if(localStorage.getItem('active_pro_user')) {
-        loadDashboard();
+    const activeUser = localStorage.getItem('active_pro_user');
+    if (activeUser) {
+        loadProDashboard();
         navigate('pro-dashboard-view');
     } else {
         navigate('pro-login-view');
