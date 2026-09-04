@@ -191,9 +191,12 @@ function getLocalDateString(d = new Date()) {
     return `${year}-${month}-${day}`;
 }
 
-function parseBookingDate(horario) {
-    if (!horario) return null;
-    if (!isNaN(horario)) return new Date(Number(horario));
+function parseBookingDate(horario, created_at) {
+    if (!horario && created_at) horario = created_at;
+    if (!horario) return new Date();
+
+    if (typeof horario === 'number') return new Date(horario);
+    if (!isNaN(horario) && !isNaN(parseFloat(horario))) return new Date(Number(horario));
     
     let d = new Date(horario);
     if (!isNaN(d.getTime())) return d;
@@ -206,13 +209,13 @@ function parseBookingDate(horario) {
             return new Date(dateParts[2], dateParts[1] - 1, dateParts[0], timeParts[0] || 0, timeParts[1] || 0);
         }
     }
-    return null;
+    return new Date();
 }
 
 function formatHorario(rawHorario) {
     if (!rawHorario) return 'Horário não informado';
     let dateObj = parseBookingDate(rawHorario);
-    if (!dateObj) return rawHorario;
+    if (!dateObj || isNaN(dateObj.getTime())) return rawHorario;
 
     const dia = String(dateObj.getDate()).padStart(2, '0');
     const mes = String(dateObj.getMonth() + 1).padStart(2, '0');
@@ -223,7 +226,7 @@ function formatHorario(rawHorario) {
 
 function parsePriceValue(booking) {
     const valRaw = booking.valor ?? booking.preco ?? booking.price ?? booking.val;
-    if (typeof valRaw === 'number') return valRaw;
+    if (typeof valRaw === 'number' && valRaw > 0) return valRaw;
     if (valRaw !== undefined && valRaw !== null && valRaw !== '') {
         const matchDirect = String(valRaw).match(/\d+([.,]\d+)?/);
         if (matchDirect) return parseFloat(matchDirect[0].replace(',', '.'));
@@ -392,7 +395,7 @@ function toggleEditAddress() {
     }
 }
 
-// --- GERENCIAMENTO DE SERVIÇOS INTEGRADOS AO SUPABASE E LOCALSTORAGE ---
+// --- SERVIÇOS & SUPABASE ---
 const DEFAULT_SERVICES = [
     "Aplicação de Alongamento",
     "Manutenção de Alongamento",
@@ -415,8 +418,8 @@ async function addService() {
 
     if (!name || isNaN(price) || price <= 0) return alert("Informe um nome e um valor válido!");
 
-    // Salva no Supabase e recupera o objeto gerado para pegar o ID correto
-    const { data, error } = await _supabase.from('servicos').insert([{ pro_id: phone, nome: name, preco: price, active: true }]).select();
+    const payload = { pro_id: phone, nome: name, name: name, preco: price, price: price, active: true };
+    const { data, error } = await _supabase.from('servicos').insert([payload]).select();
 
     if (error) {
         console.error("Erro ao adicionar no Supabase:", error);
@@ -445,7 +448,7 @@ async function renderServices() {
     const list = document.getElementById('services-list');
     if (!list) return;
 
-    let { data: dbServices, error } = await _supabase.from('servicos').select('*').eq('pro_id', phone);
+    let { data: dbServices } = await _supabase.from('servicos').select('*').eq('pro_id', phone);
     let localServices = getDB('pro_services').filter(s => s.proPhone === phone);
 
     let services = [];
@@ -457,13 +460,21 @@ async function renderServices() {
             price: s.preco ?? s.price, 
             active: s.active !== false
         }));
-        // Atualiza cache local com os dados vindos do Supabase
         setDB('pro_services', services.map(s => ({ ...s, proPhone: phone })));
+    } else if (localServices.length > 0) {
+        services = localServices.map(s => ({ 
+            id: s.id, 
+            name: s.name, 
+            price: s.price, 
+            active: s.active !== false
+        }));
     } else {
         const initialServices = DEFAULT_SERVICES.map(name => ({
             pro_id: phone,
             nome: name,
+            name: name,
             preco: 50.00,
+            price: 50.00,
             active: true
         }));
         
@@ -472,27 +483,11 @@ async function renderServices() {
         if (createdDbServices && createdDbServices.length > 0) {
             services = createdDbServices.map(s => ({
                 id: s.id,
-                name: s.nome,
-                price: s.preco,
+                name: s.nome || s.name,
+                price: s.preco ?? s.price,
                 active: s.active
             }));
             setDB('pro_services', services.map(s => ({ ...s, proPhone: phone })));
-        } else if (localServices.length > 0) {
-            services = localServices.map(s => ({ 
-                id: s.id, 
-                name: s.name, 
-                price: s.price, 
-                active: s.active !== false
-            }));
-        } else {
-            services = DEFAULT_SERVICES.map((name, index) => ({
-                id: Date.now() + index,
-                proPhone: phone,
-                name: name,
-                price: 50.00,
-                active: true
-            }));
-            setDB('pro_services', services);
         }
     }
 
@@ -526,15 +521,14 @@ async function editServicePrice(id, currentPrice, serviceName) {
 
     const phone = localStorage.getItem('active_pro_user');
 
-    // Tenta atualizar pelo ID e também garante pelo pro_id e nome caso o ID local seja divergente
-    let { error } = await _supabase.from('servicos').update({ preco: newPrice }).eq('id', id);
+    // Atualização completa garantindo compatibilidade das colunas 'preco' e 'price'
+    let { error } = await _supabase.from('servicos').update({ preco: newPrice, price: newPrice }).eq('id', id);
 
     if (error) {
-        console.warn("Erro ao atualizar por ID, tentando atualizar por pro_id e nome:", error);
-        await _supabase.from('servicos').update({ preco: newPrice }).eq('pro_id', phone).eq('nome', serviceName);
+        await _supabase.from('servicos').update({ preco: newPrice, price: newPrice }).eq('pro_id', phone).eq('nome', serviceName);
+        await _supabase.from('servicos').update({ preco: newPrice, price: newPrice }).eq('pro_id', phone).eq('name', serviceName);
     }
     
-    // Atualiza localmente
     let localServices = getDB('pro_services');
     let idx = localServices.findIndex(s => s.id == id || (s.name === serviceName && s.proPhone === phone));
     if (idx !== -1) {
@@ -551,6 +545,7 @@ async function toggleServiceActive(id, currentActive, serviceName) {
     let { error } = await _supabase.from('servicos').update({ active: newActiveState }).eq('id', id);
     if (error) {
         await _supabase.from('servicos').update({ active: newActiveState }).eq('pro_id', phone).eq('nome', serviceName);
+        await _supabase.from('servicos').update({ active: newActiveState }).eq('pro_id', phone).eq('name', serviceName);
     }
 
     let localServices = getDB('pro_services');
@@ -568,13 +563,14 @@ async function removeService(id, serviceName) {
     let { error } = await _supabase.from('servicos').delete().eq('id', id);
     if (error) {
         await _supabase.from('servicos').delete().eq('pro_id', phone).eq('nome', serviceName);
+        await _supabase.from('servicos').delete().eq('pro_id', phone).eq('name', serviceName);
     }
     
     setDB('pro_services', getDB('pro_services').filter(s => s.id != id && s.name !== serviceName));
     await renderServices();
 }
 
-// --- GERENCIAMENTO DE HORÁRIOS INTEGRADOS AO SUPABASE ---
+// --- HORÁRIOS & AGENDAMENTOS ---
 async function addTimeSlot() {
     const date = document.getElementById('slot-date')?.value;
     const time = document.getElementById('slot-time')?.value;
@@ -584,7 +580,7 @@ async function addTimeSlot() {
 
     const formattedSlot = `${date.split('-').reverse().join('/')} às ${time}`;
 
-    const { error } = await _supabase.from('horarios_disponiveis').insert([{ pro_id: phone, data: date, hora: time, texto: formattedSlot, booked: false }]);
+    await _supabase.from('horarios_disponiveis').insert([{ pro_id: phone, data: date, hora: time, texto: formattedSlot, booked: false }]);
     
     let slots = getDB('slots');
     slots.push({ id: Date.now(), proPhone: phone, date, time, booked: false });
@@ -692,35 +688,41 @@ async function calculateFinances() {
     const localServices = getDB('pro_services').filter(s => s.proPhone === phone);
 
     const todayStr = getLocalDateString();
-    const monthStr = todayStr.substring(0, 7);
+    const currentMonthStr = todayStr.substring(0, 7);
 
     let dayIn = 0, dayOut = 0, monthIn = 0, monthOut = 0, monthCount = 0;
 
-    if (bookings) {
+    if (bookings && bookings.length > 0) {
         bookings.forEach(b => {
             let price = parsePriceValue(b);
 
             if (price === 0 && b.servico) {
-                const foundDb = dbServices?.find(s => s.nome && b.servico.toLowerCase().includes(s.nome.toLowerCase()));
+                const foundDb = dbServices?.find(s => (s.nome || s.name) && b.servico.toLowerCase().includes((s.nome || s.name).toLowerCase()));
                 if (foundDb) {
-                    price = parseFloat(foundDb.preco || 0);
+                    price = parseFloat(foundDb.preco ?? foundDb.price ?? 0);
                 } else {
                     const foundLocal = localServices.find(s => s.name && b.servico.toLowerCase().includes(s.name.toLowerCase()));
                     if (foundLocal) price = parseFloat(foundLocal.price || 0);
                 }
             }
 
-            let bDateObj = parseBookingDate(b.horario);
-            let bDate = bDateObj ? getLocalDateString(bDateObj) : "";
+            let bDateObj = parseBookingDate(b.horario, b.created_at);
+            let bDate = getLocalDateString(bDateObj);
             
-            if (bDate === todayStr) dayIn += price;
-            if (bDate.startsWith(monthStr)) { monthIn += price; monthCount++; }
+            // Soma todos os agendamentos registrados para o mês atual
+            if (bDate.startsWith(currentMonthStr)) { 
+                monthIn += price; 
+                monthCount++; 
+            }
+            if (bDate === todayStr) {
+                dayIn += price;
+            }
         });
     }
 
     expenses.forEach(e => {
         if (e.date?.startsWith(todayStr)) dayOut += e.val;
-        if (e.date?.startsWith(monthStr)) monthOut += e.val;
+        if (e.date?.startsWith(currentMonthStr)) monthOut += e.val;
     });
 
     if (document.getElementById('fin-day-in')) document.getElementById('fin-day-in').innerText = `R$ ${dayIn.toFixed(2)}`;
